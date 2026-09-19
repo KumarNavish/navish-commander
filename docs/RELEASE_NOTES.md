@@ -4,7 +4,7 @@ This evaluation release packages Commander as a local MCP server and downloadabl
 
 Worker launch now waits asynchronously for its owned launcher, and session-ID reads avoid a redundant PID scan. Durable launch claims and receipt writes remain intact. The patch passed the existing caller-death, duplicate-launch, and artifact-validation checks.
 
-Validation: 83 core/MCP tests; 17 controlled Chromium adapter tests; three MCP checks against the extracted release bundle; strict Claude manifest validation; MCPB schema validation; zero known npm audit findings. Platform CI results are recorded separately on the published commit.
+Validation: 83 core/MCP tests; 17 controlled Chromium adapter tests; three MCP checks against the extracted release bundle; strict Claude manifest validation; MCPB schema validation; zero known npm audit findings. All six jobs in [GitHub CI run 35469104811](https://github.com/KumarNavish/navish-commander/actions/runs/35469104811) passed on code commit `7796e10`: macOS/Ubuntu on Node 22.16/24, package checks, and browser fixtures. A previous Chromium startup timeout remains recorded; its transient cause was not established.
 
 The local four-worker comparison did not meet the 2× throughput target. Its measured ratio was 0.843× against Desktop Commander 0.2.51; all four deliberate MCP-server reconnect trials recovered on Commander. This is not the requested hosted Remote Desktop Commander or real chat-agent comparison.
 

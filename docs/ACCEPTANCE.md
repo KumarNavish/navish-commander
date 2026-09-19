@@ -24,7 +24,9 @@ Manifest validation and an npm dependency audit passed locally. The audit report
 | Actual Claude Desktop installation and conversation | Not yet observed |
 | Actual ChatGPT public integration | Not deployed or submitted |
 | Public multi-user authentication and device isolation | Not implemented in the local package |
-| macOS/Linux CI matrix and packaged-artifact checks | Results must be verified on the published commit |
+| macOS/Linux CI matrix and packaged-artifact checks | Passed: all six jobs at code commit `7796e10` |
 | Independent certification | Not obtained; these are first-party engineering checks |
 
 Public GitHub availability, passing fixtures, and a valid manifest do not waive these gates. The installed personal controller and existing research jobs were not upgraded or restarted by this release work.
+
+GitHub [run 35469104811](https://github.com/KumarNavish/navish-commander/actions/runs/35469104811) passed all six jobs on code commit `7796e10e14d7fc5ca02020a0be28cf8f7e4bdd4d`. An earlier run failed because isolated Chromium did not start within ten seconds. Startup diagnostics were added; the subsequent run passed. The transient cause was not established, so this adverse observation remains part of the evidence. Later release-documentation changes do not alter the tested runtime.

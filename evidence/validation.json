@@ -31,5 +31,12 @@
   "remoteRdcComparison": "not available",
   "chatgptPublicConnector": "not deployed",
   "actualClaudeConversation": "not observed",
-  "editorialReview": "Markup AI unavailable: token is not associated with an organization"
+  "editorialReview": "Markup AI unavailable: token is not associated with an organization",
+  "githubCI": {
+    "url": "https://github.com/KumarNavish/navish-commander/actions/runs/35469104811",
+    "codeCommit": "7796e10e14d7fc5ca02020a0be28cf8f7e4bdd4d",
+    "jobsPassed": 6,
+    "jobsFailed": 0,
+    "priorAdverseRun": "35469023715: isolated Chromium startup timeout; cause not established"
+  }
 }
