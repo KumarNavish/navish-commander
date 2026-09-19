@@ -1,0 +1,9 @@
+node_modules/
+.venv/
+dist/
+.bench/
+*.log
+**/__pycache__/
+**/test-runtime-homes.json
+**/test-browser-homes.json
+**/browser-test-home.json

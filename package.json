@@ -1,0 +1,31 @@
+{
+  "name": "@kumnav/navish-commander",
+  "version": "1.5.0-rc.1",
+  "private": true,
+  "description": "Durable local execution and parallel worker orchestration over MCP",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "bin": {
+    "navish-mcp": "src/server.mjs",
+    "navish": "runtime/app/bin/navish.mjs"
+  },
+  "scripts": {
+    "test": "node scripts/test.mjs",
+    "test:mcp": "node --test test/*.test.mjs",
+    "bundle": "node scripts/bundle.mjs",
+    "benchmark": "node scripts/benchmark.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "2.1.2"
+  },
+  "overrides": {
+    "tmp": "0.2.7"
+  }
+}

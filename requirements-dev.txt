@@ -1,0 +1,2 @@
+# Optional Python sender interoperability tests; the MCP runtime is stdlib Python.
+cryptography>=46,<50

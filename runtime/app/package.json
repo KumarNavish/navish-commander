@@ -1,0 +1,18 @@
+{
+  "name": "navish-commander",
+  "version": "1.5.0-rc.1",
+  "description": "Encrypted durable desktop execution with local browser workflows and parallel workers",
+  "type": "module",
+  "bin": {
+    "navish": "bin/navish.mjs",
+    "navish-github-control": "bin/navish-github-control.mjs",
+    "navish-browser": "bin/navish-browser.py"
+  },
+  "scripts": {
+    "test": "node --test ../test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "license": "MIT"
+}

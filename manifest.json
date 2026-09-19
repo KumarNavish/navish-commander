@@ -1,0 +1,18 @@
+{
+  "manifest_version": "0.3",
+  "name": "navish-commander",
+  "display_name": "Navish Commander",
+  "version": "1.5.0-rc.1",
+  "description": "Durable local execution and recoverable parallel worker batches.",
+  "long_description": "Run user-authorized shell and file work with stable receipts and independently collectable workers. Requires Node.js 22.16+ and Python 3.10+. Commands run with your operating-system account permissions. This release candidate has no 2x Remote Desktop Commander certification and is not a hosted ChatGPT connector.",
+  "author": {"name": "KumarNavish"},
+  "homepage": "https://github.com/KumarNavish/navish-commander",
+  "license": "MIT",
+  "server": {
+    "type": "node",
+    "entry_point": "src/server.mjs",
+    "mcp_config": {"command": "node", "args": ["${__dirname}/src/server.mjs"]}
+  },
+  "compatibility": {"platforms": ["darwin", "linux"], "runtimes": {"node": ">=22.16.0"}},
+  "tools_generated": true
+}

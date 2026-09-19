@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+const [root,home,inputFile]=process.argv.slice(2);
+const {paths}=await import(pathToFileURL(path.join(root,'app/src/config.mjs')));
+const {callTool}=await import(pathToFileURL(path.join(root,'app/src/core.mjs')));
+const P=paths({HOME:home});
+const input=JSON.parse(fs.readFileSync(inputFile,'utf8'));
+const receipt=await callTool(input,P);
+console.log(JSON.stringify(receipt));

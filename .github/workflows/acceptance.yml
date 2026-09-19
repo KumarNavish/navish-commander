@@ -1,0 +1,56 @@
+name: release acceptance
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: ['22.16.0', '24']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts
+      - run: python -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=high
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts
+      - run: npm run bundle
+      - run: NAVISH_MCP_SERVER=dist/navish-commander/src/server.mjs npm run test:mcp
+      - uses: actions/upload-artifact@v4
+        with:
+          name: local-mcp-release-candidate
+          path: |
+            dist/*.mcpb
+            dist/*.zip
+            dist/SHA256SUMS.txt
+  browser-fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: CHROMIUM_BIN=/usr/bin/google-chrome python3 runtime/test/runtime/run_browser_tests.py

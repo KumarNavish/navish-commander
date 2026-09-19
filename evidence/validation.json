@@ -1,0 +1,35 @@
+{
+  "schema": "navish.release-evidence/v1",
+  "version": "1.5.0-rc.1",
+  "recordedAt": "2026-09-19T20:58:05.946734+00:00",
+  "runtimeSourceSha256": "c509f82a7d2e19807f8a970359d5bdd219af165295f05be264f64433dc5f97bd",
+  "platform": "darwin-arm64",
+  "node": "26.8.2",
+  "coreAndMcpTests": {
+    "passed": 83,
+    "failed": 0
+  },
+  "chromiumFixtureTests": {
+    "passed": 17,
+    "failed": 0,
+    "scope": "real Chromium through test-only Ego adapter; not installed Ego Lite"
+  },
+  "bundleMcpTests": {
+    "passed": 3,
+    "failed": 0
+  },
+  "claudeManifest": {
+    "strict": true,
+    "errors": 0,
+    "warnings": 0
+  },
+  "mcpbManifest": "validated",
+  "dependencyAudit": {
+    "knownVulnerabilities": 0
+  },
+  "productCertification": false,
+  "remoteRdcComparison": "not available",
+  "chatgptPublicConnector": "not deployed",
+  "actualClaudeConversation": "not observed",
+  "editorialReview": "Markup AI unavailable: token is not associated with an organization"
+}

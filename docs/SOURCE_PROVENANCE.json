@@ -1,0 +1,7 @@
+{
+  "sourceRepository": "https://github.com/KumarNavish/supp-page-ry4mu8",
+  "sourceCommit": "bb303b513fb479a9e98c1e5d18ab4e72f8b33520",
+  "importedRuntime": "runtime/app",
+  "baseVersion": "1.4.0",
+  "importPolicy": "Tracked source and tests only; no installed state, private keys, control repository, or raw user evidence."
+}
