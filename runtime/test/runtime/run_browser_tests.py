@@ -93,7 +93,9 @@ def main():
         while not active.exists() and browser.poll() is None and time.monotonic() < deadline:
             time.sleep(.03)
         if not active.exists():
-            raise RuntimeError('isolated Chromium did not start')
+            log.flush()
+            detail = (directory / 'chrome.log').read_text(errors='replace')[-4000:]
+            raise RuntimeError(f'isolated Chromium did not start (exit={browser.poll()}):\n{detail}')
         port, browser_path = active.read_text().splitlines()
         endpoint = f'ws://127.0.0.1:{port}{browser_path}'
         (directory / 'fixture.html').write_bytes(HTML)
