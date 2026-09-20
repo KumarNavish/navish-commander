@@ -16,6 +16,8 @@ jobs:
       - run: node scripts/verify-current-connector.mjs evidence/personal-0.4.1-final-inline.json evidence/personal-0.4.1-delivery.json evidence/personal-0.4.1-final-plan.json
       - run: node scripts/verify-chat-documents.mjs
   runtime:
+    env:
+      NAVISH_CHROMIUM: ${{ matrix.os == 'ubuntu-latest' && '/usr/bin/google-chrome' || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }}
     strategy:
       fail-fast: false
       matrix:
@@ -37,6 +39,8 @@ jobs:
       - run: npm test
       - run: npm audit --omit=dev --audit-level=high
   bundle:
+    env:
+      NAVISH_CHROMIUM: /usr/bin/google-chrome
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

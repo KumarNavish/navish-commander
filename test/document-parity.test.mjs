@@ -20,7 +20,7 @@ async function lab(){
   const connect=async()=>{client=new Client({name:'document-acceptance',version:'1'});const transport=new StdioClientTransport({command:process.execPath,args:[server],env,stderr:'pipe'});transport.stderr?.resume();await client.connect(transport);};
   await connect();
   const raw=(name,args)=>client.callTool({name:'commander_'+name,arguments:{device:'local',...args}});
-  const call=async(name,args)=>{const r=await raw(name,args);assert.equal(r.isError,false,JSON.stringify(r));return r.structuredContent.result;};
+  const call=async(name,args)=>{const r=await raw(name,args);assert.equal(r.isError,false,JSON.stringify(r));assert.equal(r.structuredContent.state,'completed',JSON.stringify(r));return r.structuredContent.result;};
   return {root,raw,call,id:()=>`doc-${++counter}`,restart:async()=>{await client.close();await connect();},close:async()=>{await client.close();fs.rmSync(root,{recursive:true,force:true});}};
 }
 test('DOCX round trip: exact XML edits, invalid/stale edits preserve source, replay survives restart',async()=>{
@@ -85,7 +85,7 @@ test('MCP emits native images once; PDF extraction and URL reads use bounded con
     const png=new PNG({width:2,height:2});png.data.fill(255);const buffer=PNG.sync.write(png),p=l.root+'/image.png';fs.writeFileSync(p,buffer);
     const img=await l.raw('read_file',{path:p});assert.equal(img.content[1].type,'image');assert.equal(img.content[1].data,buffer.toString('base64'));assert.equal(JSON.stringify(img.structuredContent).includes(buffer.toString('base64')),false);
     const noise=new PNG({width:600,height:600});crypto.randomFillSync(noise.data);const large=l.root+'/large.png';fs.writeFileSync(large,PNG.sync.write(noise));
-    const thumbnail=await l.raw('read_file',{path:large});assert.equal(thumbnail.structuredContent.result.resized,true);assert.equal(thumbnail.content[1].mimeType,'image/jpeg');assert.ok(Buffer.byteLength(JSON.stringify(thumbnail))<1048576);
+    const thumbnail=await l.raw('read_file',{path:large});assert.equal(thumbnail.structuredContent.state,'completed',JSON.stringify(thumbnail));assert.equal(thumbnail.structuredContent.result.resized,true);assert.equal(thumbnail.content[1].mimeType,'image/jpeg');assert.ok(Buffer.byteLength(JSON.stringify(thumbnail))<1048576);
     const doc=await PDFDocument.create(),page=doc.addPage();page.drawImage(await doc.embedPng(buffer),{x:10,y:10,width:100,height:100});const pdf=l.root+'/image.pdf';fs.writeFileSync(pdf,await doc.save());
     const extracted=await l.raw('read_file',{path:pdf,options:{extractImages:true}});assert.equal(extracted.content[1].type,'image');assert.equal(extracted.content[1].mimeType,'image/png');
     httpServer=http.createServer((req,res)=>{if(req.url==='/redirect'){res.writeHead(302,{location:'/text'});res.end();}else if(req.url==='/pdf'){res.writeHead(200,{'content-type':'application/pdf'});res.end(fs.readFileSync(pdf));}else{res.end('first\nsecond\nthird');}});
