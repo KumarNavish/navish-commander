@@ -1,6 +1,12 @@
 # Acceptance ledger
 
-## Current rc.3 / connector 0.1.2 candidate
+## Current rc.3 / connector 0.1.3 candidate
+
+The [workflow continuation](WORKFLOW_REMEDIATION.md) attempts all six previously unsubmitted tasks using Latest + Extra High. Four complete their required outcomes, including actual code repair and both four-worker batches; two code tasks remain incomplete. A completed write omitted from the chat export exposed a false no-change report. Connector 0.1.3 adds durable response identity and receipt-recovery guidance, with three regressions reproduced before the fix. The full suite passes 120 tests and the extracted bundle passes 27 tests. New source-bound confirmation evidence is kept separate from the unchanged continuation and historical performance records. Fully unattended certification remains unachieved.
+
+The refreshed 0.1.3 comparison verifies all 160 workers and measures 2.0119× throughput versus hosted RDC, but its paired 95% interval is 1.7668–2.1605×. The strict 2× throughput gate therefore fails for this run. The separately frozen delivery gate passes: 0/30 Commander failures versus 10/30 RDC duplicate-effect failures, with normal and reconnect scenarios passing for both. Run `node scripts/verify-current-connector.mjs` to verify these current source-bound records. This is deterministic execution evidence, not a model productivity comparison.
+
+## Historical rc.3 / connector 0.1.2 reader repair
 
 The [Latest + Extra High conversation evaluation](CHAT_EFFICACY.md) completed ten baseline conversations and two separate repair confirmations, with 116 exported calls. It found a reproducible large-file pagination defect in rc.2. The rc.3 repair passed both fresh read-only conversations, 117 runtime/MCP tests and 24 extracted-bundle tests. Six planned mutation tasks were unrun; UI-export defects and uncorroborated denial reports remain recorded. The rc.2/0.1.1 throughput, delivery, and earlier conversation evidence below remains tied to its original source. It is not comparative acceptance of this changed candidate. Current package integrity and historical performance predicates are separate CI checks. Fully unattended certification remains unachieved.
 
@@ -25,7 +31,7 @@ Final release results are recorded against source revision `55e71d443d003a1c65ef
 | Gate | Evidence/status |
 | --- | --- |
 | Real hosted RDC comparison | Executed through OAuth and Streamable HTTP |
-| 2× throughput in the defined execution workload | PASS: personal HTTPS connector 2.067× (95% interval 2.010–2.186×); local plugin 2.80× staged and 3.11× inline |
+| Historical rc.2/0.1.1 2× throughput in the defined execution workload | PASS for those older bytes: personal HTTPS connector 2.067× (95% interval 2.010–2.186×); local plugin 2.80× staged and 3.11× inline. Current 0.1.3 result is above. |
 | At least 50% fewer failures under the defined delivery faults | PASS for both personal HTTPS and local routes: 0/30 versus 10/30 failures in each fixed suite (all RDC failures were duplicate effects) |
 | Duplicate suppression, caller loss, output draining, artifact verification, cancellation | Automated runtime/MCP regressions |
 | Claude Code recognizes the plugin and connects to its MCP server | Observed through `claude --plugin-dir … mcp list` |
