@@ -62,6 +62,8 @@ Text line offsets are now resolved before applying the response byte limit. Resp
 
 ## Recovery and execution semantics
 
+Connector 0.1.3 persists `connectorOperation` in new responses, including completed reads. It identifies the original tool, target and relay operation ID. Use that known ID with `commander_connector_receipt` to retrieve the exact response without dispatching again. After a denied action, reconcile already dispatched operations read-only before reporting their effects. [Response identity and partial-effect recovery](RESPONSE_RECOVERY.md) describes the contract and its limits.
+
 A mutating request needs a stable `callId`. The relay atomically records its canonical intent and rejects the same ID with different arguments. The agent writes and fsyncs a local journal before dispatch and retains the result before uploading it. A lost upload acknowledgement resends the recorded result. On an agent restart, a previously running mutation is reconciled through its original Commander receipt, never automatically executed again. The installed tool catalog determines mutation semantics.
 
 The relay checks the agent heartbeat before admitting new work. Unstarted requests expire after ten minutes. A queued response is not a completed operation: inspect `commander_connector_receipt` with its exact operation ID, or the original mutation `callId` if the first response was lost. A lost storage acknowledgement is reported as uncertain, never as a replayable failure. `commander_receipt` reports the original call; use batch/process observations and artifact checks for current state. A completed launch is not a completed worker or user goal.

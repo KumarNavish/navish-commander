@@ -1,3 +1,11 @@
+# Personal connector 0.1.3 / unchanged runtime 1.5.0-rc.3
+
+New connector responses persist their original operation ID, request hash, tool and applicable target identifiers before upload. Clients can detect a mismatched result and recover the original stored response without repeating execution. Existing journal records and failure/uncertainty states retain their meaning. Recovery instructions require checking actual partial effects before reporting that no changes occurred.
+
+All six previously suspended independent tasks were attempted in Latest + Extra High chats. Four completed: inventory reconciliation, a tested graph repair, four concurrent 100,000-row workers, and correct mixed-success batch reporting. Two code tasks remain incomplete. The [continuation and recovery record](WORKFLOW_REMEDIATION.md) preserves the pagination task's omitted completed write and false no-change report, plus the mixed-success chat's autonomous parameter corrections.
+
+Three new regressions fail before the patch and pass afterward; 120 runtime/MCP tests and 27 extracted-bundle tests pass. A fresh hosted RDC comparison verifies all 160 workers and measures 2.0119× throughput, but its 95% interval (1.7668–2.1605×) fails the strict 2× gate. The controlled delivery suite passes for Commander with 0/30 failures versus RDC's 10/30 duplicate effects. This is a connector source release; published `v1.5.0-rc.3` ZIP/MCPB assets remain immutable. Broad unattended certification remains unestablished.
+
 # Runtime 1.5.0-rc.3 / personal connector 0.1.2
 
 A real Latest + Extra High ChatGPT task could not retrieve the last 470 lines of a 1,300-line file because the runtime clipped the file before applying line offsets. The reader now locates the requested line first using bounded-memory scanning, then limits returned bytes. Continuation metadata distinguishes a complete page from an incomplete line and EOF. UTF-8 and CRLF boundaries are preserved.

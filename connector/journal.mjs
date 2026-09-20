@@ -10,6 +10,21 @@ function save(file,value){
   fs.renameSync(tmp,file);
   const dir=fs.openSync(path.dirname(file),'r');try{fs.fsyncSync(dir);}finally{fs.closeSync(dir);}
 }
+function correlate(job,response){
+  let value=response?.structuredContent;
+  if(!value){try{value=JSON.parse(response.content.find(c=>c.type==='text').text);}catch{}}
+  if(!value||typeof value!=='object'||Array.isArray(value))
+    return toolResult({state:'uncertain',code:'MCP_RESULT_NOT_STRUCTURED',operationId:job.id,retrySafe:false},true);
+  // Persist the request identity with the result before upload. A client can
+  // detect a misplaced output and recover this exact operation without replay.
+  // Never echo command bodies, file contents, environment or owner metadata.
+  const connectorOperation={operationId:job.id,toolName:job.name,requestSha256:job.fingerprint};
+  for(const key of ['device','path','callId','sessionId','batchId'])
+    if(typeof job.args[key]==='string')connectorOperation[key]=job.args[key];
+  const correlated={...value,connectorOperation};
+  return {...response,...toolResult(correlated,response.isError===true),
+    content:[{type:'text',text:JSON.stringify(correlated)},...(response.content??[]).filter(c=>c.type!=='text')]};
+}
 export async function executeJournaledJob({job,stateDir,call,upload,now=()=>Date.now()}){
   if(!/^[a-f0-9]{64}$/.test(job.id??'')||sha(canonical({name:job.name,args:job.args}))!==job.fingerprint||
     !Number.isSafeInteger(job.expiresAt)||typeof job.mutating!=='boolean'||
@@ -31,6 +46,7 @@ export async function executeJournaledJob({job,stateDir,call,upload,now=()=>Date
       try{response=await call(job.name,job.args);}
       catch{response=toolResult({state:'uncertain',operationId:job.id,callId:job.args.callId??null,code:'MCP_RESPONSE_NOT_OBSERVED',retrySafe:false},true);}
     }
+    response=correlate(job,response);
     record={id:job.id,fingerprint:job.fingerprint,state:'finished',response};save(file,record);
   }
   await upload({id:job.id,fingerprint:job.fingerprint,response:record.response});

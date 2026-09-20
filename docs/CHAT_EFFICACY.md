@@ -1,5 +1,7 @@
 # Real ChatGPT efficacy evaluation — 20 September 2026
 
+Follow-up: all six tasks recorded here as unrun were subsequently attempted independently. See the [workflow continuation and response-recovery repair](WORKFLOW_REMEDIATION.md). The original results below remain unchanged.
+
 Twelve real ChatGPT conversations used the personal Navish Commander connector with **Latest + Extra High** selected. They exposed a reproducible large-file reader defect and incomplete execution of analysis tasks. The reader repair then passed two new real-chat checks. These results do **not** establish fully unattended operation or a general advantage over RDC.
 
 The [machine-readable record](../evidence/chat-efficacy-extra-high-20260920.json) contains all 18 assignments, prompts, synthetic-input hashes, assistant answers, sanitized tool exports, host-journal observations, scoring, and evaluator corrections. Six assignments were never submitted. No paid API, new subscription, credit purchase, or hosting upgrade was used; conversations consumed the existing account allowance.

@@ -128,6 +128,42 @@ test('lost upload acknowledgement never reexecutes a journaled mutation; restart
     assert.deepEqual(observed,[{n:'commander_receipt',a:{callId:'once'}}]);assert.equal(recovered.structuredContent.state,'uncertain');
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+test('completed reads carry their durable operation identity through receipt recovery',async()=>{
+  const c=lab(),dir=fs.mkdtempSync(path.join(os.tmpdir(),'navish-call-origin-'));
+  await c.store.setJSON('agent/heartbeat',{at:Date.now()});
+  const q=createQueue({...c,waitMs:0});let calls=0;
+  try{
+    const args={device:'local',path:'/tmp/synthetic-a',offset:0,length:2,maxBytes:100};
+    const queued=await q.invoke('commander_read_file',args),id=queued.structuredContent.operationId;
+    const job=await c.store.get('requests/'+id);
+    const reply=await executeJournaledJob({job,stateDir:dir,call:async()=>{calls++;return toolResult({state:'completed',result:{path:args.path,content:'observed'}});},upload:q.complete});
+    assert.deepEqual(reply.structuredContent.connectorOperation,{operationId:id,toolName:'commander_read_file',requestSha256:sha(canonical({name:job.name,args})),device:'local',path:args.path});
+    assert.deepEqual(JSON.parse(reply.content[0].text),reply.structuredContent);
+    const recovered=await q.receipt(id);assert.deepEqual(recovered,reply);assert.equal(calls,1);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(dir,id+'.json'))).response.structuredContent.connectorOperation.operationId,id);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('concurrent completed reads retain distinct origins even when content is identical',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'navish-call-order-'));
+  try{
+    const jobs=['first','second'].map((x,i)=>{const args={device:'local',path:'/tmp/'+x};return {id:sha(x),name:'commander_read_file',args,mutating:false,fingerprint:sha(canonical({name:'commander_read_file',args})),expiresAt:Date.now()+60000};});
+    const results=await Promise.all(jobs.map(job=>executeJournaledJob({job,stateDir:dir,call:async()=>toolResult({state:'completed',result:{content:'same'}}),upload:async()=>{}})));
+    assert.deepEqual(results.map(r=>r.structuredContent.connectorOperation.path),['/tmp/first','/tmp/second']);
+    assert.notEqual(results[0].structuredContent.connectorOperation.operationId,results[1].structuredContent.connectorOperation.operationId);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('correlation keeps failed outcomes and excludes command bodies and secrets',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'navish-call-failure-'));
+  const args={device:'local',callId:'failed-call',sessionId:'failed-session',cwd:'/tmp/fixture',command:'PRIVATE_COMMAND_MARKER',env:{SECRET:'PRIVATE_ENV_MARKER'}};
+  const name='commander_start_process',job={id:sha('mutation:'+args.callId),name,args,mutating:true,fingerprint:sha(canonical({name,args})),expiresAt:Date.now()+60000};
+  try{
+    const reply=await executeJournaledJob({job,stateDir:dir,call:async()=>toolResult({state:'failed',operationState:'failed',reason:'synthetic validation failure'},true),upload:async()=>{}});
+    assert.equal(reply.isError,true);assert.equal(reply.structuredContent.state,'failed');
+    assert.equal(reply.structuredContent.connectorOperation.sessionId,args.sessionId);
+    assert.equal(reply.structuredContent.connectorOperation.callId,args.callId);
+    assert.ok(!JSON.stringify(reply).includes('PRIVATE_'));
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
 test('relay queue to real stdio MCP preserves exact-once file effect and four worker artifacts',async()=>{
   const c=lab(),dir=fs.mkdtempSync(path.join(os.tmpdir(),'navish-relay-e2e-'));
   const client=new Client({name:'relay-e2e',version:'1'});
