@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "scope": "One real Codex repository job over local MCP; not a ChatGPT-originated job or certification",
+  "sourceCommit": "278e7dfca1a346c68d7e363adf20ff3124ee5194",
+  "jobId": "live-job-cli",
+  "client": {
+    "version": "0.155.0-alpha.9.2",
+    "model": "gpt-6-astra",
+    "reasoningEffort": "xhigh",
+    "authentication": "ChatGPT",
+    "sandbox": "workspace-write",
+    "shellNetworkAccess": false
+  },
+  "initiatingMcpClientDisconnected": true,
+  "freshMcpClientRecoveredStatus": true,
+  "startedAt": "2026-09-20T17:36:51.661Z",
+  "finishedAt": "2026-09-20T17:43:50.775Z",
+  "terminalState": "needs_attention",
+  "commandsObserved": 21,
+  "agentReport": {
+    "outcome": "needs_attention",
+    "summary": "Implemented read-only job CLI commands, validation, bounded patches, documentation and isolated tests. CLI regressions: 8/8 passed. npm test: 133/137 passed; cached Python rerun resolved two failures. No commits or pushes.\n",
+    "remaining": [
+      "Full-suite channel test is blocked by sandbox localhost listen EPERM.",
+      "Unchanged connector catalog test expects 11 tools but receives 15; full-suite validation remains incomplete."
+    ]
+  },
+  "declaredChecksExecutedByJob": 0,
+  "artifact": {
+    "patchSha256": "eeffd7ec737173427327941a59cfb5ca4c38d0c3fcb48333c36eb1aa3e898b5a",
+    "patchBytes": 16924,
+    "files": [
+      "docs/AGENT_JOBS.md",
+      "runtime/app/bin/navish.mjs",
+      "test/job-cli.test.mjs"
+    ]
+  },
+  "independentPatchValidation": {
+    "reviewed": true,
+    "gitApplyCheck": "passed",
+    "focusedCliTests": 8,
+    "passed": 8,
+    "environment": "Codex :workspace profile including managed requirements",
+    "command": "codex sandbox --permission-profile :workspace --include-managed-config -- node --test test/job-cli.test.mjs"
+  },
+  "limitations": [
+    "Original job remains needs_attention; its terminal record was not rewritten.",
+    "Job skipped follow-up checks because its executor reported incomplete validation.",
+    "A missing explicit profile in the independent verifier was found during integration, fixed, and added to actual-CLI preflight.",
+    "No current-source RDC speed or reliability claim."
+  ]
+}

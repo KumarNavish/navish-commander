@@ -22,6 +22,45 @@ Call `commander_job_status` with the same `jobId`. If the chat lost that ID,
 work or create mutation receipts. `includePatch: true` returns the patch;
 larger patches continue at `patch.nextOffset`.
 
+The local terminal can recover the same durable records without a chat session:
+
+```sh
+navish jobs
+navish jobs --limit 5
+navish job my-job
+navish job my-job --patch
+```
+
+Replace `my-job` with the returned `jobId`. `jobs` lists the newest jobs first,
+defaults to 10 results, and accepts a decimal integer `--limit` from 1 to 50.
+`job` requires one ID; extra arguments, unknown or repeated flags, and malformed
+limits are errors. IDs use 1 to 100 letters, digits, dots, underscores or hyphens,
+cannot be `.` or `..`, and cannot start with a hyphen in this CLI.
+
+Both commands print the repeatable observation API's JSON envelope: the list is
+at `result.jobs`, and a single job's lifecycle state is at `result.state`.
+Each invocation reads current state. These commands observe local state only,
+using the normal `NAVISH_CONFIG_DIR`, `NAVISH_STATE_DIR` and `NAVISH_DATA_DIR`
+settings. They do not start, cancel or resume jobs or create mutation receipts.
+Normal configuration initialization and observation audit logging still apply.
+
+`--patch` includes `result.patch` for terminal jobs and reads at most the first
+16,384 bytes. Its `output`, `offset`, `nextOffset`, `totalBytes` and `truncated`
+fields identify the returned window. A missing patch file returns an empty
+window; active and unsubmitted jobs have no `patch` field. Larger patches can
+be continued through `commander_job_status` with `includePatch: true`,
+`patchOffset` set to the previous `nextOffset`, and `maxPatchBytes: 16384`.
+
+Exit statuses for `navish jobs` and `navish job`:
+
+| Exit status | Meaning |
+| --- | --- |
+| `0` | Observation succeeded, including an empty list or an unknown ID (`result.state: "unsubmitted"`). A job in `needs_attention`, `cancelled` or `uncertain` also returns `0`: inspect `result.state` to assess the job. |
+| `1` | Invalid CLI arguments or an unexpected CLI error. A diagnostic is written to stderr. |
+| `2` | Observation failed, for example because a durable record could not be read or parsed. The JSON envelope has `state: "failed"` and a `reason`. |
+
+An observation's success is not a claim that the engineering goal is complete.
+
 | State | What is observed |
 | --- | --- |
 | `launching` / `running` | The executor is being started or is still working. |

@@ -36,7 +36,7 @@ export function executorPolicy(executable,cwd){
   const policy=['-c','forced_login_method="chatgpt"','-c','model_provider="openai"','-c','approval_policy="never"',
     '-c','sandbox_mode="workspace-write"','-c','sandbox_workspace_write.network_access=false','-c','sandbox_workspace_write.writable_roots=[]',
     '-c','features.apps=false','-c','features.browser_use=false','-c','features.computer_use=false',
-    '-c','features.multi_agent=false','-c','web_search="disabled"','-c','model_reasoning_effort="xhigh"'];
+    '-c','agents.enabled=false','-c','web_search="disabled"','-c','model_reasoning_effort="xhigh"'];
   const invoke=args=>spawnSync(executable,[...policy,...args],{cwd,env,encoding:'utf8',timeout:15000,maxBuffer:1024*1024});
   const login=invoke(['login','status']);
   if(login.status!==0||!/^Logged in using ChatGPT\s*$/m.test(login.stdout+login.stderr))fail('CHATGPT_CODEX_LOGIN_REQUIRED');
@@ -57,6 +57,10 @@ export function executorPolicy(executable,cwd){
   const effective=invoke(['mcp','list','--json']);
   try{const list=JSON.parse(effective.stdout);if(effective.status!==0||!Array.isArray(list)||list.some(s=>s.enabled!==false))fail('CODEX_EXTERNAL_TOOLS_NOT_DISABLED');}
   catch{fail('CODEX_EXTERNAL_TOOLS_NOT_DISABLED');}
+  // Check the actual independent-verification interface before accepting a
+  // model-backed job. --include-managed-config requires an explicit profile.
+  const sandbox=invoke(['sandbox','--permission-profile',':workspace','--include-managed-config','-C',cwd,'--',process.execPath,'-e','process.exit(0)']);
+  if(sandbox.status!==0)fail('CODEX_CHECK_SANDBOX_UNAVAILABLE');
   return policy;
 }
 function normalize(args){

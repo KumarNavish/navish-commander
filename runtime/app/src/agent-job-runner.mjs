@@ -86,7 +86,7 @@ try{
     publish({phase:'verifying',agentReport:report});
     for(const check of plan.checks){
       if(cancelled||timedOut)break;
-      const result=await execute([...plan.policy,'sandbox','--include-managed-config','-C',plan.workspace,'--',...check.argv]);
+      const result=await execute([...plan.policy,'sandbox','--permission-profile',':workspace','--include-managed-config','-C',plan.workspace,'--',...check.argv]);
       publish({checks:[...state.checks,{name:check.name,argv:check.argv,exitCode:result.exitCode,output:result.output.slice(-4096),passed:result.exitCode===0}]});
     }
   }

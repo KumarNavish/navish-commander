@@ -8,7 +8,7 @@ if(args.includes('login')){console.log(process.env.NAVISH_FIXTURE_LOGIN==='api'?
 const externalDisabled=args.some(a=>a.startsWith('mcp_servers={')&&a.includes('"external-fixture"={command="/usr/bin/false",enabled=false}'));
 if(args.includes('mcp')){console.log(JSON.stringify([{name:'external-fixture',transport:{type:'stdio'},enabled:!externalDisabled}]));process.exit(0);}
 if(args.includes('sandbox')){
-  if(!args.includes('--include-managed-config'))process.exit(92);
+  if(!args.includes('--include-managed-config')||!args.includes('--permission-profile')||args[args.indexOf('--permission-profile')+1]!==':workspace')process.exit(92);
   const command=args.slice(args.indexOf('--')+1);
   const r=spawnSync(command[0],command.slice(1),{stdio:'inherit'});process.exit(r.status??93);
 }
