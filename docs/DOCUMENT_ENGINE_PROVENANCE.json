@@ -1,0 +1,27 @@
+[
+  {
+    "file": "runtime/app/src/vendor-docx.mjs",
+    "upstreamPackage": "@wonderwhy-er/desktop-commander",
+    "version": "0.2.51",
+    "upstreamPath": "dist/utils/files/docx.js",
+    "upstreamSha256": "bb43669c1fce89e8ffeb64d931c054e4733d4127b441aef00bea034cf5a28c50",
+    "license": "MIT",
+    "localChanges": [
+      "Preserve newlines and indentation inside Word text nodes during XML compaction"
+    ]
+  },
+  {
+    "file": "runtime/app/src/vendor-excel.mjs",
+    "upstreamPackage": "@wonderwhy-er/desktop-commander",
+    "version": "0.2.51",
+    "upstreamPath": "dist/utils/files/excel.js",
+    "upstreamSha256": "85ee955845e98dec3aaffe3a88a26a30dde271152b3e96ac2f0e3aa7a9aa6297",
+    "license": "MIT",
+    "localChanges": [
+      "Use actual worksheet coordinates for sparse append and pagination",
+      "Expose formula expressions and cached results",
+      "Validate cell bounds and cap read cell counts",
+      "Normalize lowercase column references"
+    ]
+  }
+]

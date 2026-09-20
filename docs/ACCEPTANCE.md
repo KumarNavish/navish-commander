@@ -1,6 +1,10 @@
 # Acceptance ledger
 
-## Current 1.6.0-rc.3 / connector 0.3.0 core tools
+## Development candidate 1.6.0-rc.4 / connector 0.4.0
+
+Adds native DOCX, XLSX, PDF, image and URL workflows. Document writes use staged validation and the existing durable call receipts. Four MCP document regressions cover Word and Excel edits, invalid and stale inputs, PDF page operations, native images, URL reads and reconnection. The full local suite passes 141 tests. This is functional evidence; final hosted RDC comparison, extracted-package checks and actual-chat acceptance are recorded separately as they complete.
+
+## Historical 1.6.0-rc.3 / connector 0.3.0 core tools
 
 Adds 19 native MCP tools for directory access, multi-file reads, precise text edits, metadata, persistent search, interactive processes, configuration and audit inspection. Four isolated MCP workflow regressions cover edits and replay, search and reconnect, timeout and cancellation, and exactly-once interactive input. The full local suite passes 137 tests. This closes concrete tool-interface gaps; it does not establish full RDC parity or a new performance result. [Capability coverage](RDC_CAPABILITIES.md).
 

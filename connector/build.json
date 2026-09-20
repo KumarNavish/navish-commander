@@ -1,6 +1,6 @@
 {
-  "version": "0.3.0",
-  "runtimeVersion": "1.6.0-rc.3",
+  "version": "0.4.0",
+  "runtimeVersion": "1.6.0-rc.4",
   "status": "evaluation-candidate",
-  "sourceSha256": "d326eb496666c61d8135774eb456d1c4b14356891fcc60fb882918556a135921"
+  "sourceSha256": "e190ca45866e0e4abc5bfa1e7c0993525742d653383e5d5f8ec392ed65e4ec9a"
 }

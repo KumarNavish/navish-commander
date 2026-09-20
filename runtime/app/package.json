@@ -1,6 +1,6 @@
 {
   "name": "navish-commander",
-  "version": "1.6.0-rc.3",
+  "version": "1.6.0-rc.4",
   "description": "Encrypted durable desktop execution with local browser workflows and parallel workers",
   "type": "module",
   "bin": {
@@ -14,5 +14,20 @@
   "engines": {
     "node": ">=22.16.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "exceljs": "4.4.0",
+    "fast-xml-parser": "5.11.1",
+    "markdown-it": "14.3.2",
+    "pdf-lib": "1.17.1",
+    "pizzip": "3.2.0",
+    "pngjs": "7.0.0",
+    "puppeteer-core": "25.11.0",
+    "unpdf": "1.8.1"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "11.1.1"
+    }
+  }
 }
