@@ -1,0 +1,2239 @@
+{
+  "schema": "navish.chatgpt-full-access-acceptance/v1",
+  "date": "2026-09-20",
+  "permission": {
+    "at": "2026-09-20T13:51:28.943013+00:00",
+    "app": "Navish Commander",
+    "permission": "full_access",
+    "toolResult": "updated",
+    "explicitUserRequest": true,
+    "readback": {
+      "at": "2026-09-20T14:13:42.752522+00:00",
+      "status": "found",
+      "appPermission": "Allow all actions",
+      "globalPermission": "Allow low-risk actions",
+      "appSpecificOverride": true
+    }
+  },
+  "connectorVersion": "0.1.1",
+  "connectorSourceSha256": "346ba2324e4427f1e31dda7558646716050175f777525dad97bb2f350fc307e1",
+  "runtimeSourceSha256": "761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615",
+  "installedSourceSha256": "385070a1c02dd981023b73e91f6ab1fbc3d224c9abf43f5a6d4868a5ea2d03fd",
+  "plan": {
+    "schema": "navish.unattended-chat-plan/v1",
+    "createdAt": "2026-09-20T13:51:28.943013+00:00",
+    "id": "chat-full-640cc9759d0e",
+    "root": "$FIXTURE",
+    "device": "local",
+    "append": {
+      "callId": "chat-full-640cc9759d0e-append",
+      "path": "$FIXTURE/append.txt",
+      "content": "exactly-once\n",
+      "mode": "append"
+    },
+    "batch": {
+      "callId": "chat-full-640cc9759d0e-start",
+      "batchId": "chat-full-640cc9759d0e-batch",
+      "workers": [
+        {
+          "id": "alpha",
+          "role": "isolated acceptance worker",
+          "cwd": "$FIXTURE/alpha",
+          "transport": "pipe",
+          "command": "sleep 2; printf 'alpha acceptance complete\\n' > artifact.txt",
+          "artifacts": [
+            {
+              "path": "artifact.txt",
+              "sha256": "9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417"
+            }
+          ],
+          "expectedContent": "alpha acceptance complete\n"
+        },
+        {
+          "id": "beta",
+          "role": "isolated acceptance worker",
+          "cwd": "$FIXTURE/beta",
+          "transport": "pipe",
+          "command": "sleep 2; printf 'beta acceptance complete\\n' > artifact.txt",
+          "artifacts": [
+            {
+              "path": "artifact.txt",
+              "sha256": "232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6"
+            }
+          ],
+          "expectedContent": "beta acceptance complete\n"
+        },
+        {
+          "id": "gamma",
+          "role": "isolated acceptance worker",
+          "cwd": "$FIXTURE/gamma",
+          "transport": "pipe",
+          "command": "sleep 2; printf 'gamma acceptance complete\\n' > artifact.txt",
+          "artifacts": [
+            {
+              "path": "artifact.txt",
+              "sha256": "c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55"
+            }
+          ],
+          "expectedContent": "gamma acceptance complete\n"
+        },
+        {
+          "id": "delta",
+          "role": "isolated acceptance worker",
+          "cwd": "$FIXTURE/delta",
+          "transport": "pipe",
+          "command": "sleep 2; printf 'delta acceptance complete\\n' > artifact.txt",
+          "artifacts": [
+            {
+              "path": "artifact.txt",
+              "sha256": "1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553"
+            }
+          ],
+          "expectedContent": "delta acceptance complete\n"
+        }
+      ]
+    },
+    "failure": {
+      "callId": "chat-full-640cc9759d0e-fail-start",
+      "sessionId": "chat-full-640cc9759d0e-fail",
+      "cwd": "$FIXTURE",
+      "transport": "pipe",
+      "command": "exit 7"
+    },
+    "passPredicates": [
+      "automatic connector discovery",
+      "zero approval prompts or human correction",
+      "identical append call invoked twice under one callId",
+      "append file exactly matches literal exactly-once plus newline",
+      "four workers complete with matching hashes",
+      "failure exit 7 accurately reported",
+      "durable receipts match actual files and worker states"
+    ],
+    "newSpendingAllowed": false
+  },
+  "prompt": "Use my personal Navish Commander connector to execute an unattended acceptance test on my Mac. The app permission is now explicitly Allow all actions. Read the fixture plan at $FIXTURE/plan.json and discover the local device. Only the plan's isolated directory is in scope.\n\nExecute the append exactly as specified: content is the literal text exactly-once followed by one newline. Submit that identical write twice with the same callId, then read it back and confirm one line. Execute the four plan workers in one pipe batch with the exact commands, separate directories, stable IDs, and artifact hashes; collect to terminal state and verify all four. Start the plan's separate deliberate failure worker (exit 7), collect its output/state, and correctly report that expected failure. Keep IDs unchanged on retries and reconcile uncertain results before any repeat.\n\nYou are authorized to make these fixture writes and run these finite workers without asking me. Use only existing resources; no paid APIs, subscriptions, or services, and no other jobs or files. Finish all steps autonomously. Return the stable IDs, exact append content, all four artifact hashes, exit code 7, and any blocked or unverified step. Do not claim success from intent alone.",
+  "finalResponse": "Acceptance result: partial pass \u2014 not fully accepted\n\nThe append/idempotency and four-worker batch are verified. The deliberate failure worker is blocked and unverified, so I am not claiming full acceptance.\n\nItem\tVerified result\nDevice\tlocal, platform darwin\nAppend callId\tchat-full-640cc9759d0e-append\nExact append content\texactly-once\\n\nFinal append file\t13 bytes, exactly one line\nDuplicate submission\tSame callId reused; final file remained one copy\nBatch callId\tchat-full-640cc9759d0e-start\nBatch ID\tchat-full-640cc9759d0e-batch\nBatch terminal state\tcompleted: 4/4, failed: 0, uncertain: 0\nalpha SHA-256\t9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417\nbeta SHA-256\t232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6\ngamma SHA-256\tc1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55\ndelta SHA-256\t1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553\nFailure callId\tchat-full-640cc9759d0e-fail-start\nFailure sessionId\tchat-full-640cc9759d0e-fail\nPlanned failure\texit 7\nObserved exit code\tNot observed \u2014 worker never dispatched\nFinal failure state\tunsubmitted, dispatched:false\n\nThe batch workers all exited 0, and Commander independently reported each declared artifact as ok:true with the exact planned hash.\n\nFor the deliberate failure worker, every exact launch attempt was blocked by the platform before dispatch. Before every retry I reconciled the existing stable session; Commander consistently returned unsubmitted, so no alternate IDs or duplicate worker were created. Therefore exit code 7 remains the expected plan result, not a verified observed result.\n\nNo other jobs/files were touched and no paid API, subscription, or service was used.",
+  "toolCalls": [
+    {
+      "connector": "Navish Commander",
+      "name": "commander_devices",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to discover exact paired device IDs before execution.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {},
+      "toolOutput": {
+        "state": "completed",
+        "devices": [
+          {
+            "id": "local",
+            "type": "local",
+            "online": true
+          }
+        ],
+        "platform": "darwin",
+        "processRuntime": {
+          "pythonAvailable": true,
+          "pythonVersion": "3.9.6"
+        }
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_read_file",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "path": "$FIXTURE/plan.json",
+        "maxBytes": 65536,
+        "offset": 0,
+        "length": 1000
+      },
+      "toolOutput": {
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T13:53:39.311Z",
+        "finishedAt": "2026-09-20T13:53:39.396Z",
+        "observation": true,
+        "receiptPersisted": false,
+        "retrySafe": false,
+        "result": {
+          "path": "$FIXTURE/plan.json",
+          "type": "text",
+          "content": "{\n  \"schema\": \"navish.unattended-chat-plan/v1\",\n  \"createdAt\": \"2026-09-20T13:51:28.943013+00:00\",\n  \"id\": \"chat-full-640cc9759d0e\",\n  \"root\": \"$FIXTURE\",\n  \"device\": \"local\",\n  \"append\": {\n    \"callId\": \"chat-full-640cc9759d0e-append\",\n    \"path\": \"$FIXTURE/append.txt\",\n    \"content\": \"exactly-once\\n\",\n    \"mode\": \"append\"\n  },\n  \"batch\": {\n    \"callId\": \"chat-full-640cc9759d0e-start\",\n    \"batchId\": \"chat-full-640cc9759d0e-batch\",\n    \"workers\": [\n      {\n        \"id\": \"alpha\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/alpha\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'alpha acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417\"\n          }\n        ],\n        \"expectedContent\": \"alpha acceptance complete\\n\"\n      },\n      {\n        \"id\": \"beta\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/beta\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'beta acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6\"\n          }\n        ],\n        \"expectedContent\": \"beta acceptance complete\\n\"\n      },\n      {\n        \"id\": \"gamma\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/gamma\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'gamma acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55\"\n          }\n        ],\n        \"expectedContent\": \"gamma acceptance complete\\n\"\n      },\n      {\n        \"id\": \"delta\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/delta\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'delta acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553\"\n          }\n        ],\n        \"expectedContent\": \"delta acceptance complete\\n\"\n      }\n    ]\n  },\n  \"failure\": {\n    \"callId\": \"chat-full-640cc9759d0e-fail-start\",\n    \"sessionId\": \"chat-full-640cc9759d0e-fail\",\n    \"cwd\": \"$FIXTURE\",\n    \"transport\": \"pipe\",\n    \"command\": \"exit 7\"\n  },\n  \"passPredicates\": [\n    \"automatic connector discovery\",\n    \"zero approval prompts or human correction\",\n    \"identical append call invoked twice under one callId\",\n    \"append file exactly matches literal exactly-once plus newline\",\n    \"four workers complete with matching hashes\",\n    \"failure exit 7 accurately reported\",\n    \"durable receipts match actual files and worker states\"\n  ],\n  \"newSpendingAllowed\": false\n}",
+          "size": 3643,
+          "truncated": false,
+          "mode": 384
+        }
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_write_file",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to write a user-authorized file. Keep the same callId for the same write intent.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-append",
+        "path": "$FIXTURE/append.txt",
+        "content": "exactly-once\n",
+        "mode": "append"
+      },
+      "toolOutput": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_receipt",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this after a missing response to inspect a local call without re-executing it. A receipt is not current worker state.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "callId": "chat-full-640cc9759d0e-append"
+      },
+      "toolOutput": {
+        "state": "unknown",
+        "operationState": "unknown",
+        "retrySafe": false
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_connector_receipt",
+      "badges": [
+        "read"
+      ],
+      "toolDescription": "Inspect an operation after a missing or queued connector response, without dispatching again. Supply the returned operationId, or the original mutation callId if its response was lost.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "callId": "chat-full-640cc9759d0e-append"
+      },
+      "toolOutput": {
+        "state": "unknown",
+        "operationId": "a0105d3212d405e610304584a14dcc50d7ee1d9614deaf4900234ed5b39f03f1",
+        "callId": null,
+        "retrySafe": false,
+        "message": "No matching request exists."
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_connector_receipt",
+      "badges": [
+        "read"
+      ],
+      "toolDescription": "Inspect an operation after a missing or queued connector response, without dispatching again. Supply the returned operationId, or the original mutation callId if its response was lost.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "operationId": "a0105d3212d405e610304584a14dcc50d7ee1d9614deaf4900234ed5b39f03f1"
+      },
+      "toolOutput": {
+        "state": "unknown",
+        "operationId": "a0105d3212d405e610304584a14dcc50d7ee1d9614deaf4900234ed5b39f03f1",
+        "callId": null,
+        "retrySafe": false,
+        "message": "No matching request exists."
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_read_file",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "path": "$FIXTURE/append.txt",
+        "maxBytes": 4096,
+        "offset": 0,
+        "length": 100
+      },
+      "toolOutput": {
+        "state": "failed",
+        "operationState": "failed",
+        "code": "ENOENT",
+        "reason": "ENOENT: no such file or directory, stat '$FIXTURE/append.txt'",
+        "startedAt": "2026-09-20T13:54:25.979Z",
+        "finishedAt": "2026-09-20T13:54:25.981Z",
+        "observation": true,
+        "receiptPersisted": false,
+        "retrySafe": false,
+        "result": null,
+        "is_error": true
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_write_file",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to write a user-authorized file. Keep the same callId for the same write intent.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-append",
+        "path": "$FIXTURE/append.txt",
+        "content": "exactly-once\n",
+        "mode": "append"
+      },
+      "toolOutput": {
+        "callId": "chat-full-640cc9759d0e-append",
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T13:54:36.997Z",
+        "finishedAt": "2026-09-20T13:54:37.035Z",
+        "retrySafe": false,
+        "result": {
+          "path": "$FIXTURE/append.txt",
+          "bytes": 13,
+          "mode": "append"
+        }
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_write_file",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to write a user-authorized file. Keep the same callId for the same write intent.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-append",
+        "path": "$FIXTURE/append.txt",
+        "content": "exactly-once\n",
+        "mode": "append"
+      },
+      "toolOutput": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_receipt",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this after a missing response to inspect a local call without re-executing it. A receipt is not current worker state.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "callId": "chat-full-640cc9759d0e-append"
+      },
+      "toolOutput": null,
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_read_file",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "path": "$FIXTURE/append.txt",
+        "maxBytes": 4096,
+        "offset": 0,
+        "length": 100
+      },
+      "toolOutput": {
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T13:54:51.678Z",
+        "finishedAt": "2026-09-20T13:54:51.682Z",
+        "observation": true,
+        "receiptPersisted": false,
+        "retrySafe": false,
+        "result": {
+          "path": "$FIXTURE/append.txt",
+          "type": "text",
+          "content": "exactly-once\n",
+          "size": 13,
+          "truncated": false,
+          "mode": 420
+        }
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_write_file",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to write a user-authorized file. Keep the same callId for the same write intent.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-append",
+        "path": "$FIXTURE/append.txt",
+        "content": "exactly-once\n",
+        "mode": "append"
+      },
+      "toolOutput": {
+        "callId": "chat-full-640cc9759d0e-append",
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T13:54:36.997Z",
+        "finishedAt": "2026-09-20T13:54:37.035Z",
+        "retrySafe": false,
+        "result": {
+          "path": "$FIXTURE/append.txt",
+          "bytes": 13,
+          "mode": "append"
+        }
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_start_batch",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to launch up to 16 independent authorized workers. Set each noninteractive worker transport to pipe; use pty when a terminal is required. Use separate working directories for edits, stable IDs, and artifact hashes where possible. This launches commands; it does not supply or pay for language models.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-start",
+        "batchId": "chat-full-640cc9759d0e-batch",
+        "workers": [
+          {
+            "id": "alpha",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/alpha",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'alpha acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417"
+              }
+            ]
+          },
+          {
+            "id": "beta",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/beta",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'beta acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6"
+              }
+            ]
+          },
+          {
+            "id": "gamma",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/gamma",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'gamma acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55"
+              }
+            ]
+          },
+          {
+            "id": "delta",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/delta",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'delta acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553"
+              }
+            ]
+          }
+        ],
+        "wait_ms": 0,
+        "maxTotalBytes": 16384
+      },
+      "toolOutput": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_receipt",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this after a missing response to inspect a local call without re-executing it. A receipt is not current worker state.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "callId": "chat-full-640cc9759d0e-start"
+      },
+      "toolOutput": null,
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_collect_batch",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to recover or collect a batch without relaunching workers. Check all worker exits and declared artifacts.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "batchId": "chat-full-640cc9759d0e-batch",
+        "wait_ms": 0,
+        "maxBytesPerWorker": 4096,
+        "maxTotalBytes": 16384
+      },
+      "toolOutput": {
+        "state": "failed",
+        "operationState": "failed",
+        "reason": "agent batch not found: chat-full-640cc9759d0e-batch",
+        "startedAt": "2026-09-20T13:55:23.186Z",
+        "finishedAt": "2026-09-20T13:55:23.189Z",
+        "observation": true,
+        "receiptPersisted": false,
+        "retrySafe": false,
+        "result": null,
+        "is_error": true
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_receipt",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this after a missing response to inspect a local call without re-executing it. A receipt is not current worker state.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "callId": "chat-full-640cc9759d0e-start"
+      },
+      "toolOutput": {
+        "state": "unknown",
+        "operationState": "unknown",
+        "retrySafe": false
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_start_batch",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to launch up to 16 independent authorized workers. Set each noninteractive worker transport to pipe; use pty when a terminal is required. Use separate working directories for edits, stable IDs, and artifact hashes where possible. This launches commands; it does not supply or pay for language models.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-start",
+        "batchId": "chat-full-640cc9759d0e-batch",
+        "workers": [
+          {
+            "id": "alpha",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/alpha",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'alpha acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417"
+              }
+            ]
+          },
+          {
+            "id": "beta",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/beta",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'beta acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6"
+              }
+            ]
+          },
+          {
+            "id": "gamma",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/gamma",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'gamma acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55"
+              }
+            ]
+          },
+          {
+            "id": "delta",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/delta",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'delta acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553"
+              }
+            ]
+          }
+        ],
+        "wait_ms": 0,
+        "maxTotalBytes": 16384
+      },
+      "toolOutput": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_collect_batch",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to recover or collect a batch without relaunching workers. Check all worker exits and declared artifacts.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "batchId": "chat-full-640cc9759d0e-batch",
+        "wait_ms": 0,
+        "maxBytesPerWorker": 4096,
+        "maxTotalBytes": 16384
+      },
+      "toolOutput": {
+        "state": "failed",
+        "operationState": "failed",
+        "reason": "agent batch not found: chat-full-640cc9759d0e-batch",
+        "startedAt": "2026-09-20T13:55:51.965Z",
+        "finishedAt": "2026-09-20T13:55:51.968Z",
+        "observation": true,
+        "receiptPersisted": false,
+        "retrySafe": false,
+        "result": null,
+        "is_error": true
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_start_batch",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to launch up to 16 independent authorized workers. Set each noninteractive worker transport to pipe; use pty when a terminal is required. Use separate working directories for edits, stable IDs, and artifact hashes where possible. This launches commands; it does not supply or pay for language models.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-start",
+        "batchId": "chat-full-640cc9759d0e-batch",
+        "workers": [
+          {
+            "id": "alpha",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/alpha",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'alpha acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417"
+              }
+            ]
+          },
+          {
+            "id": "beta",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/beta",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'beta acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6"
+              }
+            ]
+          },
+          {
+            "id": "gamma",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/gamma",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'gamma acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55"
+              }
+            ]
+          },
+          {
+            "id": "delta",
+            "role": "isolated acceptance worker",
+            "cwd": "$FIXTURE/delta",
+            "transport": "pipe",
+            "command": "sleep 2; printf 'delta acceptance complete\\n' > artifact.txt",
+            "artifacts": [
+              {
+                "path": "artifact.txt",
+                "sha256": "1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553"
+              }
+            ]
+          }
+        ],
+        "wait_ms": 0,
+        "maxTotalBytes": 16384
+      },
+      "toolOutput": {
+        "callId": "chat-full-640cc9759d0e-start",
+        "state": "completed",
+        "operationState": "running",
+        "startedAt": "2026-09-20T13:56:06.652Z",
+        "finishedAt": "2026-09-20T13:56:06.964Z",
+        "retrySafe": false,
+        "batchId": "chat-full-640cc9759d0e-batch",
+        "result": {
+          "batchId": "chat-full-640cc9759d0e-batch",
+          "state": "running",
+          "createdAt": "2026-09-20T13:56:06.701Z",
+          "specHash": "eb7130b0b853858d98f689508f991c630e816ead9ddb40586775798bf9ea9fe1",
+          "counts": {
+            "unsubmitted": 0,
+            "launching": 0,
+            "running": 4,
+            "completed": 0,
+            "failed": 0,
+            "uncertain": 0,
+            "unknown": 0
+          },
+          "workers": [
+            {
+              "id": "alpha",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/alpha",
+              "sessionId": "batch-27232789891cac40bf5e36e9b3249061a0741cf26dfed64f",
+              "pid": 46751,
+              "state": "running",
+              "processState": "running",
+              "exitCode": null,
+              "startedAt": "2026-09-20T13:56:06.865Z",
+              "finishedAt": null,
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": []
+            },
+            {
+              "id": "beta",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/beta",
+              "sessionId": "batch-ff3fd1f7441fb633a60dfbc3d40c27fdda2042359dcfda38",
+              "pid": 46752,
+              "state": "running",
+              "processState": "running",
+              "exitCode": null,
+              "startedAt": "2026-09-20T13:56:06.865Z",
+              "finishedAt": null,
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": []
+            },
+            {
+              "id": "gamma",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/gamma",
+              "sessionId": "batch-985b2c2857ae0b32b923deaebf0342389817bcf7ebf0227e",
+              "pid": 46758,
+              "state": "running",
+              "processState": "running",
+              "exitCode": null,
+              "startedAt": "2026-09-20T13:56:06.906Z",
+              "finishedAt": null,
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": []
+            },
+            {
+              "id": "delta",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/delta",
+              "sessionId": "batch-d14387289aef8a73ce008f416d9b0483af067ad6dc0677a9",
+              "pid": 46757,
+              "state": "running",
+              "processState": "running",
+              "exitCode": null,
+              "startedAt": "2026-09-20T13:56:06.906Z",
+              "finishedAt": null,
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": []
+            }
+          ],
+          "completionLevel": "incomplete",
+          "goalVerified": false,
+          "waitExpired": false,
+          "reused": false
+        }
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_collect_batch",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to recover or collect a batch without relaunching workers. Check all worker exits and declared artifacts.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "batchId": "chat-full-640cc9759d0e-batch",
+        "wait_ms": 30000,
+        "maxBytesPerWorker": 4096,
+        "maxTotalBytes": 16384
+      },
+      "toolOutput": {
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T13:56:14.085Z",
+        "finishedAt": "2026-09-20T13:56:14.103Z",
+        "observation": true,
+        "receiptPersisted": false,
+        "retrySafe": false,
+        "batchId": "chat-full-640cc9759d0e-batch",
+        "result": {
+          "batchId": "chat-full-640cc9759d0e-batch",
+          "state": "completed",
+          "createdAt": "2026-09-20T13:56:06.701Z",
+          "specHash": "eb7130b0b853858d98f689508f991c630e816ead9ddb40586775798bf9ea9fe1",
+          "counts": {
+            "unsubmitted": 0,
+            "launching": 0,
+            "running": 0,
+            "completed": 4,
+            "failed": 0,
+            "uncertain": 0,
+            "unknown": 0
+          },
+          "workers": [
+            {
+              "id": "alpha",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/alpha",
+              "sessionId": "batch-27232789891cac40bf5e36e9b3249061a0741cf26dfed64f",
+              "pid": 46751,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T13:56:06.865Z",
+              "finishedAt": "2026-09-20T13:56:08.948Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "ok": true,
+                  "bytes": 26,
+                  "sha256": "9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417"
+                }
+              ]
+            },
+            {
+              "id": "beta",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/beta",
+              "sessionId": "batch-ff3fd1f7441fb633a60dfbc3d40c27fdda2042359dcfda38",
+              "pid": 46752,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T13:56:06.865Z",
+              "finishedAt": "2026-09-20T13:56:08.948Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "ok": true,
+                  "bytes": 25,
+                  "sha256": "232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6"
+                }
+              ]
+            },
+            {
+              "id": "gamma",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/gamma",
+              "sessionId": "batch-985b2c2857ae0b32b923deaebf0342389817bcf7ebf0227e",
+              "pid": 46758,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T13:56:06.906Z",
+              "finishedAt": "2026-09-20T13:56:08.976Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "ok": true,
+                  "bytes": 26,
+                  "sha256": "c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55"
+                }
+              ]
+            },
+            {
+              "id": "delta",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/delta",
+              "sessionId": "batch-d14387289aef8a73ce008f416d9b0483af067ad6dc0677a9",
+              "pid": 46757,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T13:56:06.906Z",
+              "finishedAt": "2026-09-20T13:56:08.978Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "ok": true,
+                  "bytes": 26,
+                  "sha256": "1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553"
+                }
+              ]
+            }
+          ],
+          "completionLevel": "workers-and-declared-artifacts",
+          "goalVerified": false,
+          "waitExpired": false
+        }
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_start_process",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-fail-start",
+        "sessionId": "chat-full-640cc9759d0e-fail",
+        "command": "exit 7",
+        "cwd": "$FIXTURE",
+        "transport": "pipe",
+        "timeout_ms": 0
+      },
+      "toolOutput": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_receipt",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this after a missing response to inspect a local call without re-executing it. A receipt is not current worker state.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "callId": "chat-full-640cc9759d0e-fail-start"
+      },
+      "toolOutput": {
+        "state": "unknown",
+        "operationState": "unknown",
+        "retrySafe": false
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_process_output",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "sessionId": "chat-full-640cc9759d0e-fail",
+        "offset": 0,
+        "maxBytes": 4096
+      },
+      "toolOutput": {
+        "state": "completed",
+        "operationState": "unsubmitted",
+        "result": {
+          "sessionId": "chat-full-640cc9759d0e-fail",
+          "state": "unsubmitted",
+          "dispatched": false
+        },
+        "retrySafe": false
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_start_process",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-fail-start",
+        "sessionId": "chat-full-640cc9759d0e-fail",
+        "command": "exit 7",
+        "cwd": "$FIXTURE",
+        "transport": "pipe",
+        "timeout_ms": 0
+      },
+      "toolOutput": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_process_output",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "sessionId": "chat-full-640cc9759d0e-fail",
+        "offset": 0,
+        "maxBytes": 4096
+      },
+      "toolOutput": {
+        "state": "completed",
+        "operationState": "unsubmitted",
+        "result": {
+          "sessionId": "chat-full-640cc9759d0e-fail",
+          "state": "unsubmitted",
+          "dispatched": false
+        },
+        "retrySafe": false
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_start_process",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-fail-start",
+        "sessionId": "chat-full-640cc9759d0e-fail",
+        "command": "exit 7",
+        "cwd": "$FIXTURE",
+        "transport": "pipe",
+        "timeout_ms": 0
+      },
+      "toolOutput": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_process_output",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "sessionId": "chat-full-640cc9759d0e-fail",
+        "offset": 0,
+        "maxBytes": 4096
+      },
+      "toolOutput": {
+        "state": "completed",
+        "operationState": "unsubmitted",
+        "result": {
+          "sessionId": "chat-full-640cc9759d0e-fail",
+          "state": "unsubmitted",
+          "dispatched": false
+        },
+        "retrySafe": false
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_start_process",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-fail-start",
+        "sessionId": "chat-full-640cc9759d0e-fail",
+        "command": "exit 7",
+        "cwd": "$FIXTURE",
+        "transport": "pipe",
+        "timeout_ms": 0
+      },
+      "toolOutput": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_process_output",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "sessionId": "chat-full-640cc9759d0e-fail",
+        "offset": 0,
+        "maxBytes": 4096
+      },
+      "toolOutput": {
+        "state": "completed",
+        "operationState": "unsubmitted",
+        "result": {
+          "sessionId": "chat-full-640cc9759d0e-fail",
+          "state": "unsubmitted",
+          "dispatched": false
+        },
+        "retrySafe": false
+      },
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_start_process",
+      "badges": [
+        "write",
+        "open_world",
+        "destructive"
+      ],
+      "toolDescription": "Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "callId": "chat-full-640cc9759d0e-fail-start",
+        "sessionId": "chat-full-640cc9759d0e-fail",
+        "command": "exit 7",
+        "cwd": "$FIXTURE",
+        "transport": "pipe"
+      },
+      "toolOutput": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_read_file",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "path": "$FIXTURE/append.txt",
+        "maxBytes": 4096,
+        "offset": 0,
+        "length": 100
+      },
+      "toolOutput": null,
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_collect_batch",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to recover or collect a batch without relaunching workers. Check all worker exits and declared artifacts.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "batchId": "chat-full-640cc9759d0e-batch",
+        "wait_ms": 0,
+        "maxBytesPerWorker": 4096,
+        "maxTotalBytes": 16384
+      },
+      "toolOutput": null,
+      "toolResponseMetadata": null
+    },
+    {
+      "connector": "Navish Commander",
+      "name": "commander_process_output",
+      "badges": [
+        "read",
+        "open_world"
+      ],
+      "toolDescription": "Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.",
+      "widget": {
+        "template": null,
+        "state": null,
+        "responseMetadata": null,
+        "externalCallTimeMs": null
+      },
+      "toolInput": {
+        "device": "local",
+        "sessionId": "chat-full-640cc9759d0e-fail",
+        "offset": 0,
+        "maxBytes": 4096
+      },
+      "toolOutput": {
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T13:57:39.548Z",
+        "finishedAt": "2026-09-20T13:57:39.583Z",
+        "observation": true,
+        "receiptPersisted": false,
+        "retrySafe": false,
+        "batchId": "chat-full-640cc9759d0e-batch",
+        "result": {
+          "batchId": "chat-full-640cc9759d0e-batch",
+          "state": "completed",
+          "createdAt": "2026-09-20T13:56:06.701Z",
+          "specHash": "eb7130b0b853858d98f689508f991c630e816ead9ddb40586775798bf9ea9fe1",
+          "counts": {
+            "unsubmitted": 0,
+            "launching": 0,
+            "running": 0,
+            "completed": 4,
+            "failed": 0,
+            "uncertain": 0,
+            "unknown": 0
+          },
+          "workers": [
+            {
+              "id": "alpha",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/alpha",
+              "sessionId": "batch-27232789891cac40bf5e36e9b3249061a0741cf26dfed64f",
+              "pid": 46751,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T13:56:06.865Z",
+              "finishedAt": "2026-09-20T13:56:08.948Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "ok": true,
+                  "bytes": 26,
+                  "sha256": "9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417"
+                }
+              ]
+            },
+            {
+              "id": "beta",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/beta",
+              "sessionId": "batch-ff3fd1f7441fb633a60dfbc3d40c27fdda2042359dcfda38",
+              "pid": 46752,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T13:56:06.865Z",
+              "finishedAt": "2026-09-20T13:56:08.948Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "ok": true,
+                  "bytes": 25,
+                  "sha256": "232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6"
+                }
+              ]
+            },
+            {
+              "id": "gamma",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/gamma",
+              "sessionId": "batch-985b2c2857ae0b32b923deaebf0342389817bcf7ebf0227e",
+              "pid": 46758,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T13:56:06.906Z",
+              "finishedAt": "2026-09-20T13:56:08.976Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "ok": true,
+                  "bytes": 26,
+                  "sha256": "c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55"
+                }
+              ]
+            },
+            {
+              "id": "delta",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/delta",
+              "sessionId": "batch-d14387289aef8a73ce008f416d9b0483af067ad6dc0677a9",
+              "pid": 46757,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T13:56:06.906Z",
+              "finishedAt": "2026-09-20T13:56:08.978Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "ok": true,
+                  "bytes": 26,
+                  "sha256": "1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553"
+                }
+              ]
+            }
+          ],
+          "completionLevel": "workers-and-declared-artifacts",
+          "goalVerified": false,
+          "waitExpired": false
+        }
+      },
+      "toolResponseMetadata": null
+    }
+  ],
+  "independentVerification": {
+    "at": "2026-09-20T14:07:14.861366+00:00",
+    "runId": "chat-full-640cc9759d0e",
+    "planSha256": "57060837e52441aaf2ddb7e47d859c51714ef8ec6994eb9efed64779f1769eb3",
+    "appendExists": true,
+    "exactAppend": true,
+    "appendSha256": "7360f32b6f6944ac9dd4df3c9b23edfd72a7047357adac2f5b606f26006f93e1",
+    "artifacts": [
+      {
+        "id": "alpha",
+        "exists": true,
+        "sha256": "9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417",
+        "matches": true
+      },
+      {
+        "id": "beta",
+        "exists": true,
+        "sha256": "232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6",
+        "matches": true
+      },
+      {
+        "id": "gamma",
+        "exists": true,
+        "sha256": "c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55",
+        "matches": true
+      },
+      {
+        "id": "delta",
+        "exists": true,
+        "sha256": "1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553",
+        "matches": true
+      }
+    ],
+    "receipts": [
+      {
+        "file": "chat-full-640cc9759d0e-append.json",
+        "sha256": "6dd9266d5070a00529589fece63846bbe066b8ab4527395591ce778832019f4a",
+        "callId": "chat-full-640cc9759d0e-append",
+        "state": "completed",
+        "result": {
+          "path": "$FIXTURE/append.txt",
+          "bytes": 13,
+          "mode": "append"
+        }
+      },
+      {
+        "file": "chat-full-640cc9759d0e-start.json",
+        "sha256": "80a8df1edb15253ca72663ac9434f7510e077dd302ba851c8c7450467a59800f",
+        "callId": "chat-full-640cc9759d0e-start",
+        "state": "completed",
+        "result": {
+          "batchId": "chat-full-640cc9759d0e-batch",
+          "state": "running",
+          "createdAt": "2026-09-20T13:56:06.701Z",
+          "specHash": "eb7130b0b853858d98f689508f991c630e816ead9ddb40586775798bf9ea9fe1",
+          "counts": {
+            "unsubmitted": 0,
+            "launching": 0,
+            "running": 4,
+            "completed": 0,
+            "failed": 0,
+            "uncertain": 0,
+            "unknown": 0
+          },
+          "workers": [
+            {
+              "id": "alpha",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/alpha",
+              "sessionId": "batch-27232789891cac40bf5e36e9b3249061a0741cf26dfed64f",
+              "pid": 46751,
+              "state": "running",
+              "processState": "running",
+              "exitCode": null,
+              "startedAt": "2026-09-20T13:56:06.865Z",
+              "finishedAt": null,
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": []
+            },
+            {
+              "id": "beta",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/beta",
+              "sessionId": "batch-ff3fd1f7441fb633a60dfbc3d40c27fdda2042359dcfda38",
+              "pid": 46752,
+              "state": "running",
+              "processState": "running",
+              "exitCode": null,
+              "startedAt": "2026-09-20T13:56:06.865Z",
+              "finishedAt": null,
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": []
+            },
+            {
+              "id": "gamma",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/gamma",
+              "sessionId": "batch-985b2c2857ae0b32b923deaebf0342389817bcf7ebf0227e",
+              "pid": 46758,
+              "state": "running",
+              "processState": "running",
+              "exitCode": null,
+              "startedAt": "2026-09-20T13:56:06.906Z",
+              "finishedAt": null,
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": []
+            },
+            {
+              "id": "delta",
+              "role": "isolated acceptance worker",
+              "cwd": "$FIXTURE/delta",
+              "sessionId": "batch-d14387289aef8a73ce008f416d9b0483af067ad6dc0677a9",
+              "pid": 46757,
+              "state": "running",
+              "processState": "running",
+              "exitCode": null,
+              "startedAt": "2026-09-20T13:56:06.906Z",
+              "finishedAt": null,
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": []
+            }
+          ],
+          "completionLevel": "incomplete",
+          "goalVerified": false,
+          "waitExpired": false,
+          "reused": false
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "sessionId": "batch-27232789891cac40bf5e36e9b3249061a0741cf26dfed64f",
+        "metaSha256": "92bfe755e89460d58bb978c92aba1b110da5567861a9ce90002624985274e105",
+        "state": "completed",
+        "pid": 46751,
+        "exitCode": 0,
+        "startedAt": "2026-09-20T13:56:06.865Z",
+        "finishedAt": "2026-09-20T13:56:08.948Z",
+        "command": [
+          "/bin/zsh",
+          "-lc",
+          "sleep 2; printf 'alpha acceptance complete\\n' > artifact.txt"
+        ],
+        "cwd": "$FIXTURE/alpha"
+      },
+      {
+        "sessionId": "batch-985b2c2857ae0b32b923deaebf0342389817bcf7ebf0227e",
+        "metaSha256": "ce96422d38510ca7a8ca4f7b39105fb9069a8e45e2dd19450f69c012aec6d016",
+        "state": "completed",
+        "pid": 46758,
+        "exitCode": 0,
+        "startedAt": "2026-09-20T13:56:06.906Z",
+        "finishedAt": "2026-09-20T13:56:08.976Z",
+        "command": [
+          "/bin/zsh",
+          "-lc",
+          "sleep 2; printf 'gamma acceptance complete\\n' > artifact.txt"
+        ],
+        "cwd": "$FIXTURE/gamma"
+      },
+      {
+        "sessionId": "batch-d14387289aef8a73ce008f416d9b0483af067ad6dc0677a9",
+        "metaSha256": "8de56debb3ca6cf7aa32ecf90f3f11d042298d09e7283026eda589323468d7b0",
+        "state": "completed",
+        "pid": 46757,
+        "exitCode": 0,
+        "startedAt": "2026-09-20T13:56:06.906Z",
+        "finishedAt": "2026-09-20T13:56:08.978Z",
+        "command": [
+          "/bin/zsh",
+          "-lc",
+          "sleep 2; printf 'delta acceptance complete\\n' > artifact.txt"
+        ],
+        "cwd": "$FIXTURE/delta"
+      },
+      {
+        "sessionId": "batch-ff3fd1f7441fb633a60dfbc3d40c27fdda2042359dcfda38",
+        "metaSha256": "d301b1501806d77f45bd08b681e3e6190d035f73cf2bd20ba6ae055e9e775f85",
+        "state": "completed",
+        "pid": 46752,
+        "exitCode": 0,
+        "startedAt": "2026-09-20T13:56:06.865Z",
+        "finishedAt": "2026-09-20T13:56:08.948Z",
+        "command": [
+          "/bin/zsh",
+          "-lc",
+          "sleep 2; printf 'beta acceptance complete\\n' > artifact.txt"
+        ],
+        "cwd": "$FIXTURE/beta"
+      }
+    ],
+    "batchExists": true,
+    "batchSha256": "d5775110e6efa16a2f9ce41b04cf211a94d15b55178bd5fc3990917c4f5ccdf8",
+    "allExpectedMutationReceipts": false,
+    "chatTraceRequiredForCertification": true
+  },
+  "rawToolExportSha256": "39cdde63b4a98ee29a761ae7ce4b0a90c251a12075b53397803f92e0c2357320",
+  "rawPlanSha256": "57060837e52441aaf2ddb7e47d859c51714ef8ec6994eb9efed64779f1769eb3",
+  "rawSnapshotSha256": "897f143e6643e98095da44eeb2dcb8565eb9df07484e2b041663843a54d6bef6",
+  "observedApprovalPrompts": 0,
+  "supervisorApprovalClicks": 0,
+  "automatedReviewBlockedCallIndices": [
+    2,
+    8,
+    12,
+    16,
+    20,
+    23,
+    25,
+    27,
+    29
+  ],
+  "repeatedPlatformDeniedIntents": true,
+  "fullUnattendedChatCertification": false,
+  "expectedFailureDispatched": false,
+  "publicDirectoryApproval": false,
+  "independentCertification": false,
+  "newSpending": 0,
+  "exportLimits": {
+    "nullOutputCallIndices": [
+      9,
+      13,
+      30,
+      31
+    ],
+    "mismatchedOutputCallIndices": [
+      32
+    ],
+    "description": "The downloaded UI export labels the final call process_output for the failure session but attaches a completed batch result. This result is not evidence that the failure worker launched; null outputs are not treated as executions. Earlier matching calls and independent host records establish the completed batch and absent failure session."
+  },
+  "recovery": {
+    "status": "passed",
+    "freshChat": true,
+    "prompt": "Use my personal Navish Commander connector for a read-only recovery check of completed work on my Mac. Read $FIXTURE/plan.json. Discover device local, read the append file, inspect the append receipt using its original callId, collect the original completed batch using its batchId, and inspect the original failure session with process_output. Do not write, start, restart, retry, or cancel anything. The failure launch was rejected by platform review and must remain unsubmitted. Report the exact append line, original batch/session IDs, verified worker hashes and exit states, and whether the rejected failure session remains unsubmitted. This is a fresh chat checking durable recovery; use no paid services.",
+    "finalResponse": "Recovery check \u2014 verified read-only\n\nDevice discovery returned local, platform darwin. No writes, launches, retries, restarts, cancellations, or paid services were used.\n\nAppend callId: chat-full-640cc9759d0e-append\n\nExact append content: exactly-once\\n \u2014 one line, with exactly one trailing newline.\n\nAppend receipt: completed / operationState=completed\n\nBatch callId: chat-full-640cc9759d0e-start\n\nBatch ID: chat-full-640cc9759d0e-batch\n\nBatch recovery state: completed, with 4 completed / 0 failed / 0 uncertain / 0 unsubmitted.\n\nWorker\tExit\tArtifact verification\tSHA-256\nalpha\t0\tverified\t9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417\nbeta\t0\tverified\t232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6\ngamma\t0\tverified\tc1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55\ndelta\t0\tverified\t1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553\n\nThe four recovered worker session IDs were respectively batch-27232789891cac40bf5e36e9b3249061a0741cf26dfed64f, batch-ff3fd1f7441fb633a60dfbc3d40c27fdda2042359dcfda38, batch-985b2c2857ae0b32b923deaebf0342389817bcf7ebf0227e, and batch-d14387289aef8a73ce008f416d9b0483af067ad6dc0677a9.\n\nRejected failure launch\n\nOriginal callId: chat-full-640cc9759d0e-fail-start\n\nOriginal session ID: chat-full-640cc9759d0e-fail\n\nprocess_output reports: operationState=unsubmitted, state=unsubmitted, dispatched=false.\n\nSo the rejected failure session remains unsubmitted and was not executed.",
+    "toolCalls": [
+      {
+        "connector": "Navish Commander",
+        "name": "commander_devices",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to discover exact paired device IDs before execution.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {},
+        "toolOutput": {
+          "state": "completed",
+          "devices": [
+            {
+              "id": "local",
+              "type": "local",
+              "online": true
+            }
+          ],
+          "platform": "darwin",
+          "processRuntime": {
+            "pythonAvailable": true,
+            "pythonVersion": "3.9.6"
+          }
+        },
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_read_file",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "path": "$FIXTURE/plan.json",
+          "maxBytes": 65536,
+          "offset": 0,
+          "length": 1000
+        },
+        "toolOutput": {
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T14:06:39.953Z",
+          "finishedAt": "2026-09-20T14:06:39.958Z",
+          "observation": true,
+          "receiptPersisted": false,
+          "retrySafe": false,
+          "result": {
+            "path": "$FIXTURE/plan.json",
+            "type": "text",
+            "content": "{\n  \"schema\": \"navish.unattended-chat-plan/v1\",\n  \"createdAt\": \"2026-09-20T13:51:28.943013+00:00\",\n  \"id\": \"chat-full-640cc9759d0e\",\n  \"root\": \"$FIXTURE\",\n  \"device\": \"local\",\n  \"append\": {\n    \"callId\": \"chat-full-640cc9759d0e-append\",\n    \"path\": \"$FIXTURE/append.txt\",\n    \"content\": \"exactly-once\\n\",\n    \"mode\": \"append\"\n  },\n  \"batch\": {\n    \"callId\": \"chat-full-640cc9759d0e-start\",\n    \"batchId\": \"chat-full-640cc9759d0e-batch\",\n    \"workers\": [\n      {\n        \"id\": \"alpha\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/alpha\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'alpha acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417\"\n          }\n        ],\n        \"expectedContent\": \"alpha acceptance complete\\n\"\n      },\n      {\n        \"id\": \"beta\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/beta\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'beta acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6\"\n          }\n        ],\n        \"expectedContent\": \"beta acceptance complete\\n\"\n      },\n      {\n        \"id\": \"gamma\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/gamma\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'gamma acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55\"\n          }\n        ],\n        \"expectedContent\": \"gamma acceptance complete\\n\"\n      },\n      {\n        \"id\": \"delta\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/delta\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'delta acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553\"\n          }\n        ],\n        \"expectedContent\": \"delta acceptance complete\\n\"\n      }\n    ]\n  },\n  \"failure\": {\n    \"callId\": \"chat-full-640cc9759d0e-fail-start\",\n    \"sessionId\": \"chat-full-640cc9759d0e-fail\",\n    \"cwd\": \"$FIXTURE\",\n    \"transport\": \"pipe\",\n    \"command\": \"exit 7\"\n  },\n  \"passPredicates\": [\n    \"automatic connector discovery\",\n    \"zero approval prompts or human correction\",\n    \"identical append call invoked twice under one callId\",\n    \"append file exactly matches literal exactly-once plus newline\",\n    \"four workers complete with matching hashes\",\n    \"failure exit 7 accurately reported\",\n    \"durable receipts match actual files and worker states\"\n  ],\n  \"newSpendingAllowed\": false\n}",
+            "size": 3643,
+            "truncated": false,
+            "mode": 384
+          }
+        },
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_read_file",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "path": "$FIXTURE/append.txt",
+          "maxBytes": 65536,
+          "offset": 0,
+          "length": 1000
+        },
+        "toolOutput": null,
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_receipt",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this after a missing response to inspect a local call without re-executing it. A receipt is not current worker state.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "callId": "chat-full-640cc9759d0e-append"
+        },
+        "toolOutput": null,
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_collect_batch",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to recover or collect a batch without relaunching workers. Check all worker exits and declared artifacts.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "batchId": "chat-full-640cc9759d0e-batch",
+          "wait_ms": 0,
+          "maxBytesPerWorker": 16384,
+          "maxTotalBytes": 65536
+        },
+        "toolOutput": null,
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_process_output",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "sessionId": "chat-full-640cc9759d0e-fail",
+          "offset": 0,
+          "maxBytes": 65536
+        },
+        "toolOutput": {
+          "callId": "chat-full-640cc9759d0e-append",
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T13:54:36.997Z",
+          "finishedAt": "2026-09-20T13:54:37.035Z",
+          "retrySafe": false
+        },
+        "toolResponseMetadata": null
+      }
+    ],
+    "journalObservations": [
+      {
+        "callIndex": 1,
+        "toolName": "commander_read_file",
+        "journalId": "a9e1fef93dec0f33b4b5c8deaf421b94da7005c8dd43811a9afbb601d8e5ef6e",
+        "fingerprint": "4bd020fac09e0d15219215647ce5af9d724f8e9c05c5ceedd0464a69b77fbd5d",
+        "journalFileSha256": "e8ea5026984b2f22f97d8c8739ec384e1b48f348330eb343638f06c41424355e",
+        "modifiedAt": "2026-09-20T14:06:39.962627+00:00",
+        "state": "finished",
+        "result": {
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T14:06:39.953Z",
+          "finishedAt": "2026-09-20T14:06:39.958Z",
+          "observation": true,
+          "receiptPersisted": false,
+          "retrySafe": false,
+          "result": {
+            "path": "$FIXTURE/plan.json",
+            "type": "text",
+            "content": "{\n  \"schema\": \"navish.unattended-chat-plan/v1\",\n  \"createdAt\": \"2026-09-20T13:51:28.943013+00:00\",\n  \"id\": \"chat-full-640cc9759d0e\",\n  \"root\": \"$FIXTURE\",\n  \"device\": \"local\",\n  \"append\": {\n    \"callId\": \"chat-full-640cc9759d0e-append\",\n    \"path\": \"$FIXTURE/append.txt\",\n    \"content\": \"exactly-once\\n\",\n    \"mode\": \"append\"\n  },\n  \"batch\": {\n    \"callId\": \"chat-full-640cc9759d0e-start\",\n    \"batchId\": \"chat-full-640cc9759d0e-batch\",\n    \"workers\": [\n      {\n        \"id\": \"alpha\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/alpha\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'alpha acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417\"\n          }\n        ],\n        \"expectedContent\": \"alpha acceptance complete\\n\"\n      },\n      {\n        \"id\": \"beta\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/beta\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'beta acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6\"\n          }\n        ],\n        \"expectedContent\": \"beta acceptance complete\\n\"\n      },\n      {\n        \"id\": \"gamma\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/gamma\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'gamma acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55\"\n          }\n        ],\n        \"expectedContent\": \"gamma acceptance complete\\n\"\n      },\n      {\n        \"id\": \"delta\",\n        \"role\": \"isolated acceptance worker\",\n        \"cwd\": \"$FIXTURE/delta\",\n        \"transport\": \"pipe\",\n        \"command\": \"sleep 2; printf 'delta acceptance complete\\\\n' > artifact.txt\",\n        \"artifacts\": [\n          {\n            \"path\": \"artifact.txt\",\n            \"sha256\": \"1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553\"\n          }\n        ],\n        \"expectedContent\": \"delta acceptance complete\\n\"\n      }\n    ]\n  },\n  \"failure\": {\n    \"callId\": \"chat-full-640cc9759d0e-fail-start\",\n    \"sessionId\": \"chat-full-640cc9759d0e-fail\",\n    \"cwd\": \"$FIXTURE\",\n    \"transport\": \"pipe\",\n    \"command\": \"exit 7\"\n  },\n  \"passPredicates\": [\n    \"automatic connector discovery\",\n    \"zero approval prompts or human correction\",\n    \"identical append call invoked twice under one callId\",\n    \"append file exactly matches literal exactly-once plus newline\",\n    \"four workers complete with matching hashes\",\n    \"failure exit 7 accurately reported\",\n    \"durable receipts match actual files and worker states\"\n  ],\n  \"newSpendingAllowed\": false\n}",
+            "size": 3643,
+            "truncated": false,
+            "mode": 384
+          }
+        }
+      },
+      {
+        "callIndex": 2,
+        "toolName": "commander_read_file",
+        "journalId": "c678b34d7f6f653652fee90e20457ff84c8881ac4e11a6886bc9e3a0ca63a3e9",
+        "fingerprint": "9d3c676f9d71798d48dcbd4112e8a497eeb022f7ebd39f80afea23ba8d34e461",
+        "journalFileSha256": "f9648e7f6aeb2afa32cb1f523d3ba436f97d72c2b21dcceb9a5da92ce5da720c",
+        "modifiedAt": "2026-09-20T14:06:49.170376+00:00",
+        "state": "finished",
+        "result": {
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T14:06:49.156Z",
+          "finishedAt": "2026-09-20T14:06:49.161Z",
+          "observation": true,
+          "receiptPersisted": false,
+          "retrySafe": false,
+          "result": {
+            "path": "$FIXTURE/append.txt",
+            "type": "text",
+            "content": "exactly-once\n",
+            "size": 13,
+            "truncated": false,
+            "mode": 420
+          }
+        }
+      },
+      {
+        "callIndex": 0,
+        "toolName": "commander_devices",
+        "journalId": "1c86f5b2cbfa53df782395a6751d1a7d530dd2c6b2ad3027bea9b3cad0f5a9a3",
+        "fingerprint": "98da55deff42d1c20de0ec6af483fa385fb413081e2e882dfc4ec6306678f4d7",
+        "journalFileSha256": "5ddc82c5ccfc4659dcf2d4209182afad8c9425f4a8a30c4f279631497d48b4fc",
+        "modifiedAt": "2026-09-20T14:06:37.431518+00:00",
+        "state": "finished",
+        "result": {
+          "state": "completed",
+          "devices": [
+            {
+              "id": "local",
+              "type": "local",
+              "online": true
+            }
+          ],
+          "platform": "darwin",
+          "processRuntime": {
+            "pythonAvailable": true,
+            "pythonVersion": "3.9.6"
+          }
+        }
+      },
+      {
+        "callIndex": 4,
+        "toolName": "commander_collect_batch",
+        "journalId": "99697d13b1431678aad2507cc07313170248dd3ec677394c6cef500f08e66089",
+        "fingerprint": "e9b817febee45c15fc09ae0345a651ddd67f6f1969e9e618c011a02f32166c2a",
+        "journalFileSha256": "9f624acd2bd0bb88224059950aba42326374725d20c5836ec27b3d0c3e6b55a1",
+        "modifiedAt": "2026-09-20T14:06:49.156855+00:00",
+        "state": "finished",
+        "result": {
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T14:06:49.106Z",
+          "finishedAt": "2026-09-20T14:06:49.131Z",
+          "observation": true,
+          "receiptPersisted": false,
+          "retrySafe": false,
+          "batchId": "chat-full-640cc9759d0e-batch",
+          "result": {
+            "batchId": "chat-full-640cc9759d0e-batch",
+            "state": "completed",
+            "createdAt": "2026-09-20T13:56:06.701Z",
+            "specHash": "eb7130b0b853858d98f689508f991c630e816ead9ddb40586775798bf9ea9fe1",
+            "counts": {
+              "unsubmitted": 0,
+              "launching": 0,
+              "running": 0,
+              "completed": 4,
+              "failed": 0,
+              "uncertain": 0,
+              "unknown": 0
+            },
+            "workers": [
+              {
+                "id": "alpha",
+                "role": "isolated acceptance worker",
+                "cwd": "$FIXTURE/alpha",
+                "sessionId": "batch-27232789891cac40bf5e36e9b3249061a0741cf26dfed64f",
+                "pid": 46751,
+                "state": "completed",
+                "processState": "completed",
+                "exitCode": 0,
+                "startedAt": "2026-09-20T13:56:06.865Z",
+                "finishedAt": "2026-09-20T13:56:08.948Z",
+                "output": "",
+                "outputBytes": 0,
+                "outputTruncated": false,
+                "artifacts": [
+                  {
+                    "path": "artifact.txt",
+                    "ok": true,
+                    "bytes": 26,
+                    "sha256": "9dca296c0ea32fc1aa5135d3188197e507a5947bbbce1f0adbd77fa152ff1417"
+                  }
+                ]
+              },
+              {
+                "id": "beta",
+                "role": "isolated acceptance worker",
+                "cwd": "$FIXTURE/beta",
+                "sessionId": "batch-ff3fd1f7441fb633a60dfbc3d40c27fdda2042359dcfda38",
+                "pid": 46752,
+                "state": "completed",
+                "processState": "completed",
+                "exitCode": 0,
+                "startedAt": "2026-09-20T13:56:06.865Z",
+                "finishedAt": "2026-09-20T13:56:08.948Z",
+                "output": "",
+                "outputBytes": 0,
+                "outputTruncated": false,
+                "artifacts": [
+                  {
+                    "path": "artifact.txt",
+                    "ok": true,
+                    "bytes": 25,
+                    "sha256": "232ac70f44e03f6dd4a4a2a2dc0915cd02bbec4f947306b0ae22b230b9ae35e6"
+                  }
+                ]
+              },
+              {
+                "id": "gamma",
+                "role": "isolated acceptance worker",
+                "cwd": "$FIXTURE/gamma",
+                "sessionId": "batch-985b2c2857ae0b32b923deaebf0342389817bcf7ebf0227e",
+                "pid": 46758,
+                "state": "completed",
+                "processState": "completed",
+                "exitCode": 0,
+                "startedAt": "2026-09-20T13:56:06.906Z",
+                "finishedAt": "2026-09-20T13:56:08.976Z",
+                "output": "",
+                "outputBytes": 0,
+                "outputTruncated": false,
+                "artifacts": [
+                  {
+                    "path": "artifact.txt",
+                    "ok": true,
+                    "bytes": 26,
+                    "sha256": "c1cf2abbde9141dc1da66e227c7c2b2517dddda76c975f40ed7e7adc2e3a1a55"
+                  }
+                ]
+              },
+              {
+                "id": "delta",
+                "role": "isolated acceptance worker",
+                "cwd": "$FIXTURE/delta",
+                "sessionId": "batch-d14387289aef8a73ce008f416d9b0483af067ad6dc0677a9",
+                "pid": 46757,
+                "state": "completed",
+                "processState": "completed",
+                "exitCode": 0,
+                "startedAt": "2026-09-20T13:56:06.906Z",
+                "finishedAt": "2026-09-20T13:56:08.978Z",
+                "output": "",
+                "outputBytes": 0,
+                "outputTruncated": false,
+                "artifacts": [
+                  {
+                    "path": "artifact.txt",
+                    "ok": true,
+                    "bytes": 26,
+                    "sha256": "1257e79db62b73fd7fad086c481b8055bf6fff30ff88fef6a24b75133ed43553"
+                  }
+                ]
+              }
+            ],
+            "completionLevel": "workers-and-declared-artifacts",
+            "goalVerified": false,
+            "waitExpired": false
+          }
+        }
+      },
+      {
+        "callIndex": 3,
+        "toolName": "commander_receipt",
+        "journalId": "62f214c8001f1a2b119ec727ba9c79329a16cd2d97dd543912f1d00b9ef90835",
+        "fingerprint": "0fc41ba1d9303d6a66a8ce214e28617700d1189b75f3611877f1fb3b6b989a16",
+        "journalFileSha256": "3e8842b4ea73bcc63743fed8f2dc0298873072d187400ea93f9ebc6917e10d53",
+        "modifiedAt": "2026-09-20T14:06:50.234798+00:00",
+        "state": "finished",
+        "result": {
+          "callId": "chat-full-640cc9759d0e-append",
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T13:54:36.997Z",
+          "finishedAt": "2026-09-20T13:54:37.035Z",
+          "retrySafe": false
+        }
+      },
+      {
+        "callIndex": 5,
+        "toolName": "commander_process_output",
+        "journalId": "09345a8e3e928ce9b0eaa5b659619b26d60b67f95ebd7ec7b8439d12767f61d9",
+        "fingerprint": "9fd897d9e877e1de3408b206f3067b11dcb4d224b45085d2ed11416ddd6b2bbe",
+        "journalFileSha256": "a75bacad7f4c473937cc42ddb357ec9827c06ffdeb27d349ad098c0efcb6787e",
+        "modifiedAt": "2026-09-20T14:06:49.112845+00:00",
+        "state": "finished",
+        "result": {
+          "state": "completed",
+          "operationState": "unsubmitted",
+          "result": {
+            "sessionId": "chat-full-640cc9759d0e-fail",
+            "state": "unsubmitted",
+            "dispatched": false
+          },
+          "retrySafe": false
+        }
+      }
+    ],
+    "allSixCallFingerprintsMatchedBeforeRedaction": true,
+    "rawToolExportSha256": "df27eec4e7339eaddb34c3ca33e7912d5eca151e2e220e6f1b8d2d52d66aa818",
+    "rawJournalObservationSha256": "9c1457bc9dd19290424b8fba49d415f167507214881359fdd027cc47226473b2",
+    "rawSnapshotSha256": "857ccb13760ca67dab450b6d45aa2150500571fad9abc7783ae3bf9449d55d0a",
+    "unchangedArtifactsAndProcesses": true,
+    "appendSha256": "7360f32b6f6944ac9dd4df3c9b23edfd72a7047357adac2f5b606f26006f93e1",
+    "batchSha256": "d5775110e6efa16a2f9ce41b04cf211a94d15b55178bd5fc3990917c4f5ccdf8",
+    "sessionMetaSha256": {
+      "batch-27232789891cac40bf5e36e9b3249061a0741cf26dfed64f": "92bfe755e89460d58bb978c92aba1b110da5567861a9ce90002624985274e105",
+      "batch-985b2c2857ae0b32b923deaebf0342389817bcf7ebf0227e": "ce96422d38510ca7a8ca4f7b39105fb9069a8e45e2dd19450f69c012aec6d016",
+      "batch-d14387289aef8a73ce008f416d9b0483af067ad6dc0677a9": "8de56debb3ca6cf7aa32ecf90f3f11d042298d09e7283026eda589323468d7b0",
+      "batch-ff3fd1f7441fb633a60dfbc3d40c27fdda2042359dcfda38": "d301b1501806d77f45bd08b681e3e6190d035f73cf2bd20ba6ae055e9e775f85"
+    },
+    "exportLimits": {
+      "nullOutputCallIndices": [
+        2,
+        3,
+        4
+      ],
+      "mismatchedOutputCallIndices": [
+        5
+      ],
+      "description": "The UI export assigns the append receipt to the last process_output call and omits three parallel outputs. Six matching agent journal fingerprints and their fresh file times independently establish the actual results; exported null/misattributed outputs are not used as execution evidence."
+    },
+    "newSpending": 0,
+    "observedApprovalPrompts": 0,
+    "supervisorApprovalClicks": 0
+  }
+}

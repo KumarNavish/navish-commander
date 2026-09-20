@@ -72,6 +72,8 @@ HTTPS protects transport. **Netlify and, when enabled, Cloudflare can access arg
 
 The runtime executes with the host account's OS permissions. This is not an OS sandbox. Only connect trusted clients, retain explicit device selection, and obey each workload's data and authorization boundaries. The agent does not start model APIs or buy credits, but a command supplied by a trusted client could invoke an installed paid service; the client's no-spending instruction remains necessary.
 
+ChatGPT's **Allow all actions** app setting does not remove all platform safety checks. The owner's live full-access acceptance test still received nine explicit blocks. A denied action must not be retried or routed through another tool merely because no host effect occurred. See [the observed conversation results](CHAT_ACCEPTANCE.md#full-access-personal-chatgpt-check-20-september-2026).
+
 ## Stop, update, and revoke
 
 Use `launchctl print gui/$(id -u)/io.navish.commander.personal-connector` to inspect this agent. Before updating, reconcile its in-flight records. Stop only this LaunchAgent with `launchctl bootout gui/$(id -u) "$HOME/Library/LaunchAgents/io.navish.commander.personal-connector.plist"`, then run the installer from the verified checkout. Existing Commander worker processes are separate; stopping the connector does not authorize cancelling them.
