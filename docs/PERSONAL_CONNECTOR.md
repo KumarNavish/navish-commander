@@ -14,6 +14,8 @@ The optional polling transport instead uses a five-second edge long poll and a h
 
 The Mac must be powered on, connected, and logged into the account running the LaunchAgent. There is no uptime SLA. Custom instructions guide tool selection; they cannot give a chat unavailable tools or override ChatGPT's approvals, usage limits, or safety checks.
 
+The Mac LaunchAgent uses `ProcessType=Interactive` and precise legacy timers for chat-driven work. macOS otherwise throttles launchd jobs' CPU/I/O and coalesces their timers. These settings grant no additional file or account permissions. They favor response latency during execution; the outbound connection still sleeps between bounded heartbeats when idle.
+
 ## Deploy your own instance
 
 ### Standalone Cloudflare endpoint
