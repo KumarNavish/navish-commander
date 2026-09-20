@@ -5,6 +5,7 @@ import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
 import {executeJournaledJob} from './journal.mjs';
 import {runChannelAgent} from './channel-agent.mjs';
+import {boundResultEnvelope} from './result-envelope.mjs';
 import {acquireBridgeLock} from '../runtime/app/src/control-lock.mjs';
 import {closeStateTransactions} from '../runtime/app/src/state-lock.mjs';
 import catalog from './catalog.json' with {type:'json'};
@@ -24,7 +25,7 @@ async function request(endpoint,data){
   if(!r.ok)throw Error('RELAY_HTTP_'+r.status);
   return r.json();
 }
-const executeJob=(job,upload=result=>request('/agent/result',result))=>{
+const executeJob=(job,upload=result=>request('/agent/result',boundResultEnvelope(result,262144)))=>{
   const tool=catalog.tools.find(t=>t.name===job.name);
   if(!tool)throw Error('UNKNOWN_JOB_TOOL');
   // Recovery semantics come from the installed catalog, never a relay flag.

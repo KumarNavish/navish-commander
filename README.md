@@ -2,7 +2,7 @@
 
 Use ChatGPT or Claude as the reasoning agent and Commander as the execution layer for authorized files, shell commands, browser workflows and parallel command batches on your machines.
 
-**Runtime 1.6.0-rc.4 / personal connector 0.4.1** adds native Word, Excel and PDF workflows, images and explicit URL reads. The runtime does not discover or launch Codex, Claude Code or a separate model service. The chat client generates the code and commands, interprets outputs and decides the next step.
+**Runtime 1.6.0-rc.4 / personal connector 0.4.3** adds native Word, Excel and PDF workflows, images and explicit URL reads. The runtime does not discover or launch Codex, Claude Code or a separate model service. The chat client generates the code and commands, interprets outputs and decides the next step.
 
 ## Work directly from chat
 
@@ -26,7 +26,9 @@ The current candidate exposes 33 local MCP tools (34 through the personal connec
 
 The removed rc.1 executor's two model-backed tests consumed Codex usage and do **not** establish the requested chat-only capability. Their original records remain public. Historical job status, listing, cancellation and `navish jobs` / `navish job` are retained to recover those records; no new model-backed jobs can be launched. See [historical recovery](docs/AGENT_JOBS.md).
 
-The final 50-pair hosted RDC comparison measured **2.079× median throughput**, with a paired 95% interval of **1.988–2.165×**; the strict 2× confidence gate is not passed. All 400 worker outcomes verified. Controlled delivery recorded **0/30 Commander failures versus 10/30 RDC duplicate effects**; normal delivery and reconnect passed for both. These are bounded execution measurements, not a general model-productivity claim.
+Connector 0.4.3 recovers oversized results without replaying commands or leaving the delivery queue stuck. The original full result remains local; a bounded notice directs the chat to existing output readers. See [response recovery](docs/PERSONAL_CONNECTOR.md#oversized-responses-in-connector-043).
+
+The source-bound 0.4.1 final 50-pair hosted RDC comparison measured **2.079× median throughput**, with a paired 95% interval of **1.988–2.165×**; the strict 2× confidence gate is not passed. All 400 worker outcomes verified. Controlled delivery recorded **0/30 Commander failures versus 10/30 RDC duplicate effects**; normal delivery and reconnect passed for both. These are bounded execution measurements, not a general model-productivity claim.
 
 An actual Latest / Extra High ChatGPT conversation completed and independently verified the Word, Excel and PDF workflow. Two platform approval blocks and subsequent client retries fail unattended certification despite successful artifacts. The full 41-call export and generated synthetic artifacts are published. See the [acceptance ledger](docs/ACCEPTANCE.md) and [document conversation](docs/CHAT_DOCUMENTS.md).
 
@@ -38,7 +40,7 @@ For the current package version, use `navish-commander-1.6.0-rc.4.zip` from the 
 claude --plugin-dir /absolute/path/to/extracted/navish-commander
 ```
 
-The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use that root as the plugin directory. The current source passes 142 local runtime/MCP tests. A fresh ZIP extraction passed 49 MCP tests, strict plugin validation, and the real Claude Code MCP connection check. These host checks do not invoke a model. Historical client evidence remains in the acceptance ledger and does not certify changed source.
+The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use that root as the plugin directory. The current source passes 143 local runtime/MCP tests. A fresh ZIP extraction passed 49 MCP tests, strict plugin validation, and the real Claude Code MCP connection check. These host checks do not invoke a model. Historical client evidence remains in the acceptance ledger and does not certify changed source.
 
 ## Claude Desktop package
 

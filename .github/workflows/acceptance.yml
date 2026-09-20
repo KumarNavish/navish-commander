@@ -3,11 +3,14 @@ on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
-  evidence-integrity:
+  historical-connector-041:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # These source-bound measurements remain on their measured release.
       - uses: actions/checkout@v4
+        with:
+          ref: d4f77c5a6a5516404a6522fe0358256420c4db7a
       - uses: actions/setup-node@v4
         with:
           node-version: '24'

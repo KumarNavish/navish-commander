@@ -1,0 +1,55 @@
+{
+  "schema": "navish.connector-output-recovery-evidence/v1",
+  "before": {
+    "source": "released 0.4.1",
+    "cause": "A valid interactive tool result is larger than the channel expanded message limit; repeat upload also fails without re-execution.",
+    "originalResponseBytes": 1401286,
+    "outputBytes": 700000,
+    "toolInvocations": 1,
+    "uploadAttempts": 2,
+    "uploadFailures": 2,
+    "mutationEffects": 1
+  },
+  "after": {
+    "schema": "navish.oversized-result-recovery/v1",
+    "at": "2026-09-20T22:19:57.706Z",
+    "connectorVersion": "0.4.3",
+    "connectorSourceSha256": "53696b0d899dafa7a92ad863ea92ffabbe561c833324fba41d9e83965f8563eb",
+    "runtimeSourceSha256": "ca4ed695e40d302fa1dca7bcd2ae20ed04b812b02f09c31eafe997348cc2cf5e",
+    "route": "https://navish-commander-channel.kumnav-navish-commander.workers.dev/mcp",
+    "planning": "deterministic SDK acceptance, not a model conversation",
+    "outcome": "passed",
+    "noticeCode": "CONNECTOR_RESULT_TOO_LARGE",
+    "originalResponseBytes": 1401652,
+    "originalResponseSha256": "97c697bf8758b80cfc874caeae7f1ac2eb8d1a3d61a66d39be5d0cc08fccb780",
+    "recoveredOutputBytes": 700000,
+    "recoveredOutputSha256": "c05f819f0cc8152c0a7f0315836c3dd132e1a710ab746c463ab00ae84945c15e",
+    "recoveryReadCalls": 11,
+    "mutationEffects": 1,
+    "originalJournalPreserved": true,
+    "receiptMatchesNotice": true,
+    "ownedWorkerTerminated": true
+  },
+  "deployment": {
+    "at": "2026-09-20T22:20:53.262Z",
+    "matched": true,
+    "connectorSourceSha256": "53696b0d899dafa7a92ad863ea92ffabbe561c833324fba41d9e83965f8563eb",
+    "runtimeSourceSha256": "ca4ed695e40d302fa1dca7bcd2ae20ed04b812b02f09c31eafe997348cc2cf5e",
+    "installedSourceSha256": "d2ccb05772afe1276e42a0b0b640f38023642ae18e33a1ad5866628e731dae83",
+    "online": true,
+    "pending": 0
+  },
+  "localTests": {
+    "total": 143,
+    "passed": 143,
+    "channelTests": 7,
+    "lostUploadRecovered": true,
+    "duplicateMutationSuppressed": true,
+    "originalFailedAndUncertainStatesPreserved": true
+  },
+  "scope": [
+    "A specific oversized-result failure was reproduced and fixed.",
+    "The hosted confirmation used the authenticated personal MCP route and the real Mac, without a model call.",
+    "It is not a new ChatGPT conversation or hosted RDC throughput certification."
+  ]
+}

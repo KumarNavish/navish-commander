@@ -15,8 +15,31 @@ import {executeJournaledJob} from '../connector/journal.mjs';
 import {sha} from '../connector/auth.mjs';
 import {canonical,toolResult} from '../connector/queue.mjs';
 import {encodeChannelMessage,decodeChannelMessage,MAX_CHANNEL_MESSAGE_BYTES} from '../connector/channel-codec.mjs';
+import {boundResultEnvelope} from '../connector/result-envelope.mjs';
 const catalog=JSON.parse(fs.readFileSync(new URL('../connector/catalog.json',import.meta.url)));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
+
+test('oversized delivery preserves outcome and identity without rewriting the original response',()=>{
+  const id=sha('large'),fingerprint=sha('intent');
+  const small={id,fingerprint,response:toolResult({state:'completed'})};
+  assert.equal(boundResultEnvelope(small,262144),small);
+  for(const state of ['completed','failed','uncertain']){
+    const response=toolResult({state,operationState:state,result:{sessionId:'large-output',exitCode:state==='failed'?7:0,output:'x'.repeat(700000)},
+      connectorOperation:{operationId:id,toolName:'commander_interact_with_process',requestSha256:fingerprint,callId:'input-once',device:'local'}},state!=='completed');
+    const original=JSON.stringify(response),message={type:'result',id,fingerprint,response};
+    for(const limit of [262144,MAX_CHANNEL_MESSAGE_BYTES]){
+      const projected=boundResultEnvelope(message,limit),value=projected.response.structuredContent;
+      assert.ok(Buffer.byteLength(JSON.stringify(projected))<=limit);
+      assert.equal(projected.response.isError,true);
+      assert.equal(value.state,state);assert.equal(value.operationState,state);
+      assert.equal(value.sessionId,'large-output');assert.equal(value.callId,'input-once');
+      assert.deepEqual(value.connectorOperation,response.structuredContent.connectorOperation);
+      assert.equal(value.code,'CONNECTOR_RESULT_TOO_LARGE');assert.equal(value.retrySafe,false);
+      assert.equal(value.responseSha256,sha(original));assert.equal(value.result,null);
+      assert.equal(JSON.stringify(response),original);
+    }
+  }
+});
 
 test('channel compression preserves structured results and enforces the expanded byte budget',async()=>{
   const value={type:'result',response:toolResult({state:'completed',content:'diagnostic line\n'.repeat(4000)})};
@@ -174,6 +197,34 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
     const readResult=await http('/invoke',readJob);
     assert.equal(readResult.structuredContent.result.content,'complete result\n'.repeat(1000).trimEnd());
     assert.deepEqual(await http('/receipt',{id:readJob.id}),readResult);
+    phase='oversized interactive result and bounded recovery';
+    const quote=s=>"'"+s.replaceAll("'","'\\''")+"'";
+    const script="const fs=require('fs');require('readline').createInterface({input:process.stdin}).on('line',()=>{fs.appendFileSync('large-effects','once\\n');process.stdout.write('x'.repeat(700000));});";
+    await client.callTool({name:'commander_start_process',arguments:{device:'local',callId:'large-start',sessionId:'large-output',transport:'pipe',cwd:root,command:quote(process.execPath)+' -e '+quote(script)}});
+    try{
+      const input=job('commander_interact_with_process',{device:'local',callId:'large-input',sessionId:'large-output',input:'emit',wait_ms:500});
+      const beforeInput=calls;drop=true;
+      const notice=await http('/invoke',input),value=notice.structuredContent;
+      assert.equal(value.code,'CONNECTOR_RESULT_TOO_LARGE');assert.equal(notice.isError,true);
+      assert.equal(value.state,'completed');assert.equal(value.operationState,'running');
+      assert.equal(value.sessionId,'large-output');assert.equal(value.callId,'large-input');
+      assert.equal(calls,beforeInput+1);assert.equal(fs.readFileSync(root+'/large-effects','utf8'),'once\n');
+      const retained=JSON.parse(fs.readFileSync(root+'/journal/'+input.id+'.json')).response;
+      assert.equal(retained.structuredContent.result.output.length,700000);
+      assert.equal(value.responseSha256,sha(JSON.stringify(retained)));
+      assert.deepEqual(await http('/invoke',input),notice);assert.equal(calls,beforeInput+1);
+      assert.deepEqual(await http('/receipt',{id:input.id}),notice);
+      let output='',offset=0;
+      while(offset<700000){
+        const args={device:'local',sessionId:'large-output',offset,maxBytes:65536},name='commander_process_output';
+        const r=await http('/invoke',{id:sha('large-read-'+offset),name,args,mutating:false,fingerprint:sha(canonical({name,args})),createdAt:Date.now(),expiresAt:Date.now()+60000});
+        assert.equal(r.isError,false);const page=r.structuredContent.result;
+        assert.ok(page.nextOffset>offset);output+=page.output;offset=page.nextOffset;
+      }
+      assert.equal(output,'x'.repeat(700000));
+      assert.equal((await http('/status',{})).pending,0);
+      assert.equal(fs.readFileSync(root+'/large-effects','utf8'),'once\n');
+    }finally{await client.callTool({name:'commander_force_terminate',arguments:{device:'local',callId:'large-stop',sessionId:'large-output'}});}
     phase='worker batch';
     const workers=['a','b','c','d'].map(id=>{const cwd=root+'/'+id;fs.mkdirSync(cwd);return{id,role:'fixture',cwd,transport:'pipe',command:`printf '${id}' > result; ${id==='d'?'exit 7':'true'}`,artifacts:[{path:'result',sha256:sha(id)}]};});
     const batch=job('commander_start_batch',{device:'local',callId:'channel-batch',batchId:'channel-batch',workers,wait_ms:1000});
