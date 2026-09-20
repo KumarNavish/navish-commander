@@ -124,11 +124,21 @@ export async function startProcessTool(args,P){
     writeJson(claimFile,{version:1,sessionId,specHash,owner:processOwner(),claimedAt:new Date().toISOString()});
     return true;
   });
+  let helperProcess,wake;
+  const observePause=ms=>new Promise(resolve=>{
+    const finish=()=>{clearTimeout(timer);if(wake===finish)wake=undefined;resolve();};
+    const timer=setTimeout(finish,ms);wake=finish;
+  });
+  try{
   if(claimed){
     if(transport==='pipe'){
       const helper=path.join(path.dirname(fileURLToPath(import.meta.url)),'pipe-session-helper.mjs');
       await new Promise((resolve,reject)=>{
-        const child=spawn(process.execPath,[helper,dir,cwd,shell,'-lc',command],{detached:true,stdio:'ignore',env:{...process.env,...env}});
+        const child=spawn(process.execPath,[helper,dir,cwd,shell,'-lc',command],{detached:true,stdio:['ignore','ignore','ignore','ipc'],env:{...process.env,...env}});
+        helperProcess=child;
+        child.on('message',message=>{if(message?.type==='session-state')wake?.();});
+        child.on('disconnect',()=>wake?.());
+        child.channel?.unref();
         child.once('error',()=>reject(launchError('PROCESS_LAUNCH_OUTCOME_UNCERTAIN',sessionId,true)));
         child.once('spawn',()=>{child.unref();resolve();});
       });
@@ -154,12 +164,13 @@ export async function startProcessTool(args,P){
     }
   }
   let latest=null;
-  for(let i=0;i<150;i++){latest=meta(P,sessionId);if(latest)break;await sleep(20)}
+  for(let i=0;i<150;i++){latest=meta(P,sessionId);if(latest)break;await observePause(20)}
   if(!latest)throw launchError('PROCESS_LAUNCH_OUTCOME_UNCERTAIN',sessionId,true);
   const deadline=Date.now()+wait;
-  while(Date.now()<deadline){latest=sessionState(meta(P,sessionId)||latest,P);if(latest.state!=='running')break;await sleep(Math.min(25,deadline-Date.now()))}
+  while(Date.now()<deadline){latest=sessionState(meta(P,sessionId)||latest,P);if(latest.state!=='running')break;await observePause(Math.min(25,deadline-Date.now()))}
   latest=sessionState(meta(P,sessionId)||latest,P);
   return {...latest,...readOutputWindow(latest.outputFile),reused:!claimed};
+  }finally{if(helperProcess?.connected)helperProcess.disconnect();}
 }
 
 export function readProcessOutputTool(args,P){
