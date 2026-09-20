@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { StringDecoder } from 'node:string_decoder';
 import { ensureDir } from './util.mjs';
 
 function allowed(p, config){
@@ -16,15 +17,61 @@ function isProbablyText(buf){
 }
 export function readFileTool(args,config){
   const p=allowed(args.path,config); const st=fs.statSync(p); if(!st.isFile()) throw new Error('not a file');
-  const max=Number(args.maxBytes||config.outputLimitBytes||1048576); const fd=fs.openSync(p,'r');
+  const max=Number(args.maxBytes??config.outputLimitBytes??1048576);
+  const requestedOffset=Number(args.offset??0),length=args.length==null?null:Number(args.length);
+  if(!Number.isSafeInteger(max)||max<1)throw new Error('maxBytes must be a positive integer');
+  if(!Number.isSafeInteger(requestedOffset))throw new Error('offset must be an integer');
+  if(length!==null&&(!Number.isSafeInteger(length)||length<0))throw new Error('length must be a nonnegative integer');
+  const fd=fs.openSync(p,'r');
   try{
-    const len=Math.min(st.size,max); const b=Buffer.alloc(len); fs.readSync(fd,b,0,len,0);
-    if(isProbablyText(b)){
-      let txt=b.toString('utf8'); const lines=txt.split(/\r?\n/); const off=Number(args.offset||0); const length=args.length==null?lines.length:Number(args.length);
-      const selected=off<0?lines.slice(Math.max(0,lines.length+off)):lines.slice(off,off+length);
-      return {path:p,type:'text',content:selected.join('\n'),size:st.size,truncated:st.size>len,mode:modeOctal(st)};
+    const probe=Buffer.alloc(Math.min(st.size,8192));
+    const probeBytes=fs.readSync(fd,probe,0,probe.length,0);
+    if(isProbablyText(probe.subarray(0,probeBytes))){
+      // Locate the requested line in the file before limiting returned bytes.
+      // Scanning uses fixed-size storage, including for a very long skipped line.
+      const chunk=Buffer.alloc(65536);
+      function scan(target){
+        let position=0,lines=0;
+        if(target===0)return {position:0,lines:0};
+        while(position<st.size){
+          const n=fs.readSync(fd,chunk,0,Math.min(chunk.length,st.size-position),position);
+          if(!n)break;
+          for(let i=0;i<n;i++)if(chunk[i]===10){
+            lines++;
+            if(lines===target)return {position:position+i+1,lines};
+          }
+          position+=n;
+        }
+        return {position,lines,notFound:target!==null};
+      }
+      const offset=requestedOffset<0?Math.max(0,scan(null).lines+1+requestedOffset):requestedOffset;
+      const start=scan(offset);
+      if(start.notFound)return {path:p,type:'text',content:'',size:st.size,truncated:false,
+        offset,returnedLines:0,nextOffset:null,hasMore:false,partialLastLine:false,mode:modeOctal(st)};
+      const b=Buffer.alloc(Math.min(Math.max(0,st.size-start.position),max+1));
+      const read=fs.readSync(fd,b,0,b.length,start.position);
+      let bytes=Math.min(read,max);
+      const atEnd=start.position+bytes>=st.size||read<b.length;
+      // Do not split a CRLF separator or emit a replacement for a UTF-8 code
+      // point whose remaining bytes lie beyond this response's byte budget.
+      if(!atEnd&&bytes&&b[bytes-1]===13&&b[bytes]===10)bytes--;
+      const decoder=new StringDecoder('utf8');
+      const text=decoder.write(b.subarray(0,bytes))+(atEnd?decoder.end():'');
+      const lines=text.split(/\r?\n/);
+      if(!atEnd&&(!text||text.endsWith('\n')))lines.pop();
+      const completeLines=atEnd?lines.length:(text.match(/\n/g)||[]).length;
+      // Negative offsets historically return the whole tail, ignoring length.
+      const count=requestedOffset<0?null:length;
+      const selected=count===null?lines:lines.slice(0,count);
+      const partialLastLine=!atEnd&&!!text&&!text.endsWith('\n')&&selected.length===lines.length;
+      const hasMore=!atEnd||selected.length<lines.length;
+      return {path:p,type:'text',content:selected.join('\n'),size:st.size,
+        truncated:!atEnd&&(count===null||count>completeLines),offset,returnedLines:selected.length,
+        nextOffset:hasMore?offset+selected.length-(partialLastLine?1:0):null,
+        hasMore,partialLastLine,mode:modeOctal(st)};
     }
-    return {path:p,type:'binary',base64:b.toString('base64'),size:st.size,truncated:st.size>len,mode:modeOctal(st)};
+    const b=Buffer.alloc(Math.min(st.size,max)),len=fs.readSync(fd,b,0,b.length,0);
+    return {path:p,type:'binary',base64:b.subarray(0,len).toString('base64'),size:st.size,truncated:st.size>len,mode:modeOctal(st)};
   } finally{fs.closeSync(fd)}
 }
 export function readMultipleFilesTool(args,config){ return {files:(args.paths||[]).map(p=>{try{return readFileTool({path:p,maxBytes:args.maxBytes},config)}catch(e){return {path:p,error:e.message}}})}; }

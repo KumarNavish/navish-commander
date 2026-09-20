@@ -16,7 +16,7 @@ const id = z.string().min(1).max(120).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
 const absolutePath = z.string().min(1).max(4096).startsWith('/');
 const device = z.string().min(1).max(120).describe('Exact ID from commander_devices. local is this MCP server host.');
 const mutation = {device, callId:id.describe('Stable ID for this intent. Reuse after a lost response; never mint a retry ID.')};
-const server = new McpServer({name:'navish-commander', version:'1.5.0-rc.2'}, {
+const server = new McpServer({name:'navish-commander', version:'1.5.0-rc.3'}, {
   instructions:'Execute only user-authorized work. Discover devices first. Keep callId, sessionId and batchId across reconnects. A completed tool receipt may describe a running or failed worker. Inspect operationState and verify outputs. Never clear an uncertain record or retry a mutation with a new identity. Local shell commands have the OS account permissions; this server is not a sandbox.'
 });
 

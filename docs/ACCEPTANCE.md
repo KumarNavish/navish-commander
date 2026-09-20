@@ -1,6 +1,12 @@
 # Acceptance ledger
 
-**Latest ChatGPT gate:** the owner selected Allow all actions, and the setting was applied. The fresh 33-call conversation verified the exact write and parallel artifacts but incurred nine platform safety blocks; the deliberate failure worker remained unsubmitted. A six-call fresh-chat recovery passed with independent journal and file verification. Full unattended certification remains blocked. [Detailed record and export limitations](CHAT_ACCEPTANCE.md#full-access-personal-chatgpt-check-20-september-2026).
+## Current rc.3 / connector 0.1.2 candidate
+
+The [Latest + Extra High conversation evaluation](CHAT_EFFICACY.md) completed ten baseline conversations and two separate repair confirmations, with 116 exported calls. It found a reproducible large-file pagination defect in rc.2. The rc.3 repair passed both fresh read-only conversations, 117 runtime/MCP tests and 24 extracted-bundle tests. Six planned mutation tasks were unrun; UI-export defects and uncorroborated denial reports remain recorded. The rc.2/0.1.1 throughput, delivery, and earlier conversation evidence below remains tied to its original source. It is not comparative acceptance of this changed candidate. Current package integrity and historical performance predicates are separate CI checks. Fully unattended certification remains unachieved.
+
+## Historical rc.2 / connector 0.1.1 acceptance
+
+**Earlier full-access ChatGPT gate:** the owner selected Allow all actions, and the setting was applied. The fresh 33-call conversation verified the exact write and parallel artifacts but incurred nine platform safety blocks; the deliberate failure worker remained unsubmitted. A six-call fresh-chat recovery passed with independent journal and file verification. Full unattended certification remains blocked. [Detailed record and export limitations](CHAT_ACCEPTANCE.md#full-access-personal-chatgpt-check-20-september-2026).
 
 The local runtime 1.5.0-rc.2 and personal connector 0.1.1 pass their defined execution throughput and controlled delivery gates. Version 1.5.0-rc.2 also passes the authorized local-client conversation checks. Claude Code loaded the plugin and connected; the user-authorized alternative, Codex with its existing ChatGPT login, completed the packaged-server conversation and a separate reconnect conversation. The release remains an evaluation candidate: broad production chat reliability, independent certification, and ChatGPT directory approval are not established.
 
@@ -40,7 +46,7 @@ A first rc.2 Linux/Node 24 run failed because a test assumed an acknowledged inp
 
 ## Personal HTTPS connector evidence
 
-The released connector source is `346ba2324e4427f1e31dda7558646716050175f777525dad97bb2f350fc307e1`. Its cloud health endpoints and pinned Mac installation attest that source. The core runtime digest remains `761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615`.
+The released connector source is `346ba2324e4427f1e31dda7558646716050175f777525dad97bb2f350fc307e1`. The cloud and pinned Mac installation attested that source during those measurements. The corresponding core runtime digest is `761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615`.
 
 The actual personal ChatGPT HTTPS endpoint uses Netlify OAuth/edge routing, a Cloudflare SQLite Durable Object, and an outbound Mac WebSocket. With `ProcessType=Interactive` and precise timers, twenty paired inline rounds measured **2.067×** throughput (**837.415 ms** versus RDC's **1,730.57 ms**; paired 95% interval **2.010–2.186×**). All 40 product workflows and 160 workers verified. The separately frozen delivery suite observed **0/30** Commander failures and **10/30** RDC failures; all RDC failures were duplicate effects. Both products passed normal and reconnect cases. These gates pass for the specified workloads; the fixed fault mixture is not a production failure estimate.
 

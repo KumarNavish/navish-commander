@@ -13,7 +13,7 @@ import { listDevices,remoteCall,pairAdd,pairRemove } from './remote.mjs';
 import { nowIso, randomId, writeJson, sleep } from './util.mjs';
 import { performance } from 'node:perf_hooks';
 
-export const VERSION='1.5.0-rc.2';
+export const VERSION='1.5.0-rc.3';
 export const TOOL_NAMES=['get_config','set_config_value','read_file','read_multiple_files','write_file','create_directory','list_directory','move_file','find_text','start_process','read_process_output','interact_with_process','force_terminate','list_sessions','list_processes','kill_process','browser_agent','browser_agent_health','browser_command','get_usage_stats','get_recent_tool_calls','agent_batch_start','agent_batch_status','agent_batch_collect','agent_batch_send','agent_batch_cancel','agent_batch_list'];
 
 function audit(P,event){fs.appendFileSync(P.auditLog,JSON.stringify({at:nowIso(),...event})+'\n',{mode:0o600});}

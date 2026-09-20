@@ -49,6 +49,19 @@ test('MCP restart preserves multi-worker identities, outputs, and artifact verif
     assert.equal(repeated.result.reused,true);assert.equal(fs.readdirSync(lab.env.NAVISH_STATE_DIR+'/sessions').length,4);
   }finally{await c.client.close();fs.rmSync(lab.root,{recursive:true,force:true});}
 });
+test('MCP file reads page beyond the response cap and expose continuation',async()=>{
+  const lab=workspace(),c=await connect(lab);
+  try{
+    const lines=Array.from({length:1400},(_,i)=>`${i}: ${'record '.repeat(12)}`);
+    const file=lab.root+'/long.log';fs.writeFileSync(file,lines.join('\n'));
+    const result=await c.call('commander_read_file',{device:'local',path:file,offset:1250,length:75,maxBytes:8192});
+    assert.equal(result.state,'completed');assert.equal(result.result.content,lines.slice(1250,1325).join('\n'));
+    assert.equal(result.result.truncated,false);assert.equal(result.result.nextOffset,1325);
+    const tail=await c.call('commander_read_file',{device:'local',path:file,offset:1399,length:75,maxBytes:8192});
+    assert.equal(tail.result.content,lines[1399]);assert.equal(tail.result.hasMore,false);
+    assert.equal(tail.result.nextOffset,null);
+  }finally{await c.client.close();fs.rmSync(lab.root,{recursive:true,force:true});}
+});
 test('MCP reports worker failure distinctly from successful observation',async()=>{
   const lab=workspace(),c=await connect(lab);
   try{

@@ -2,7 +2,7 @@ import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 const selected=[
   'control-crypto','control-poll','controller-hardening','metadata-contention',
-  'metadata-deadline','native-wiring','remote-outcome','sender-safety'
+  'metadata-deadline','native-wiring','remote-outcome','sender-safety','file-pagination'
 ].map(n=>`runtime/test/${n}.test.mjs`);
 selected.push('runtime/test/runtime/runtime.test.mjs');
 selected.push(...fs.readdirSync('test').filter(f=>f.endsWith('.test.mjs')).map(f=>'test/'+f));
