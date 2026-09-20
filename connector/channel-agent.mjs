@@ -1,11 +1,12 @@
 // The Mac only opens outbound TLS connections. Tokens travel in upgrade
 // headers, never query strings. The disk journal remains the execution owner.
-import {encodeChannelMessage} from './channel-codec.mjs';
+import {encodeChannelMessage,MAX_CHANNEL_MESSAGE_BYTES} from './channel-codec.mjs';
+import {boundResultEnvelope} from './result-envelope.mjs';
 export async function runChannelAgent({origin,token,executeJob,stopped,WebSocketImpl=WebSocket,log=console.error}) {
   if(!/^https:\/\/[^/]+$/.test(origin)||!token||token.length<40)throw Error('INVALID_CHANNEL_CONFIG');
   const inflight=new Map(),acks=new Map();let socket,backoff=1000;
   const upload=async({id,fingerprint,response})=>{
-    const message=await encodeChannelMessage({type:'result',id,fingerprint,response});
+    const message=await encodeChannelMessage(boundResultEnvelope({type:'result',id,fingerprint,response},MAX_CHANNEL_MESSAGE_BYTES));
     return new Promise((resolve,reject)=>{
     if(socket?.readyState!==1){reject(Error('CHANNEL_DISCONNECTED'));return;}
     const timer=setTimeout(()=>{acks.delete(id);reject(Error('CHANNEL_ACK_TIMEOUT'));socket?.close();},10000);
