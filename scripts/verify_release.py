@@ -42,7 +42,7 @@ with zipfile.ZipFile(archive) as bundle:
     names = bundle.namelist()
     require(len(names) == len(set(names)), "duplicate ZIP entries")
     require(bundle.testzip() is None, "ZIP member integrity")
-    authored = [p for base in ["src", "runtime/app", "skills", "docs", ".claude-plugin"]
+    authored = [p for base in ["src", "runtime/app", "skills", "docs", "evidence", ".claude-plugin"]
                 for p in (root / base).rglob("*") if p.is_file()]
     authored += [root / p for p in [".mcp.json", "plugin.json", "manifest.json",
                                   "package.json", "package-lock.json", "README.md", "LICENSE"]]

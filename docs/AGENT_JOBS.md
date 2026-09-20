@@ -112,3 +112,10 @@ Git worktrees, subprocesses, MCP disconnects, patch application, check failures,
 cancellation and duplicate suppression. These establish lifecycle behavior,
 not model efficacy or live ChatGPT certification. Live acceptance is recorded
 separately. Earlier RDC comparisons remain bound to their original source.
+
+The current [ChatGPT job record](../evidence/chat-repository-job-20260920.json)
+includes its base commit, declared check, result and exact patch hash. The
+[unaltered patch](../evidence/patches/chat-readme-20260920.patch) can be checked
+with `shasum -a 256` and applied to an isolated checkout of that recorded base.
+This reproduces the artifact and its checks; it does not reproduce the original
+model conversation or establish general model reliability.

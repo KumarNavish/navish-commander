@@ -21,8 +21,28 @@ submitted the README improvement, finished as `review_ready` with an independent
 check exit of zero, and was recovered by a fresh chat without supplying the job
 ID. The original recovery's unsupported assertion about downstream application
 is retained as adverse evidence. Job status now explicitly reports those actions
-as unobserved. This is a bounded workflow result, not broad model reliability,
-current-source 2× RDC performance, directory approval or independent certification.
+as unobserved. A fresh status call in that same conversation correctly reported
+the unknown integration state after the fix. The original 13,619-byte
+[patch](../evidence/patches/chat-readme-20260920.patch) is published with its
+SHA-256. These observations establish a bounded workflow result, not broad model
+reliability, directory approval or independent certification.
+
+The frozen current-source comparison verified all 160 workers. Commander took
+914.46 ms median versus RDC's 1,764.50 ms: **1.9296×**, with a paired 95% interval
+of **1.8083–1.9865×**. The strict 2× throughput gate **fails**. The controlled
+delivery gate passes with **0/30 Commander failures versus 10/30 RDC failures**;
+all ten RDC failures were duplicate effects. Normal delivery and reconnect
+passed for both products. This fixed fault mixture is not a production failure
+rate. No timing-based rerun was used to replace the negative result.
+
+The [frozen protocol](../evidence/personal-0.2.0-protocol.json),
+[throughput samples](../evidence/personal-0.2.0-inline.json), and
+[delivery samples](../evidence/personal-0.2.0-delivery.json) are public. Recompute
+their source binding and predicates with:
+
+```sh
+node scripts/verify-current-connector.mjs evidence/personal-0.2.0-inline.json evidence/personal-0.2.0-delivery.json
+```
 
 ## Historical rc.3 / connector 0.1.3 candidate
 

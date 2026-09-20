@@ -6,7 +6,7 @@ const root=process.cwd(),dist=path.join(root,'dist'),stage=path.join(dist,'navis
 fs.mkdirSync(dist,{recursive:true});
 if(fs.existsSync(stage))fs.rmSync(stage,{recursive:true});
 fs.mkdirSync(stage);
-for(const name of ['src','runtime/app','skills','.claude-plugin','.mcp.json','plugin.json','manifest.json','package.json','package-lock.json','LICENSE','README.md','docs']){
+for(const name of ['src','runtime/app','skills','.claude-plugin','.mcp.json','plugin.json','manifest.json','package.json','package-lock.json','LICENSE','README.md','docs','evidence']){
   const dst=path.join(stage,name);fs.mkdirSync(path.dirname(dst),{recursive:true});fs.cpSync(name,dst,{recursive:true});
 }
 const run=(cmd,args,cwd=root)=>{const r=spawnSync(cmd,args,{cwd,stdio:'inherit'});if(r.status!==0)throw Error(cmd+' failed: '+r.status);};

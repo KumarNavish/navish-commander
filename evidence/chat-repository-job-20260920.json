@@ -30,7 +30,8 @@
     "bytes": 13619,
     "files": [
       "README.md"
-    ]
+    ],
+    "artifact": "evidence/patches/chat-readme-20260920.patch"
   },
   "connectorReceipts": [
     {
@@ -83,5 +84,13 @@
     },
     "chatCorrectlyReportedUnknownDownstreamActions": true,
     "originalAdverseObservationPreserved": true
+  },
+  "artifactReproduction": {
+    "at": "2026-09-20T18:27:14.732Z",
+    "baseCommit": "a4d69d69e1af9e909819736cc3cca6b8a11bc35e",
+    "exactPublishedPatchApplied": true,
+    "declaredCheckExitCode": 0,
+    "output": "{\n  \"ok\": true,\n  \"version\": \"1.6.0-rc.1\",\n  \"archive\": \"navish-commander-1.6.0-rc.1.zip\",\n  \"relativeLinksChecked\": 14\n}\n",
+    "scope": "Reproduces the retained artifact against its original base; does not rerun or certify the model."
   }
 }

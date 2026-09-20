@@ -36,6 +36,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm ci --ignore-scripts
+      - run: node scripts/verify-current-connector.mjs evidence/personal-0.2.0-inline.json evidence/personal-0.2.0-delivery.json
       - run: npm run bundle
       - run: python3 scripts/verify_release.py --integrity-only dist/*.zip dist/SHA256SUMS.txt
       - run: NAVISH_MCP_SERVER=dist/navish-commander/src/server.mjs npm run test:mcp
