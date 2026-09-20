@@ -47,7 +47,7 @@ for(const backend of ['navish','rdc']){
 assert.equal(failures.navish,0);assert.ok(failures.rdc>0);
 const reduction=1-failures.navish/failures.rdc;near(reduction,d.relativeFailureReduction,'failure reduction');
 assert.ok(reduction>=.5);assert.equal(d.controlledTargetPassed,true);
-const acceptance=read('evidence/personal-connector-0.1.0-acceptance.json');
+const acceptance=read('evidence/personal-connector-0.1.1-acceptance.json');
 assert.equal(acceptance.connector.sourceSha256,connectorDigest());
 assert.equal(acceptance.runtimeSourceSha256,sourceDigest());
 assert.equal(acceptance.installedSourceSha256,t.installedSourceSha256);

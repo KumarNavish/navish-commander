@@ -1,0 +1,138 @@
+{
+  "schema": "navish.personal-connector-acceptance/v2",
+  "date": "2026-09-20",
+  "connector": {
+    "version": "0.1.1",
+    "runtimeVersion": "1.5.0-rc.2",
+    "status": "evaluation-candidate",
+    "sourceSha256": "346ba2324e4427f1e31dda7558646716050175f777525dad97bb2f350fc307e1"
+  },
+  "runtimeSourceSha256": "761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615",
+  "installedSourceSha256": "385070a1c02dd981023b73e91f6ab1fbc3d224c9abf43f5a6d4868a5ea2d03fd",
+  "protocolVerification": {
+    "at": "2026-09-20T13:07:16.608Z",
+    "tools": 11,
+    "exactlyOnce": true,
+    "workers": 4,
+    "allHashesMatch": true,
+    "clientReconnect": true,
+    "traceSha256": "7c873ef2673569752e0190cab9e93568302ff1a3656fe67897f942eb8995ad7b"
+  },
+  "chatRead": {
+    "passed": true,
+    "freshFixture": true,
+    "exactOutputVerified": true,
+    "promptDisclosedExpectedValue": false,
+    "platform": "darwin",
+    "device": "local",
+    "toolCalls": [
+      {
+        "connector": "Navish Commander",
+        "name": "commander_devices",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to discover exact paired device IDs before execution.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {},
+        "toolOutput": {
+          "state": "completed",
+          "devices": [
+            {
+              "id": "local",
+              "type": "local",
+              "online": true
+            }
+          ],
+          "platform": "darwin",
+          "processRuntime": {
+            "pythonAvailable": true,
+            "pythonVersion": "3.9.6"
+          }
+        },
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_read_file",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "path": "$FIXTURE/release011-chat-read.txt",
+          "offset": 0,
+          "length": 10,
+          "maxBytes": 4096
+        },
+        "toolOutput": {
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T13:10:38.723Z",
+          "finishedAt": "2026-09-20T13:10:38.728Z",
+          "observation": true,
+          "receiptPersisted": false,
+          "retrySafe": false,
+          "result": {
+            "path": "$FIXTURE/release011-chat-read.txt",
+            "type": "text",
+            "content": "commander-011-b2e023dec3f5348e8b2e289a42202beb26a41dbf\n",
+            "size": 55,
+            "truncated": false,
+            "mode": 384
+          }
+        },
+        "toolResponseMetadata": null
+      }
+    ],
+    "rawToolTraceSha256": "7b2cbf04eeeb04cdca1153aaa84c3727f060cc508c03bad35c4f9d46bd68ed00",
+    "rawSnapshotSha256": "dca4e14e5b094287548493c48c6d8179055fba2d4f82574f9f624df0e517403d",
+    "fixtureSha256": "11273d862a1a17bb1b6f6089d35901cb743b354fbbaae85a9027fd41d5ca7fff"
+  },
+  "throughputReport": "personal-interactive-inline.json",
+  "throughputTargetPassed": true,
+  "deliveryReport": "personal-interactive-delivery.json",
+  "controlledFailureReductionTargetPassed": true,
+  "earlierFailedChatRecord": "personal-connector-acceptance.json",
+  "fullUnattendedChatCertification": false,
+  "independentCertification": false,
+  "publicDirectoryApproval": false,
+  "newPaidServicesOrModelCalls": false,
+  "limits": [
+    "Deterministic worker throughput and deliberate delivery fault mixture, not general model-driven multi-agent productivity or natural failure rates",
+    "Earlier real ChatGPT mutation selected incorrect content and platform review blocked worker launches",
+    "Permission mode remains Allow low-risk actions; explicit permission choice pending",
+    "Claude Code host connection and alternative Codex conversation observed; Claude Desktop GUI installation and conversation not observed",
+    "Free service quotas and existing client subscription limits still apply"
+  ],
+  "compatibilityRegression": "channel-shutdown-regression.json",
+  "unauthenticatedBodyChecks": {
+    "at": "2026-09-20T13:13:05.322Z",
+    "checks": [
+      {
+        "route": "personal-front-door",
+        "status": 401,
+        "unauthenticatedBodyRejected": true
+      },
+      {
+        "route": "standalone-channel",
+        "status": 401,
+        "unauthenticatedBodyRejected": true
+      }
+    ]
+  }
+}

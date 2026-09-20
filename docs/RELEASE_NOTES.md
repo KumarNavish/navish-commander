@@ -1,3 +1,11 @@
+# Personal connector 0.1.1
+
+Fix connector shutdown and reconnect when a WebSocket does not emit its close event. The connection settles once, clears its timers and pending acknowledgements, and ignores late messages. Durable requests and journals keep their original identities; the core 1.5.0-rc.2 runtime is unchanged.
+
+Two missing-close regressions fail on 0.1.0 and pass with the fix. The full suite passes 105 tests. A fresh 20-pair hosted comparison measured **2.067× RDC throughput** (95% interval **2.010–2.186×**) with all 160 worker outcomes verified. The controlled delivery suite again observed 0/30 failures versus RDC's 10/30 duplicate effects. Fresh protocol and ChatGPT read checks bind to the new deployment; the earlier larger ratios remain historical evidence.
+
+This remains an evaluation candidate. Unattended ChatGPT mutation acceptance and public directory approval are not established. The existing hard-limit free hosting, personal ChatGPT connection, and prior local Claude/MCPB packages are unchanged.
+
 # Personal connector 0.1.0
 
 The optional single-owner HTTPS connector makes the existing Commander runtime available to a personal ChatGPT developer app. Owner OAuth with PKCE, a durable SQLite channel, and an outbound Mac WebSocket preserve call identity across lost responses and reconnects. The pinned Mac LaunchAgent uses interactive scheduling and precise timers. A one-shot socket error listener prevents recursive close errors on older Node 22 runtimes; the core 1.5.0-rc.2 execution runtime is unchanged.
