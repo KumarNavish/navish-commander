@@ -68,5 +68,20 @@
     "The initial recovery correctly reported the job and verification but inferred that the patch had not been applied or published. That claim was unsupported; the patch had already been applied outside the job.",
     "Added explicit integration.state=not_observed with null applied/published values; job execution records cannot establish downstream actions."
   ],
-  "certification": "This is a bounded successful workflow, not general unattended certification or an RDC comparison."
+  "certification": "This is a bounded successful workflow, not general unattended certification or an RDC comparison.",
+  "integrationReportingConfirmation": {
+    "sourceCommit": "65c43510ebc6aca63d7cb51cdd82bb985b975a69",
+    "runtimeSourceSha256": "109feb6b3ba7332a4da5bd1bb713675c07745aa375047fb8c2f74cb5ef9e27e3",
+    "operationId": "139c1cfe92fd286f463f12040438d70991875cba1991b369303503836fd72225",
+    "requestSha256": "af9b95e93bcbc5f49ffd685a3cadd2383ad5b4fd6f3645522564b609a66eda5d",
+    "operationState": "review_ready",
+    "integration": {
+      "state": "not_observed",
+      "applied": null,
+      "published": null,
+      "reason": "This job record does not track later application, merging or publication by another actor. Do not infer either that these occurred or that they did not."
+    },
+    "chatCorrectlyReportedUnknownDownstreamActions": true,
+    "originalAdverseObservationPreserved": true
+  }
 }

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "frozenAt": "2026-09-20T18:21:50.438Z",
+  "runtimeVersion": "1.6.0-rc.1",
+  "connectorVersion": "0.2.0",
+  "runtimeSourceSha256": "109feb6b3ba7332a4da5bd1bb713675c07745aa375047fb8c2f74cb5ef9e27e3",
+  "connectorSourceSha256": "a0cd65d6c2a28a4138f3f0e4abc00af69bff90eb84efd0e4a2e989dbff606386",
+  "workload": "Unchanged published personal HTTPS versus hosted RDC benchmark",
+  "throughput": {
+    "harnessSha256": "072b5d6c156734b4a7e959d4e0d51405a98f82578026d119b5146b53b7aaa3c7",
+    "rounds": 20,
+    "workersPerRound": 4,
+    "transport": "pipe",
+    "waitPolicy": "inline",
+    "order": "alternating paired order",
+    "gate": "Every outcome verified and paired bootstrap 95% interval lower bound >= 2",
+    "report": "evidence/personal-0.2.0-inline.json"
+  },
+  "delivery": {
+    "harnessSha256": "83cc59705da7bf5e3ce71bcf8ceb269c92b53e7ef97131b6e359046f98fc2a41",
+    "repetitionsPerScenario": 10,
+    "scenarios": [
+      "normal",
+      "duplicate-delivery",
+      "client-reconnect"
+    ],
+    "gate": "Zero Commander failures and >= 50% fewer failures than RDC",
+    "report": "evidence/personal-0.2.0-delivery.json"
+  },
+  "stop": "One run of each frozen suite for this candidate. Preserve all outcomes, including failed gates; no timing-based selective reruns.",
+  "cost": "Existing free hosted services; no paid model calls",
+  "scope": "Deterministic execution and controlled delivery, not model productivity or general chat reliability"
+}
