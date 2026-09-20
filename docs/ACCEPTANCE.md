@@ -19,6 +19,8 @@ node scripts/verify-chat-documents.mjs
 
 The [Claude host installation](../evidence/claude-host-installation-20260920.json) verifies the current extension installed and enabled, all 33 tool permissions persisting, and an identical installed runtime digest. A fresh ZIP extraction passed 49 MCP tests, strict plugin validation, and a real Claude Code MCP connection check without a model call. A Claude model conversation is untested.
 
+A [fresh Latest / Extra High chat](../evidence/chat-natural-recovery-20260921.json) invoked Commander by name without manually selecting a plugin. Its two read-only calls recovered the correct metrics and three artifact hashes, with no mutations or denials. This verifies that specific automatic-routing and recovery path; it does not override the earlier mutation denials.
+
 The deployed personal ChatGPT connection uses the direct Cloudflare MCP route. Public distribution remains self-hosted, and these results do not establish a public directory approval or full unattended certification.
 
 ## Historical 1.6.0-rc.3 / connector 0.3.0 core tools

@@ -38,3 +38,5 @@ DOCX and Excel engines adapt the MIT-licensed Desktop Commander 0.2.51 handlers.
 The original license is included in `runtime/app/src/DESKTOP_COMMANDER_LICENSE.txt`;
 [provenance](DOCUMENT_ENGINE_PROVENANCE.json) records upstream hashes and local
 changes. Reusing those components is separate from the hosted RDC benchmark.
+
+For rendering on Linux, select the installed browser explicitly when the distribution provides Chromium launcher stubs: `NAVISH_CHROMIUM=/usr/bin/google-chrome`. CI uses this setting with the system-installed Google Chrome; no browser sandbox is disabled by document tools.

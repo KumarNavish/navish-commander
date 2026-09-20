@@ -18,6 +18,8 @@ Commander retains receipts, process output and batch state. Already-started comm
 
 For example: “Use Commander on my Mac to fix the failing parser test in this repository. Read the code, make the edit, run the relevant tests, and verify the result. Keep all reasoning in this chat; do not invoke Codex or another model runner.”
 
+A [fresh Latest / Extra High chat](evidence/chat-natural-recovery-20260921.json) invoked the personal connector by name without a plugin chip and recovered verified results in two read-only calls.
+
 The current candidate exposes 33 local MCP tools (34 through the personal connector, including its receipt tool). It supports directory browsing, multi-file and document reads, exact text and spreadsheet edits, PDF creation and page operations, file metadata, durable paginated search, interactive process input and process recovery. Search and input survive client reconnects. See [document formats](docs/DOCUMENTS.md) and [RDC capability coverage](docs/RDC_CAPABILITIES.md) for limits.
 
 ## Candidate and evidence
