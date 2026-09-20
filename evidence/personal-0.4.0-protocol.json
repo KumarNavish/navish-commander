@@ -1,0 +1,31 @@
+{
+  "at": "2026-09-20T20:46:20.119Z",
+  "runtime": "ca4ed695e40d302fa1dca7bcd2ae20ed04b812b02f09c31eafe997348cc2cf5e",
+  "connector": "e190ca45866e0e4abc5bfa1e7c0993525742d653383e5d5f8ec392ed65e4ec9a",
+  "gitRevision": "908f184daafdf39bb75dfaac09e9209e92eb207d",
+  "endpoint": "https://navish-commander-channel.kumnav-navish-commander.workers.dev/mcp",
+  "baseline": "https://mcp.desktopcommander.app/mcp",
+  "deviceId": "8d2a90c8-6841-4235-a4ff-7d4757506fe0",
+  "throughput": {
+    "rounds": 20,
+    "workers": 4,
+    "waitPolicy": "inline",
+    "transport": "pipe",
+    "paired95LowerThreshold": 2
+  },
+  "delivery": {
+    "repetitionsPerScenario": 10,
+    "scenarios": [
+      "normal",
+      "duplicate-delivery",
+      "client-reconnect"
+    ],
+    "minimumFailureReduction": 0.5,
+    "navishFailuresRequired": 0
+  },
+  "selection": "Direct authenticated route selected from prior latency attribution. One confirmation run; preserve failures.",
+  "harnesses": {
+    "scripts/benchmark-personal-connector.mjs": "072b5d6c156734b4a7e959d4e0d51405a98f82578026d119b5146b53b7aaa3c7",
+    "scripts/benchmark-personal-delivery.mjs": "83cc59705da7bf5e3ce71bcf8ceb269c92b53e7ef97131b6e359046f98fc2a41"
+  }
+}
