@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "navish-commander",
   "display_name": "Navish Commander",
-  "version": "1.6.0-rc.2",
+  "version": "1.6.0-rc.3",
   "description": "Durable local execution and recoverable parallel worker batches.",
   "long_description": "Run user-authorized shell and file work with stable receipts and independently collectable workers. Requires Node.js 22.16+. Optional PTY workers need Python 3.9+. Pipe workers require only Node. Commands run with your operating-system account permissions. This release candidate includes reproducible comparisons with hosted RDC; it is not a hosted ChatGPT connector or an independently certified product.",
   "author": {

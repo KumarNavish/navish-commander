@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0-rc.2",
+  "version": "1.6.0-rc.3",
   "tools": [
     {
       "name": "commander_devices",
@@ -159,6 +159,690 @@
       }
     },
     {
+      "name": "commander_read_multiple_files",
+      "description": "Read up to 16 files in one call. Missing files return individual errors. maxBytes is the per-file cap.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096,
+              "pattern": "^\\/"
+            },
+            "minItems": 1,
+            "maxItems": 16
+          },
+          "maxBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096,
+            "default": 4096
+          }
+        },
+        "required": [
+          "device",
+          "paths"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_list_directory",
+      "description": "Browse a directory tree with bounded depth and total entries. Inspect truncated before assuming the listing is complete.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^\\/"
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8,
+            "default": 2
+          },
+          "limitPerDirectory": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "default": 100
+          },
+          "maxEntries": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 200
+          }
+        },
+        "required": [
+          "device",
+          "path"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_create_directory",
+      "description": "Create an authorized directory and missing parents. Reuse callId for the same intent.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^\\/"
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "path"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_move_file",
+      "description": "Move or rename an authorized file or directory. An existing destination may be replaced; inspect it first. Reuse callId.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^\\/"
+          },
+          "destination": {
+            "$ref": "#/properties/source"
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "source",
+          "destination"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_get_file_info",
+      "description": "Read file metadata, SHA-256 and text line count without returning file content. Use sha256 as expectedSha256 for an edit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^\\/"
+          }
+        },
+        "required": [
+          "device",
+          "path"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_edit_block",
+      "description": "Surgically replace exact text in a UTF-8 file. Default requires one occurrence; ambiguity fails without writing. Set expectedSha256 from file info to reject a stale source. Preserves file permissions. Keep callId stable.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "file_path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^\\/"
+          },
+          "old_string": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65536
+          },
+          "new_string": {
+            "type": "string",
+            "maxLength": 65536
+          },
+          "expected_replacements": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000,
+            "default": 1
+          },
+          "expectedSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "file_path",
+          "old_string",
+          "new_string"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_start_search",
+      "description": "Start a durable bounded search of file paths or text content. Keep sessionId and callId stable. Results stream while scanning and survive reconnection. Regex by default; set literalSearch for plain text. Symlinks and binary content are skipped; content files over 16 MiB are counted as skipped. Inspect truncated and skippedFiles.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "sessionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^\\/"
+          },
+          "pattern": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "searchType": {
+            "type": "string",
+            "enum": [
+              "files",
+              "content"
+            ],
+            "default": "files"
+          },
+          "filePattern": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "ignoreCase": {
+            "type": "boolean",
+            "default": true
+          },
+          "includeHidden": {
+            "type": "boolean",
+            "default": false
+          },
+          "literalSearch": {
+            "type": "boolean",
+            "default": false
+          },
+          "contextLines": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "default": 2
+          },
+          "maxResults": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000,
+            "default": 1000
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 300000,
+            "default": 30000
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "sessionId",
+          "path",
+          "pattern"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_get_more_search_results",
+      "description": "Read progressive search results using nextOffset. Negative offset selects a tail. completed means scanning ended; inspect truncated and skippedFiles for coverage.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "sessionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "offset": {
+            "type": "integer",
+            "default": 0
+          },
+          "length": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 100
+          }
+        },
+        "required": [
+          "device",
+          "sessionId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_stop_search",
+      "description": "Stop an owned search while preserving partial results and its stable session record.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "sessionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "sessionId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_list_searches",
+      "description": "Recover durable search IDs and current scan status.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          }
+        },
+        "required": [
+          "device"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_get_config",
+      "description": "Inspect Commander version, configuration, paired devices and browser availability on an explicitly selected device.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          }
+        },
+        "required": [
+          "device"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_set_config_value",
+      "description": "Change a Commander configuration value only when the user authorizes that setting change. This does not change ChatGPT permissions or operating-system permissions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "key": {
+            "type": "string",
+            "enum": [
+              "allowedDirectories",
+              "browserCommand",
+              "outputLimitBytes"
+            ]
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4096,
+                  "pattern": "^\\/"
+                },
+                "maxItems": 100
+              },
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 16777216
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "key",
+          "value"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_get_usage_stats",
+      "description": "Inspect local Commander tool usage. This is execution telemetry, not model billing or ChatGPT allowance.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          }
+        },
+        "required": [
+          "device"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_get_recent_tool_calls",
+      "description": "Read recent execution and observation audit events without command bodies or environment variables.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "maxResults": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        },
+        "required": [
+          "device"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
       "name": "commander_start_process",
       "description": "Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.",
       "inputSchema": {
@@ -268,6 +952,239 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_interact_with_process",
+      "description": "Send input to a known owned process or REPL. Reuse callId after a lost reply to prevent duplicate input. Set newline false for raw terminal input.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "sessionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "input": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "newline": {
+            "type": "boolean",
+            "default": true
+          },
+          "wait_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5000,
+            "default": 100
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "minimum": 500,
+            "maximum": 15000,
+            "default": 5000
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "sessionId",
+          "input"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_force_terminate",
+      "description": "Stop a Commander-owned process using its stable session ID. Use only for an authorized cancellation. Inspect terminated and state.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "sessionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "signal": {
+            "type": "number",
+            "enum": [
+              2,
+              9,
+              15
+            ],
+            "default": 15
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "sessionId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_list_sessions",
+      "description": "Recover owned process session IDs and current lifecycle state without exposing saved commands or environment variables.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          }
+        },
+        "required": [
+          "device"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_list_processes",
+      "description": "Inspect operating-system process IDs, executable names and resource usage. Listing does not authorize stopping a process.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          }
+        },
+        "required": [
+          "device"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_kill_process",
+      "description": "Signal an OS process only when explicitly authorized for that exact PID. Prefer commander_force_terminate for Commander-owned sessions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "pid": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "signal": {
+            "type": "number",
+            "enum": [
+              2,
+              9,
+              15
+            ],
+            "default": 15
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "pid"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
         "openWorldHint": true
       },
       "execution": {

@@ -1,6 +1,10 @@
 # Acceptance ledger
 
-## Current 1.6.0-rc.2 / connector 0.2.1 architecture correction
+## Current 1.6.0-rc.3 / connector 0.3.0 core tools
+
+Adds 19 native MCP tools for directory access, multi-file reads, precise text edits, metadata, persistent search, interactive processes, configuration and audit inspection. Four isolated MCP workflow regressions cover edits and replay, search and reconnect, timeout and cancellation, and exactly-once interactive input. The full local suite passes 137 tests. This closes concrete tool-interface gaps; it does not establish full RDC parity or a new performance result. [Capability coverage](RDC_CAPABILITIES.md).
+
+## Historical 1.6.0-rc.2 / connector 0.2.1 architecture correction
 
 The Codex-backed repository executor was removed because consuming Codex allowance contradicts the intended chat-to-tools workflow. ChatGPT or Claude supplies reasoning; Commander provides direct file, process, browser and command-batch execution. No replacement model runner or paid API was added. Historical jobs and all adverse evidence remain recoverable. The rc.1 model-backed results below do not satisfy the chat-only requirement. This correction makes no new throughput or full unattended-certification claim.
 

@@ -2,14 +2,14 @@
 
 Use ChatGPT or Claude as the reasoning agent and Commander as the execution layer for authorized files, shell commands, browser workflows and parallel command batches on your machines.
 
-**Runtime 1.6.0-rc.2 / personal connector 0.2.1 removes the Codex-backed job executor introduced in rc.1.** That design consumed Codex allowance and did not meet the intended chat-only workflow. The current runtime does not discover or launch Codex, Claude Code or a separate model service. The chat client generates the code and commands, interprets outputs and decides the next step.
+**Runtime 1.6.0-rc.3 / personal connector 0.3.0 removes the Codex-backed job executor introduced in rc.1.** That design consumed Codex allowance and did not meet the intended chat-only workflow. The current runtime does not discover or launch Codex, Claude Code or a separate model service. The chat client generates the code and commands, interprets outputs and decides the next step.
 
 ## Work directly from chat
 
 Ask the connected chat to complete your task using Commander. The client should:
 
 1. Discover the exact device with `commander_devices`.
-2. Read relevant files, generate changes in the chat, and apply authorized edits with `commander_write_file` or explicit shell commands.
+2. Browse directories or search the repository, read relevant files, and apply precise changes with `commander_edit_block`. Use a file SHA-256 to reject stale edits.
 3. Start commands with stable call/session IDs. For independent commands, use `commander_start_batch` with separate working directories.
 4. Read process or batch results and verify the actual outputs before declaring completion.
 5. After an interrupted response, inspect the original receipt and recover the same process or batch. Never replay uncertain work under a new ID.
@@ -17,6 +17,8 @@ Ask the connected chat to complete your task using Commander. The client should:
 Commander retains receipts, process output and batch state. Already-started commands can continue after a chat ends; further model reasoning still needs the chat client. Parallel command workers are not separately billed model agents. Do not launch model CLIs or APIs inside workers as an implicit fallback.
 
 For example: “Use Commander on my Mac to fix the failing parser test in this repository. Read the code, make the edit, run the relevant tests, and verify the result. Keep all reasoning in this chat; do not invoke Codex or another model runner.”
+
+The current candidate exposes 32 MCP tools, including directory browsing, multi-file reads, exact text editing, file metadata, durable paginated search, interactive process input and process recovery. Search and input survive client reconnects. See [RDC capability coverage](docs/RDC_CAPABILITIES.md) for the remaining gaps.
 
 ## Candidate and evidence
 
@@ -26,7 +28,7 @@ The rc.1 / 0.2.0 deterministic comparison measured 1.93× RDC throughput, below 
 
 ## Install the Claude Code plugin
 
-For the current package version, use `navish-commander-1.6.0-rc.2.zip` from the [candidate release](https://github.com/KumarNavish/navish-commander/releases/tag/v1.6.0-rc.2). Extract the archive, then run:
+For the current package version, use `navish-commander-1.6.0-rc.3.zip` from the [candidate release](https://github.com/KumarNavish/navish-commander/releases/tag/v1.6.0-rc.3). Extract the archive, then run:
 
 ```sh
 claude --plugin-dir /absolute/path/to/extracted/navish-commander
@@ -36,7 +38,7 @@ The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use
 
 ## Claude Desktop package
 
-For the current package version, use `navish-commander-1.6.0-rc.2.mcpb` from the [candidate release](https://github.com/KumarNavish/navish-commander/releases/tag/v1.6.0-rc.2). In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions. The earlier 1.5.0-rc.3 release validated the bundle format; Desktop GUI installation and a Claude Desktop conversation were not observed. That evidence does not validate the current candidate.
+For the current package version, use `navish-commander-1.6.0-rc.3.mcpb` from the [candidate release](https://github.com/KumarNavish/navish-commander/releases/tag/v1.6.0-rc.3). In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions. The earlier 1.5.0-rc.3 release validated the bundle format; Desktop GUI installation and a Claude Desktop conversation were not observed. That evidence does not validate the current candidate.
 
 The package includes its JavaScript dependencies. The host needs Node.js 22.16 or later. Noninteractive pipe workers require only Node. Interactive PTY workers additionally need Python 3.9 or later on PATH; `NAVISH_PYTHON` can select an interpreter. macOS and Linux are the intended runtime platforms; Windows is not supported by the PTY worker implementation. Claude's platform availability is separate from the server's Linux support.
 
@@ -74,7 +76,7 @@ Anyone may deploy a separate single-owner instance from source. No OpenAI API ke
 Check out the release tag, download the ZIP and `SHA256SUMS.txt` from the same release, and run:
 
 ```sh
-python3 scripts/verify_release.py --integrity-only /path/to/navish-commander-1.6.0-rc.2.zip /path/to/SHA256SUMS.txt
+python3 scripts/verify_release.py --integrity-only /path/to/navish-commander-1.6.0-rc.3.zip /path/to/SHA256SUMS.txt
 ```
 
 This checks the archive hash, every authored package file against the checkout, and its runtime digest. It explicitly reports comparative and conversation gates as **not evaluated**. Omitting `--integrity-only` retains the strict source-bound checks for the original rc.2 acceptance package; those checks must fail when applied to changed source.

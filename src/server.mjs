@@ -16,7 +16,7 @@ const id = z.string().min(1).max(120).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
 const absolutePath = z.string().min(1).max(4096).startsWith('/');
 const device = z.string().min(1).max(120).describe('Exact ID from commander_devices. local is this MCP server host.');
 const mutation = {device, callId:id.describe('Stable ID for this intent. Reuse after a lost response; never mint a retry ID.')};
-const server = new McpServer({name:'navish-commander', version:'1.6.0-rc.2'}, {
+const server = new McpServer({name:'navish-commander', version:'1.6.0-rc.3'}, {
   instructions:'Execute only user-authorized work. Discover devices first. Keep callId, sessionId and batchId across reconnects. A completed tool receipt may describe a running or failed worker. Inspect operationState and verify outputs. Never clear an uncertain record or retry a mutation with a new identity. Local shell commands have the OS account permissions; this server is not a sandbox.'
 });
 
@@ -53,8 +53,10 @@ async function execute(tool,{device:target,callId,...args}) {
   // useful lifecycle/output projection at the public MCP boundary.
   const processTools=['start_process','read_process_output','interact_with_process','force_terminate'];
   let payload=processTools.includes(tool)&&result?Object.fromEntries(
-    ['sessionId','pid','state','exitCode','output','offset','nextOffset','totalBytes','truncated','startedAt','finishedAt','reused','reason'].filter(k=>k in result).map(k=>[k,result[k]])
+    ['sessionId','pid','state','exitCode','output','offset','nextOffset','totalBytes','truncated','startedAt','finishedAt','reused','reason','terminated','ok'].filter(k=>k in result).map(k=>[k,result[k]])
   ):result;
+  if(tool==='list_sessions'&&result)payload={sessions:result.sessions.slice(-(args.limit??50)).map(s=>Object.fromEntries(
+    ['sessionId','pid','state','exitCode','startedAt','finishedAt','transport'].filter(k=>k in s).map(k=>[k,s[k]])))};
   if(tool==='browser_agent'&&result)payload={
     state:result.state,sessionId:result.sessionId,phaseId:result.phaseId,spaceId:result.spaceId,
     verified:result.verified,verificationFresh:result.verificationFresh,verifiedAt:result.verifiedAt,
@@ -80,6 +82,38 @@ register('commander_read_file','Use this to read a bounded file on an explicitly
   args=>execute('read_file',args));
 register('commander_write_file','Use this to write a user-authorized file. Keep the same callId for the same write intent.',
   {...mutation,path:absolutePath,content:z.string().max(65536),mode:z.enum(['rewrite','append']).default('rewrite')},false,args=>execute('write_file',args));
+register('commander_read_multiple_files','Read up to 16 files in one call. Missing files return individual errors. maxBytes is the per-file cap.',
+  {device,paths:z.array(absolutePath).min(1).max(16),maxBytes:z.number().int().min(1).max(4096).default(4096)},true,args=>execute('read_multiple_files',args));
+register('commander_list_directory','Browse a directory tree with bounded depth and total entries. Inspect truncated before assuming the listing is complete.',
+  {device,path:absolutePath,depth:z.number().int().min(1).max(8).default(2),limitPerDirectory:z.number().int().min(1).max(500).default(100),maxEntries:z.number().int().min(1).max(1000).default(200)},true,args=>execute('list_directory',args));
+register('commander_create_directory','Create an authorized directory and missing parents. Reuse callId for the same intent.',
+  {...mutation,path:absolutePath},false,args=>execute('create_directory',args));
+register('commander_move_file','Move or rename an authorized file or directory. An existing destination may be replaced; inspect it first. Reuse callId.',
+  {...mutation,source:absolutePath,destination:absolutePath},false,args=>execute('move_file',args));
+register('commander_get_file_info','Read file metadata, SHA-256 and text line count without returning file content. Use sha256 as expectedSha256 for an edit.',
+  {device,path:absolutePath},true,args=>execute('get_file_info',args));
+register('commander_edit_block','Surgically replace exact text in a UTF-8 file. Default requires one occurrence; ambiguity fails without writing. Set expectedSha256 from file info to reject a stale source. Preserves file permissions. Keep callId stable.',
+  {...mutation,file_path:absolutePath,old_string:z.string().min(1).max(65536),new_string:z.string().max(65536),expected_replacements:z.number().int().min(1).max(10000).default(1),expectedSha256:z.string().regex(/^[a-f0-9]{64}$/).optional()},false,args=>execute('edit_block',args));
+const searchId=id.max(100);
+register('commander_start_search','Start a durable bounded search of file paths or text content. Keep sessionId and callId stable. Results stream while scanning and survive reconnection. Regex by default; set literalSearch for plain text. Symlinks and binary content are skipped; content files over 16 MiB are counted as skipped. Inspect truncated and skippedFiles.',
+  {...mutation,sessionId:searchId,path:absolutePath,pattern:z.string().min(1).max(2000),searchType:z.enum(['files','content']).default('files'),filePattern:z.string().max(1000).optional(),ignoreCase:z.boolean().default(true),includeHidden:z.boolean().default(false),literalSearch:z.boolean().default(false),contextLines:z.number().int().min(0).max(10).default(2),maxResults:z.number().int().min(1).max(10000).default(1000),timeout_ms:z.number().int().min(100).max(300000).default(30000)},true,args=>execute('start_search',args));
+register('commander_get_more_search_results','Read progressive search results using nextOffset. Negative offset selects a tail. completed means scanning ended; inspect truncated and skippedFiles for coverage.',
+  {device,sessionId:searchId,offset:z.number().int().default(0),length:z.number().int().min(1).max(1000).default(100)},true,args=>execute('get_more_search_results',args));
+register('commander_stop_search','Stop an owned search while preserving partial results and its stable session record.',
+  {...mutation,sessionId:searchId},false,args=>execute('stop_search',args));
+register('commander_list_searches','Recover durable search IDs and current scan status.',
+  {device,limit:z.number().int().min(1).max(100).default(50)},true,args=>execute('list_searches',args));
+register('commander_get_config','Inspect Commander version, configuration, paired devices and browser availability on an explicitly selected device.',
+  {device},true,args=>execute('get_config',args));
+register('commander_set_config_value','Change a Commander configuration value only when the user authorizes that setting change. This does not change ChatGPT permissions or operating-system permissions.',
+  {...mutation,key:z.enum(['allowedDirectories','browserCommand','outputLimitBytes']),value:z.union([z.array(absolutePath).max(100),z.string().max(4096),z.number().int().min(1).max(16777216),z.null()])},false,args=>{
+    if(args.key==='allowedDirectories'&&!Array.isArray(args.value)||args.key==='outputLimitBytes'&&typeof args.value!=='number'||args.key==='browserCommand'&&args.value!==null&&typeof args.value!=='string')throw new Error('value does not match configuration key');
+    return execute('set_config_value',args);
+  });
+register('commander_get_usage_stats','Inspect local Commander tool usage. This is execution telemetry, not model billing or ChatGPT allowance.',
+  {device},true,args=>execute('get_usage_stats',args));
+register('commander_get_recent_tool_calls','Read recent execution and observation audit events without command bodies or environment variables.',
+  {device,maxResults:z.number().int().min(1).max(100).default(20)},true,args=>execute('get_recent_tool_calls',args));
 register('commander_start_process','Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.',
   {...mutation,sessionId:id,command:z.string().min(1).max(32768),cwd:absolutePath,transport:z.enum(['pipe','pty']).optional(),timeout_ms:z.number().int().min(0).max(1000).default(0)},false,args=>execute('start_process',args));
 register('commander_process_output','Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.',
@@ -90,6 +124,16 @@ register('commander_process_output','Use this to collect a known worker by its s
     }
     return execute('read_process_output',args);
   });
+register('commander_interact_with_process','Send input to a known owned process or REPL. Reuse callId after a lost reply to prevent duplicate input. Set newline false for raw terminal input.',
+  {...mutation,sessionId:id,input:z.string().max(32768),newline:z.boolean().default(true),wait_ms:z.number().int().min(0).max(5000).default(100),timeout_ms:z.number().int().min(500).max(15000).default(5000)},false,args=>execute('interact_with_process',args));
+register('commander_force_terminate','Stop a Commander-owned process using its stable session ID. Use only for an authorized cancellation. Inspect terminated and state.',
+  {...mutation,sessionId:id,signal:z.union([z.literal(2),z.literal(9),z.literal(15)]).default(15)},false,args=>execute('force_terminate',args));
+register('commander_list_sessions','Recover owned process session IDs and current lifecycle state without exposing saved commands or environment variables.',
+  {device,limit:z.number().int().min(1).max(100).default(50)},true,args=>execute('list_sessions',args));
+register('commander_list_processes','Inspect operating-system process IDs, executable names and resource usage. Listing does not authorize stopping a process.',
+  {device},true,args=>execute('list_processes',args));
+register('commander_kill_process','Signal an OS process only when explicitly authorized for that exact PID. Prefer commander_force_terminate for Commander-owned sessions.',
+  {...mutation,pid:z.number().int().min(1),signal:z.union([z.literal(2),z.literal(9),z.literal(15)]).default(15)},false,args=>execute('kill_process',args));
 const artifact=z.object({path:z.string().min(1).max(4096),minBytes:z.number().int().min(0).max(16777216).optional(),sha256:z.string().regex(/^[a-f0-9]{64}$/).optional()}).strict();
 const worker=z.object({id,role:z.string().min(1).max(200),command:z.string().min(1).max(32768),cwd:absolutePath,
   transport:z.enum(['pipe','pty']).describe('pipe for noninteractive jobs; pty for terminal-dependent programs. Omission preserves legacy PTY behavior.').optional(),
