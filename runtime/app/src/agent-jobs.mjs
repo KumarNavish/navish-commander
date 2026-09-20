@@ -116,7 +116,9 @@ export function jobStatusTool(args,P){
     (['unknown','uncertain','failed','completed'].includes(processState.state)||processState.state==='unsubmitted'&&!ownerIsLive(plan.owner)))
     state={...state,state:'uncertain',reason:'Executor terminal record not observed; inspect retained workspace and logs. This job will not relaunch.'};
   const view={jobId:plan.jobId,repository:plan.repository,baseCommit:plan.baseCommit,workspace:plan.workspace,
-    createdAt:plan.createdAt,...state,processState:processState.state,retrySafe:false,goalVerified:false};
+    createdAt:plan.createdAt,...state,processState:processState.state,retrySafe:false,goalVerified:false,
+    integration:{state:'not_observed',applied:null,published:null,
+      reason:'This job record does not track later application, merging or publication by another actor. Do not infer either that these occurred or that they did not.'}};
   if(args.includePatch&&terminalJobStates.has(state.state))view.patch=readOutputWindow(path.join(dir,'changes.patch'),args.patchOffset??0,args.maxPatchBytes??16384);
   return view;
 }

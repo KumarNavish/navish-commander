@@ -55,6 +55,12 @@ test('job survives MCP disconnect, verifies an actual new-file patch, and never 
     assert.equal(fs.readFileSync(path.join(final.workspace,'launch-count'),'utf8'),'launch\n');
     // Patch applies to a fresh base and contains the new file, not only a summary.
     const patch=path.join(l.root,'patch');fs.writeFileSync(patch,final.patch.output);l.git(['apply','--check',patch]);
+    l.git(['apply',patch]);
+    assert.equal(fs.readFileSync(path.join(l.repository,'result.txt'),'utf8'),'implemented\n');
+    const afterIntegration=await c.call('commander_job_status',{device:'local',jobId:'job'});
+    assert.equal(afterIntegration.result.integration.state,'not_observed');
+    assert.equal(afterIntegration.result.integration.applied,null);
+    assert.equal(afterIntegration.result.integration.published,null);
   }finally{await c.client.close();cleanup(l);}
 });
 for(const goal of ['BLOCKED','TURN_FAILED','NO_TERMINAL'])test(`executor ${goal} cannot become success or run follow-up checks`,async()=>{

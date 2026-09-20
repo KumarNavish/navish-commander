@@ -60,6 +60,9 @@ Exit statuses for `navish jobs` and `navish job`:
 | `2` | Observation failed, for example because a durable record could not be read or parsed. The JSON envelope has `state: "failed"` and a `reason`. |
 
 An observation's success is not a claim that the engineering goal is complete.
+`integration.state: "not_observed"` also means the job record cannot establish
+whether another actor has since applied, merged or published its patch. Observe
+the target repository or publication separately before making either claim.
 
 | State | What is observed |
 | --- | --- |

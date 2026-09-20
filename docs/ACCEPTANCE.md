@@ -1,10 +1,34 @@
 # Acceptance ledger
 
-## Current rc.3 / connector 0.1.3 candidate
+## Current 1.6.0-rc.1 / connector 0.2.0 repository jobs
+
+Commander now accepts a repository goal as one durable job, keeps an isolated
+checkout, runs the existing ChatGPT-authenticated Codex client, verifies declared
+checks in a managed workspace sandbox, and retains a patch recoverable from
+another chat. No paid API fallback was added.
+
+The [real engineering job](../evidence/durable-job-20260920.json) produced the
+`navish jobs` and `navish job` CLI and eight focused regressions. It remained
+`needs_attention` after incomplete full-suite checks in its sandbox. Its patch
+was reviewed and the focused regressions independently passed before integration.
+The full resulting suite passed 138 tests on Linux/macOS and Node 22.16/24 in CI.
+An actual-CLI preflight now checks the standalone verification interface before
+accepting a job; isolated fake-CLI tests alone had not exposed its missing
+permission-profile argument.
+
+A [ChatGPT Latest + Extra High job](../evidence/chat-repository-job-20260920.json)
+submitted the README improvement, finished as `review_ready` with an independent
+check exit of zero, and was recovered by a fresh chat without supplying the job
+ID. The original recovery's unsupported assertion about downstream application
+is retained as adverse evidence. Job status now explicitly reports those actions
+as unobserved. This is a bounded workflow result, not broad model reliability,
+current-source 2× RDC performance, directory approval or independent certification.
+
+## Historical rc.3 / connector 0.1.3 candidate
 
 The [workflow continuation](WORKFLOW_REMEDIATION.md) attempts all six previously unsubmitted tasks using Latest + Extra High. Four complete their required outcomes, including actual code repair and both four-worker batches; two code tasks remain incomplete. A completed write omitted from the chat export exposed a false no-change report. Connector 0.1.3 adds durable response identity and receipt-recovery guidance, with three regressions reproduced before the fix. The full suite passes 120 tests and the extracted bundle passes 27 tests. New source-bound confirmation evidence is kept separate from the unchanged continuation and historical performance records. Fully unattended certification remains unachieved.
 
-The refreshed 0.1.3 comparison verifies all 160 workers and measures 2.0119× throughput versus hosted RDC, but its paired 95% interval is 1.7668–2.1605×. The strict 2× throughput gate therefore fails for this run. The separately frozen delivery gate passes: 0/30 Commander failures versus 10/30 RDC duplicate-effect failures, with normal and reconnect scenarios passing for both. Run `node scripts/verify-current-connector.mjs` to verify these current source-bound records. This is deterministic execution evidence, not a model productivity comparison.
+The refreshed 0.1.3 comparison verifies all 160 workers and measures 2.0119× throughput versus hosted RDC, but its paired 95% interval is 1.7668–2.1605×. The strict 2× throughput gate therefore fails for this run. The separately frozen delivery gate passes: 0/30 Commander failures versus 10/30 RDC duplicate-effect failures, with normal and reconnect scenarios passing for both. At commit `321cf94a6dcf608323e73440153215ac217d46b0`, run `node scripts/verify-current-connector.mjs` to verify those source-bound records. This is deterministic execution evidence, not a model productivity comparison.
 
 ## Historical rc.3 / connector 0.1.2 reader repair
 
