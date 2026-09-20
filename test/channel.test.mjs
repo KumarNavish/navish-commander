@@ -27,6 +27,23 @@ test('channel client preserves operation ID on lost response and only falls back
   await c.receipt(r.structuredContent.operationId);assert.equal(legacy,1);
 });
 
+test('a synchronous error from WebSocket close cannot re-enter the error handler',async()=>{
+  let stopped=false,closes=0,calls=0;
+  class ErrorSocket extends EventTarget {
+    readyState=0;
+    constructor(){super();queueMicrotask(()=>this.dispatchEvent(new Event('error')));}
+    close(){
+      closes++;stopped=true;
+      // Bound the simulated recursion so a broken implementation fails cleanly.
+      if(closes===1)this.dispatchEvent(new Event('error'));
+      this.readyState=3;this.dispatchEvent(new Event('close'));
+    }
+  }
+  await runChannelAgent({origin:'https://channel.example',token:'t'.repeat(64),WebSocketImpl:ErrorSocket,
+    stopped:()=>stopped,executeJob:async()=>{calls++;},log:()=>{}});
+  assert.equal(closes,1);assert.equal(calls,0);
+});
+
 test('real SQLite Durable Object and outbound agent reconcile duplicates, reconnect, failed workers and restart', {timeout:120000}, async()=>{
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'navish-channel-'));
   fs.mkdirSync(root+'/journal');

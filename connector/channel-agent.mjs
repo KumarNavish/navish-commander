@@ -34,7 +34,9 @@ export async function runChannelAgent({origin,token,executeJob,stopped,WebSocket
             .finally(()=>{inflight.delete(job.id);if(stopped()&&!inflight.size)ws.close(1000,'Agent stopping');});
           inflight.set(job.id,p);
         });
-        ws.addEventListener('error',()=>{ws.close();});
+        // Older Node WebSockets may emit error synchronously from close().
+        // Remove this listener before closing so that error cannot re-enter it.
+        ws.addEventListener('error',()=>{ws.close();},{once:true});
         ws.addEventListener('close',()=>{
           clearInterval(timer);if(socket===ws)socket=undefined;
           for(const ack of [...acks.values()])ack.reject(Error('CHANNEL_DISCONNECTED'));
