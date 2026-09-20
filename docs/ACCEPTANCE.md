@@ -1,6 +1,10 @@
 # Acceptance ledger
 
-## Current 1.6.0-rc.1 / connector 0.2.0 repository jobs
+## Current 1.6.0-rc.2 / connector 0.2.1 architecture correction
+
+The Codex-backed repository executor was removed because consuming Codex allowance contradicts the intended chat-to-tools workflow. ChatGPT or Claude supplies reasoning; Commander provides direct file, process, browser and command-batch execution. No replacement model runner or paid API was added. Historical jobs and all adverse evidence remain recoverable. The rc.1 model-backed results below do not satisfy the chat-only requirement. This correction makes no new throughput or full unattended-certification claim.
+
+## Historical 1.6.0-rc.1 / connector 0.2.0 repository jobs
 
 Commander now accepts a repository goal as one durable job, keeps an isolated
 checkout, runs the existing ChatGPT-authenticated Codex client, verifies declared
