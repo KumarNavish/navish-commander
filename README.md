@@ -4,13 +4,13 @@ Run authorized work from an MCP client, reconnect after an interruption, and col
 
 This repository packages the existing Commander runtime as a local MCP server and Claude Desktop extension. It provides file operations, persistent processes, durable receipts, and parallel batches with optional artifact verification. It does not supply a language model or require a model subscription of its own.
 
-**Release status: 1.5.0-rc.1, evaluation candidate.** Full product certification and the requested 2× improvement over Remote Desktop Commander are not established. See [acceptance status](docs/ACCEPTANCE.md) and the [benchmark protocol](docs/BENCHMARK.md). A successful local test does not establish ChatGPT compatibility or hosted-service reliability.
+**Release status: 1.5.0-rc.2, evaluation candidate.** Live execution-route tests exceeded 2× throughput against hosted Remote Desktop Commander. These compare this local plugin with RDC’s cloud relay on the same Mac using deterministic workers; they do not establish a 2× improvement in language-model planning or everyday chat reliability. The [acceptance ledger](docs/ACCEPTANCE.md) identifies passed checks and remaining client-conversation gates. All samples and the earlier failed benchmarks remain public.
 
 ## Install in Claude Desktop
 
-Download `navish-commander-1.5.0-rc.1.mcpb` from [GitHub Releases](https://github.com/KumarNavish/navish-commander/releases). In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions.
+Download `navish-commander-1.5.0-rc.2.mcpb` from [GitHub Releases](https://github.com/KumarNavish/navish-commander/releases). In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions.
 
-The package includes its JavaScript dependencies. The host needs Node.js 22.16 or later and Python 3.10 or later on PATH. macOS and Linux are the intended runtime platforms; Windows is not supported by the PTY worker implementation. Claude's platform availability is separate from the server's Linux support.
+The package includes its JavaScript dependencies. The host needs Node.js 22.16 or later. Noninteractive pipe workers require only Node. Interactive PTY workers additionally need Python 3.9 or later on PATH; `NAVISH_PYTHON` can select an interpreter. macOS and Linux are the intended runtime platforms; Windows is not supported by the PTY worker implementation. Claude's platform availability is separate from the server's Linux support.
 
 The server executes commands with your account's OS permissions. Only connect it to clients you trust. It does not create a public network listener. Tool descriptions and confirmations are guidance for the client, not an OS sandbox.
 
@@ -29,9 +29,9 @@ For Claude Code, after installing dependencies, load the checkout with `claude -
 
 ## Use it
 
-Ask the client to discover Commander's devices, start a worker with a stable session ID, and verify its result. For parallel work, supply one stable batch ID and separate working directories. `commander_collect_batch` can collect the same batch after reconnecting. It checks exit codes and any declared artifact hashes.
+Ask the client to discover Commander's devices, start a worker with a stable session ID, and verify its result. For parallel work, supply one stable batch ID and separate working directories. Select `transport: "pipe"` for noninteractive workers; select `pty` for terminal-dependent programs. Omission preserves the original PTY behavior. `commander_collect_batch` can collect the same batch after reconnecting. It checks exit codes and any declared artifact hashes.
 
-A tool response has both `state` (the call outcome) and `operationState` (the worker or batch outcome). `state: completed` with `operationState: running` means the launch succeeded and work is still running. A successful process exit is not a claim that an arbitrary user goal has been achieved.
+File and process status reads return fresh observations without writing mutation receipts. Mutations retain their durable admission and completion records. A tool response has both `state` (the call outcome) and `operationState` (the worker or batch outcome). `state: completed` with `operationState: running` means the launch succeeded and work is still running. A successful process exit is not a claim that an arbitrary user goal has been achieved.
 
 The package stores private state under the current user's Commander directories. Tests use isolated temporary directories. Existing machine pairings remain local; no personal device IDs, credentials, or research data are bundled.
 

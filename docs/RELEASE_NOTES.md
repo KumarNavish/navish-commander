@@ -1,11 +1,13 @@
-# 1.5.0-rc.1
+# 1.5.0-rc.2
 
-This evaluation release packages Commander as a local MCP server and downloadable Claude extension. It exposes typed file, process, batch, receipt, and bounded Ego browser tools. Stable identities survive reconnects; task state is separate from the outcome of the tool call.
+This candidate adds a detached Node pipe supervisor for noninteractive workers, preserving session identity, output, exit codes, and recovery after the MCP caller exits. Use `transport: "pipe"`; interactive PTY behavior and its existing identity fingerprints remain compatible.
 
-Worker launch now waits asynchronously for its owned launcher, and session-ID reads avoid a redundant PID scan. Durable launch claims and receipt writes remain intact. The patch passed the existing caller-death, duplicate-launch, and artifact-validation checks.
+Status reads now return fresh observations without writing mutation receipts. Mutation admissions still persist before dispatch; identical admission/active records share a durably published inode, and terminal updates replace it atomically. Batch collection reads the durable session records directly, avoids redundant successful-launch index writes, and polls at 25 ms by default. Interpreter discovery runs once during MCP initialization; pipe workers do not require Python.
 
-Validation: 83 core/MCP tests; 17 controlled Chromium adapter tests; three MCP checks against the extracted release bundle; strict Claude manifest validation; MCPB schema validation; zero known npm audit findings. All six jobs in [GitHub CI run 35469104811](https://github.com/KumarNavish/navish-commander/actions/runs/35469104811) passed on code commit `7796e10`: macOS/Ubuntu on Node 22.16/24, package checks, and browser fixtures. A previous Chromium startup timeout remains recorded; its transient cause was not established.
+Cancellation requires the original supervisor's acknowledgement. A missing acknowledgement remains uncertain and never falls back to signalling a possibly reused PID. MCP cancellation reports the actual worker outcome separately from the tool receipt.
 
-The local four-worker comparison did not meet the 2× throughput target. Its measured ratio was 0.843× against Desktop Commander 0.2.51; all four deliberate MCP-server reconnect trials recovered on Commander. This is not the requested hosted Remote Desktop Commander or real chat-agent comparison.
+Live comparisons now exercise the actual hosted RDC service through OAuth, including a host-identity nonce check. Initial 20-round runs exceeded 2× throughput in both staged and inline modes. Native duplicate-delivery handling passed the defined failure-reduction gate. Source-bound final reports, negative development results, and exact scope are in `evidence/` and `docs/BENCHMARK.md`. These are local-plugin versus hosted-relay measurements using deterministic workers; they do not establish a general model-agent productivity ratio.
 
-No full product certification, production reliability ratio, directory approval, or live ChatGPT connector is claimed. The installed personal controller was not replaced. Markup AI editorial review could not run because the configured token has no associated organization; the documentation received local review only.
+Claude Code has loaded the plugin and connected to its MCP server. The release ZIP includes production dependencies. Actual model-driven Claude conversation acceptance remains blocked by the account's message limit; no extra credits were purchased. A public ChatGPT connector, directory approval, and independent product certification remain unclaimed.
+
+The installed personal Commander controller and research jobs were not upgraded or restarted. Earlier Chromium startup failure and failed local throughput measurements remain preserved. Documentation receives local review; the earlier external Markup AI review was unavailable because its configured token had no associated organization.

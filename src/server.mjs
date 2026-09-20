@@ -2,18 +2,21 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { callTool, devicesCommand } from '../runtime/app/src/core.mjs';
+import { callTool, devicesCommand, observeLocalTool } from '../runtime/app/src/core.mjs';
 import { ensureBase, paths } from '../runtime/app/src/config.mjs';
 import { loadReceipt, recoverRunningReceipts } from '../runtime/app/src/receipts.mjs';
 import { closeStateTransactions } from '../runtime/app/src/state-lock.mjs';
-import { inspectProcessSession } from '../runtime/app/src/process.mjs';
+import { inspectProcessSession, prepareProcessRuntime } from '../runtime/app/src/process.mjs';
 
 const P = ensureBase(paths());
+// Include dependency discovery in MCP initialization rather than repeating the
+// OS interpreter launcher in each independently durable worker.
+const pythonRuntime=prepareProcessRuntime();
 const id = z.string().min(1).max(120).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
 const absolutePath = z.string().min(1).max(4096).startsWith('/');
 const device = z.string().min(1).max(120).describe('Exact ID from commander_devices. local is this MCP server host.');
 const mutation = {device, callId:id.describe('Stable ID for this intent. Reuse after a lost response; never mint a retry ID.')};
-const server = new McpServer({name:'navish-commander', version:'1.5.0-rc.1'}, {
+const server = new McpServer({name:'navish-commander', version:'1.5.0-rc.2'}, {
   instructions:'Execute only user-authorized work. Discover devices first. Keep callId, sessionId and batchId across reconnects. A completed tool receipt may describe a running or failed worker. Inspect operationState and verify outputs. Never clear an uncertain record or retry a mutation with a new identity. Local shell commands have the OS account permissions; this server is not a sandbox.'
 });
 
@@ -28,6 +31,7 @@ export function receiptView(r) {
   return {callId:r.callId,state:r.state,operationState:inner?.state??r.state,
     ...(r.code?{code:r.code}:{}),...(r.reason?{reason:r.reason}:{}),
     ...(r.startedAt?{startedAt:r.startedAt}:{}),...(r.finishedAt?{finishedAt:r.finishedAt}:{}),
+    ...(r.observation?{observation:true,receiptPersisted:false}:{}),
     retrySafe:false,
     ...(inner?.sessionId?{sessionId:inner.sessionId}:{}),
     ...(inner?.batchId?{batchId:inner.batchId}:{})};
@@ -41,7 +45,9 @@ function register(name,description,schema,readOnly,handler) {
   });
 }
 async function execute(tool,{device:target,callId,...args}) {
-  const r=await callTool({target,tool,args,...(callId?{callId}:{})},P);
+  const r=target==='local'&&!callId
+    ? await observeLocalTool({tool,args},P)
+    : await callTool({target,tool,args,...(callId?{callId}:{})},P);
   const result=r.result;
   // Process metadata includes command/env and internal paths. Keep only the
   // useful lifecycle/output projection at the public MCP boundary.
@@ -63,7 +69,8 @@ async function execute(tool,{device:target,callId,...args}) {
 }
 
 register('commander_devices','Use this to discover exact paired device IDs before execution.',{},true,
-  async()=>({state:'completed',devices:devicesCommand(P),platform:process.platform}));
+  async()=>({state:'completed',devices:devicesCommand(P),platform:process.platform,
+    processRuntime:{pythonAvailable:pythonRuntime.available,pythonVersion:pythonRuntime.version??null,...(pythonRuntime.reason?{reason:pythonRuntime.reason}:{})}}));
 register('commander_receipt','Use this after a missing response to inspect a local call without re-executing it. A receipt is not current worker state.',{callId:id},true,async({callId})=>{
   recoverRunningReceipts(P);
   return receiptView(loadReceipt(callId,P));
@@ -74,7 +81,7 @@ register('commander_read_file','Use this to read a bounded file on an explicitly
 register('commander_write_file','Use this to write a user-authorized file. Keep the same callId for the same write intent.',
   {...mutation,path:absolutePath,content:z.string().max(65536),mode:z.enum(['rewrite','append']).default('rewrite')},false,args=>execute('write_file',args));
 register('commander_start_process','Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.',
-  {...mutation,sessionId:id,command:z.string().min(1).max(32768),cwd:absolutePath,timeout_ms:z.number().int().min(0).max(1000).default(0)},false,args=>execute('start_process',args));
+  {...mutation,sessionId:id,command:z.string().min(1).max(32768),cwd:absolutePath,transport:z.enum(['pipe','pty']).optional(),timeout_ms:z.number().int().min(0).max(1000).default(0)},false,args=>execute('start_process',args));
 register('commander_process_output','Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.',
   {device,sessionId:id,offset:z.number().int().default(0),maxBytes:z.number().int().min(1).max(65536).default(8192)},true,async args=>{
     if(args.device==='local') {
@@ -85,8 +92,9 @@ register('commander_process_output','Use this to collect a known worker by its s
   });
 const artifact=z.object({path:z.string().min(1).max(4096),minBytes:z.number().int().min(0).max(16777216).optional(),sha256:z.string().regex(/^[a-f0-9]{64}$/).optional()}).strict();
 const worker=z.object({id,role:z.string().min(1).max(200),command:z.string().min(1).max(32768),cwd:absolutePath,
+  transport:z.enum(['pipe','pty']).describe('pipe for noninteractive jobs; pty for terminal-dependent programs. Omission preserves legacy PTY behavior.').optional(),
   startTimeoutMs:z.number().int().min(0).max(1000).default(0),artifacts:z.array(artifact).max(32).optional()}).strict();
-register('commander_start_batch','Use this to launch up to 16 independent authorized workers. Use separate working directories for edits, stable IDs, and artifact hashes where possible. This launches commands; it does not supply or pay for language models.',
+register('commander_start_batch','Use this to launch up to 16 independent authorized workers. Set each noninteractive worker transport to pipe; use pty when a terminal is required. Use separate working directories for edits, stable IDs, and artifact hashes where possible. This launches commands; it does not supply or pay for language models.',
   {...mutation,batchId:id,workers:z.array(worker).min(1).max(16),wait_ms:z.number().int().min(0).max(1000).default(0),maxTotalBytes:z.number().int().min(1).max(65536).default(16384)},false,args=>execute('agent_batch_start',args));
 register('commander_collect_batch','Use this to recover or collect a batch without relaunching workers. Check all worker exits and declared artifacts.',
   {device,batchId:id,wait_ms:z.number().int().min(0).max(30000).default(0),maxBytesPerWorker:z.number().int().min(1).max(16384).default(4096),maxTotalBytes:z.number().int().min(1).max(65536).default(16384)},true,args=>execute('agent_batch_collect',args));

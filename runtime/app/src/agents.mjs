@@ -21,6 +21,10 @@ function normalizeWorker(w){
   if(w.env!=null&&(typeof w.env!=='object'||Array.isArray(w.env)))throw new Error('worker env must be an object');
   const env=Object.fromEntries(Object.entries(w.env||{}).map(([k,v])=>[String(k),String(v)]));
   const normalized={id,role:String(w.role||id),command,cwd:w.cwd?path.resolve(String(w.cwd)):null,env,startTimeoutMs:bounded(w.startTimeoutMs,300,0,30000,'worker initial wait')};
+  if(w.transport!=null){
+    if(!['pipe','pty'].includes(w.transport))throw new Error('invalid worker transport');
+    normalized.transport=w.transport;
+  }
   // Keep the v1 fingerprint byte-compatible when no artifact contract is supplied.
   if(w.artifacts!=null){
     if(!Array.isArray(w.artifacts)||w.artifacts.length>32)throw new Error('invalid artifact list');
@@ -34,10 +38,14 @@ function normalizeWorker(w){
 }
 function loadBatch(P,id){const f=batchPath(P,id);if(!fs.existsSync(f))throw new Error('agent batch not found: '+id);return readJson(f)}
 function saveBatch(P,b){writeJson(batchPath(P,b.batchId),b,0o600);return b}
-function updateWorker(P,id,workerId,changes){return withStateTransaction(P,()=>{
-  const b=loadBatch(P,id),index=b.workers.findIndex(w=>w.id===workerId);
-  if(index<0)throw new Error('worker disappeared from batch');
-  b.workers[index]={...b.workers[index],...changes};b.updatedAt=nowIso();return saveBatch(P,b);
+function updateWorkers(P,id,updates){return withStateTransaction(P,()=>{
+  const b=loadBatch(P,id);
+  for(const {workerId,changes} of updates){
+    const index=b.workers.findIndex(w=>w.id===workerId);
+    if(index<0)throw new Error('worker disappeared from batch');
+    b.workers[index]={...b.workers[index],...changes};
+  }
+  b.updatedAt=nowIso();return saveBatch(P,b);
 })}
 function checkArtifacts(w){
   return (w.artifacts||[]).map(a=>{
@@ -81,7 +89,7 @@ function summarize(batch,P,tailBytes=4096,totalBytes=1048576){
     completionLevel:state==='completed'?'workers-and-declared-artifacts':'incomplete',goalVerified:false};
 }
 async function collectWithWait(args,P,defaults={}){
-  const wait=bounded(args.wait_ms,0,0,300000,'batch wait'),poll=bounded(args.poll_ms,100,25,2000,'batch poll');
+  const wait=bounded(args.wait_ms,0,0,300000,'batch wait'),poll=bounded(args.poll_ms,25,25,2000,'batch poll');
   const tail=bounded(args.maxBytesPerWorker??args.tailBytes,defaults.tail??65536,1,4*1024*1024,'worker output limit');
   const total=bounded(args.maxTotalBytes,1048576,1,4*1024*1024,'batch output limit');
   const deadline=Date.now()+wait;let snapshot;
@@ -99,7 +107,7 @@ export async function agentBatchStartTool(args,P){
   const workers=args.workers.map(normalizeWorker);
   if(new Set(workers.map(w=>w.id)).size!==workers.length)throw new Error('worker ids must be unique');
   // Validate all observation budgets before admitting any worker launch.
-  bounded(args.wait_ms,0,0,300000,'batch wait');bounded(args.poll_ms,100,25,2000,'batch poll');
+  bounded(args.wait_ms,0,0,300000,'batch wait');bounded(args.poll_ms,25,25,2000,'batch poll');
   bounded(args.maxBytesPerWorker??args.tailBytes,4096,1,4*1024*1024,'worker output limit');bounded(args.maxTotalBytes,1048576,1,4*1024*1024,'batch output limit');
   const specHash=hashSpec({workers});
   const created=withStateTransaction(P,()=>{
@@ -115,12 +123,19 @@ export async function agentBatchStartTool(args,P){
   });
   if(created){
     const batch=loadBatch(P,batchId);
-    await Promise.all(batch.workers.map(async w=>{
+    const updates=await Promise.all(batch.workers.map(async w=>{
       try{
-        const r=await startProcessTool({sessionId:w.sessionId,command:w.command,cwd:w.resolvedCwd,env:w.env,timeout_ms:w.startTimeoutMs},P);
-        updateWorker(P,batchId,w.id,{pid:r.pid,launchState:r.state,startedAt:r.startedAt||nowIso()});
-      }catch(e){updateWorker(P,batchId,w.id,{launchError:e.code||'WORKER_LAUNCH_FAILED',launchState:e.uncertain?'uncertain':'failed'})}
+        const r=await startProcessTool({sessionId:w.sessionId,command:w.command,cwd:w.resolvedCwd,env:w.env,transport:w.transport,timeout_ms:w.startTimeoutMs},P);
+        return {workerId:w.id,changes:{pid:r.pid,launchState:r.state,startedAt:r.startedAt||nowIso()}};
+      }catch(e){return {workerId:w.id,changes:{launchError:e.code||'WORKER_LAUNCH_FAILED',launchState:e.uncertain?'uncertain':'failed'}}}
     }));
+    // Session identities and each process's launch/terminal records are already
+    // durable. Collectors recover from those records even if this caller dies
+    // before this optional publication of pre-launch failure diagnostics.
+    // Successful launches are fully described by their session records. Only
+    // failures before a session record exists need additional batch diagnostics.
+    const failures=updates.filter(update=>update.changes.launchError);
+    if(failures.length)updateWorkers(P,batchId,failures);
   }
   // Existing batches are observed, not restarted, including partial/uncertain launches.
   return {...await collectWithWait({...args,batchId},P,{tail:4096}),reused:!created};
@@ -156,5 +171,6 @@ export async function agentBatchCancelTool(args,P){
     try{const r=await terminateProcessTool({sessionId:w.sessionId,pid:s.pid,signal:Number(args.signal||15)},P);cancelled.push({workerId:w.id,...r})}
     catch{cancelled.push({workerId:w.id,state:'uncertain'})}
   }
-  return {batchId:b.batchId,cancelled,status:summarize(b,P,512)};
+  const status=summarize(b,P,512);
+  return {batchId:b.batchId,state:cancelled.some(w=>w.state==='uncertain')?'uncertain':status.state,cancelled,status};
 }

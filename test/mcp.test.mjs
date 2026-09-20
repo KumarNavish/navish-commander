@@ -36,7 +36,7 @@ test('MCP restart preserves multi-worker identities, outputs, and artifact verif
   const lab=workspace();let c=await connect(lab);
   const workers=['a','b','c','d'].map(id=>{
     const cwd=path.join(lab.root,id);fs.mkdirSync(cwd);
-    return {id,role:'file checksum worker',cwd,command:`sleep .3; printf '${id}' > result`,artifacts:[{path:'result',sha256:crypto.createHash('sha256').update(id).digest('hex')}]};
+    return {id,role:'file checksum worker',transport:'pipe',cwd,command:`sleep .3; printf '${id}' > result`,artifacts:[{path:'result',sha256:crypto.createHash('sha256').update(id).digest('hex')}]};
   });
   try{
     const args={device:'local',callId:'batch-launch',batchId:'batch',workers};
@@ -55,6 +55,23 @@ test('MCP reports worker failure distinctly from successful observation',async()
     const launch=await c.call('commander_start_process',{device:'local',callId:'failed-process',sessionId:'exit-seven',cwd:lab.root,command:'exit 7',timeout_ms:1000});
     assert.equal(launch.state,'completed');assert.equal(launch.operationState,'failed');assert.equal(launch.result.exitCode,7);
     assert.equal('command' in launch.result,false);assert.equal('env' in launch.result,false);
+    const receiptsBefore=fs.readdirSync(lab.env.NAVISH_STATE_DIR+'/receipts');
+    const observed=await c.call('commander_process_output',{device:'local',sessionId:'exit-seven'});
+    assert.equal(observed.operationState,'failed');assert.equal(observed.result.exitCode,7);
+    assert.equal(observed.observation,true);assert.equal(observed.receiptPersisted,false);
+    assert.deepEqual(fs.readdirSync(lab.env.NAVISH_STATE_DIR+'/receipts'),receiptsBefore);
     const absent=await c.call('commander_process_output',{device:'local',sessionId:'never-started'});assert.equal(absent.operationState,'unsubmitted');
+  }finally{await c.client.close();fs.rmSync(lab.root,{recursive:true,force:true});}
+});
+test('MCP cancellation exposes the terminal worker state',async()=>{
+  const lab=workspace(),c=await connect(lab);
+  try{
+    const start=await c.call('commander_start_batch',{device:'local',callId:'start-owned',batchId:'cancel-owned',
+      workers:[{id:'owned',role:'cancellation fixture',cwd:lab.root,transport:'pipe',command:'sleep 30'}]});
+    assert.equal(start.operationState,'running');
+    const cancelled=await c.call('commander_cancel_batch',{device:'local',callId:'cancel-owned',batchId:'cancel-owned'});
+    assert.equal(cancelled.state,'completed');assert.equal(cancelled.operationState,'failed');
+    assert.equal(cancelled.result.cancelled[0].terminated,true);
+    assert.equal(cancelled.result.status.counts.failed,1);
   }finally{await c.client.close();fs.rmSync(lab.root,{recursive:true,force:true});}
 });
