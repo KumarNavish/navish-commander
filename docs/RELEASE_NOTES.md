@@ -1,5 +1,7 @@
 # Personal connector 0.1.1
 
+Post-release acceptance update: the owner selected Allow all actions in ChatGPT. Fresh conversations verified exact append semantics, four parallel artifacts, and recovery from a new chat. Nine platform safety blocks occurred in the mutation conversation, including all five attempts to launch its deliberate failure worker; full unattended certification remains blocked. The evidence also records missing/misattributed UI-export outputs and independent host-journal verification. This update changes documentation and evidence only; the deployed source and benchmark results are unchanged.
+
 Fix connector shutdown and reconnect when a WebSocket does not emit its close event. The connection settles once, clears its timers and pending acknowledgements, and ignores late messages. Durable requests and journals keep their original identities; the core 1.5.0-rc.2 runtime is unchanged.
 
 Two missing-close regressions fail on 0.1.0 and pass with the fix. The full suite passes 105 tests. A fresh 20-pair hosted comparison measured **2.067× RDC throughput** (95% interval **2.010–2.186×**) with all 160 worker outcomes verified. The controlled delivery suite again observed 0/30 failures versus RDC's 10/30 duplicate effects. Fresh protocol and ChatGPT read checks bind to the new deployment; the earlier larger ratios remain historical evidence.

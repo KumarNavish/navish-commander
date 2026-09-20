@@ -1,5 +1,7 @@
 # Acceptance ledger
 
+**Latest ChatGPT gate:** the owner selected Allow all actions, and the setting was applied. The fresh 33-call conversation verified the exact write and parallel artifacts but incurred nine platform safety blocks; the deliberate failure worker remained unsubmitted. A six-call fresh-chat recovery passed with independent journal and file verification. Full unattended certification remains blocked. [Detailed record and export limitations](CHAT_ACCEPTANCE.md#full-access-personal-chatgpt-check-20-september-2026).
+
 The local runtime 1.5.0-rc.2 and personal connector 0.1.1 pass their defined execution throughput and controlled delivery gates. Version 1.5.0-rc.2 also passes the authorized local-client conversation checks. Claude Code loaded the plugin and connected; the user-authorized alternative, Codex with its existing ChatGPT login, completed the packaged-server conversation and a separate reconnect conversation. The release remains an evaluation candidate: broad production chat reliability, independent certification, and ChatGPT directory approval are not established.
 
 ## Comparative evidence
@@ -25,7 +27,7 @@ Final release results are recorded against source revision `55e71d443d003a1c65ef
 | Claude model conversation | Not observed; Desktop quota prompted the user-authorized client substitution |
 | Actual Claude Desktop extension installation | Not observed |
 | Personal authenticated ChatGPT connector | Implemented and connected; fresh ordinary ChatGPT read verified; direct HTTPS write/reconnect/four-worker checks pass |
-| Unattended ChatGPT worker conversation | Not passed: model selected the wrong append content; approval layer stopped replay and worker launches |
+| Unattended ChatGPT worker conversation | Not passed: with full access selected, nine platform blocks occurred and the deliberate failure worker remained unsubmitted; exact append, four-worker artifacts, and fresh-chat recovery verified |
 | Public ChatGPT directory approval | Not submitted or approved |
 | Cross-platform CI and extracted final bundle | PASS: six CI jobs; 105 runtime/MCP tests per platform matrix, 17 Chromium fixture tests, extracted-bundle MCP checks |
 | Installed Ego Lite and historical Komoot session | Earlier acceptance used a new authorized space; the original uncertain session remains preserved |

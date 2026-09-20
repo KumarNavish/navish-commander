@@ -47,7 +47,7 @@ The package stores private state under the current user's Commander directories.
 
 ## ChatGPT availability
 
-The optional [personal HTTPS connector](docs/PERSONAL_CONNECTOR.md) has been deployed on an existing Netlify Free account and connected to ChatGPT through owner-only OAuth. A fresh ordinary ChatGPT chat automatically selected it and read an undisclosed fixture from the Mac. Direct HTTPS protocol tests verified duplicate suppression, reconnect, and four worker artifacts against the released connector source. The subsequent ChatGPT mutation test exposed a content-selection error and approval-layer blocks; fully unattended chat execution is **not certified**. See the [current connector evidence](evidence/personal-connector-0.1.1-acceptance.json) and preserved [earlier chat failure](evidence/personal-connector-acceptance.json).
+The optional [personal HTTPS connector](docs/PERSONAL_CONNECTOR.md) has been deployed on existing free hosting and connected to ChatGPT through owner-only OAuth. On 20 September the owner explicitly selected **Allow all actions**, and Plugin Management confirmed the setting. A fresh chat verified an exact append, duplicate suppression, and four concurrent worker artifacts; another chat recovered them without mutation. However, nine automated safety blocks occurred during the first conversation, and the deliberately failing worker never launched. The model retried denied intents with stable IDs. Fully unattended chat execution is **not certified**. See the [full-access conversation evidence](evidence/chatgpt-full-access-20260920.json), [connector release evidence](evidence/personal-connector-0.1.1-acceptance.json), and preserved [earlier chat failure](evidence/personal-connector-acceptance.json).
 
 Anyone may deploy a separate single-owner instance from source. No OpenAI API key or paid hosting is required by this implementation. The Mac must be online and free hosting quotas apply. This is personal developer-mode availability, not an approved public directory listing. The connector's own final comparison passes the 2× gate with its confidence interval above 2×. Earlier polling and default-scheduling runs failed and remain recorded. The measured route is ChatGPT's configured HTTPS endpoint, using a durable WebSocket channel and interactive macOS scheduling. [Distribution requirements](docs/DISTRIBUTION.md) and the acceptance ledger distinguish these routes.
 
@@ -62,6 +62,8 @@ python3 scripts/verify_release.py /path/to/navish-commander-1.5.0-rc.2.zip /path
 This checks the archive hash, every authored packaged file against the checkout, the runtime digest used in the live tests, and the recorded throughput and delivery predicates. It verifies the published evidence; it does not rerun RDC or provide a cryptographic signature. The hosted benchmark scripts and complete protocol are included for independent reruns using your own authorized RDC device.
 
 To verify the recorded personal connector gates against its source checkout, run `node scripts/verify-personal-connector.mjs`. This recomputes every predicate and checks source and harness hashes without using credentials or making network requests.
+
+Run `node scripts/verify-chat-full-access.mjs` to verify the later conversation record, including its blocked acceptance status. A successful verifier exit means the evidence is consistent; it does not mean the unattended certification gate passed.
 
 ## Validate and build
 
