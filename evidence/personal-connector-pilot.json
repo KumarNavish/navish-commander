@@ -1,0 +1,140 @@
+{
+  "schema": "navish.hosted-route-comparison/v1",
+  "runAt": "2026-09-20T10:45:47.707Z",
+  "connectorSourceSha256": "f1f6e8b3677291b938acb6bfac1aa08a8877697c1a2e55c7883bc47e76990f71",
+  "protocol": {
+    "workers": 4,
+    "rounds": 4,
+    "commanderTransport": "pipe",
+    "waitPolicy": "inline",
+    "work": "sleep 0.20, exact output artifact, exactly-one append effect",
+    "order": "alternating paired order",
+    "concurrency": "four simultaneous RDC calls or one four-worker Commander batch",
+    "timing": "initialized clients; launch through independently verified artifacts and client close",
+    "baselineInitialWaitMs": 1000,
+    "baselineCollectWaitMs": 100,
+    "commanderInitialWaitMs": 1000,
+    "polling": "RDC concurrent per-worker polling; Commander server-side batch collection",
+    "metric": "RDC median elapsed / Commander median elapsed; every Commander outcome must verify",
+    "gate": 2,
+    "planning": "deterministic MCP client; no LLM planner",
+    "faults": "none in this throughput measurement"
+  },
+  "harnessSha256": "0bfb602062a3251941564ca99f7647357eaeadaa4e718c5f0307ae27c5e0918f",
+  "commanderSourceSha256": "761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615",
+  "gitRevision": "0996741cfa3d5a0c7dc02180aa9b8078583484bf",
+  "routes": {
+    "navish": "authenticated personal HTTPS relay to the same Mac",
+    "rdc": "hosted OAuth Streamable HTTP MCP to the same Mac"
+  },
+  "baselineVersion": {
+    "server": {
+      "name": "desktop-commander-remote-mcp",
+      "version": "1.0.0",
+      "description": "Control your desktop remotely - execute commands, manage files, read/write content, and automate tasks on a remote machine via MCP"
+    },
+    "device": "0.2.48"
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v26.8.2",
+  "sourceUnchanged": true,
+  "summary": {
+    "navish": {
+      "rounds": 4,
+      "verified": 4,
+      "medianMs": 2337.255,
+      "p95Ms": 3081.2855,
+      "calls": 4
+    },
+    "rdc": {
+      "rounds": 4,
+      "verified": 4,
+      "medianMs": 2176.17,
+      "p95Ms": 3132.0035,
+      "calls": 32
+    }
+  },
+  "throughputRatio": 0.9310794072533806,
+  "throughputInterval": {
+    "method": "paired percentile bootstrap; seed 1729; 10000 resamples",
+    "level": 0.95,
+    "lower": 0.7964596492676638,
+    "upper": 1.0555509745290101,
+    "scope": "uncertainty across these repeated workload rounds, not a future service guarantee"
+  },
+  "throughputTargetPassed": false,
+  "certification": false,
+  "limits": [
+    "Different supported transport routes; not equal network-hop cost",
+    "No Claude/ChatGPT planner or model-driven agents",
+    "No population reliability estimate",
+    "No model-mediated productivity measurement"
+  ],
+  "samples": [
+    {
+      "backend": "navish",
+      "round": 0,
+      "workers": 4,
+      "verified": true,
+      "calls": 1,
+      "elapsedMs": 3206.75
+    },
+    {
+      "backend": "rdc",
+      "round": 0,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 3255.5
+    },
+    {
+      "backend": "rdc",
+      "round": 1,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1920.15
+    },
+    {
+      "backend": "navish",
+      "round": 1,
+      "workers": 4,
+      "verified": true,
+      "calls": 1,
+      "elapsedMs": 2370.32
+    },
+    {
+      "backend": "navish",
+      "round": 2,
+      "workers": 4,
+      "verified": true,
+      "calls": 1,
+      "elapsedMs": 2304.19
+    },
+    {
+      "backend": "rdc",
+      "round": 2,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 2432.19
+    },
+    {
+      "backend": "rdc",
+      "round": 3,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1736.29
+    },
+    {
+      "backend": "navish",
+      "round": 3,
+      "workers": 4,
+      "verified": true,
+      "calls": 1,
+      "elapsedMs": 2180.01
+    }
+  ]
+}

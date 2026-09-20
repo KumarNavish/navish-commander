@@ -1,0 +1,715 @@
+{
+  "version": "1.5.0-rc.2",
+  "tools": [
+    {
+      "name": "commander_devices",
+      "description": "Use this to discover exact paired device IDs before execution.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_receipt",
+      "description": "Use this after a missing response to inspect a local call without re-executing it. A receipt is not current worker state.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          }
+        },
+        "required": [
+          "callId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_read_file",
+      "description": "Use this to read a bounded file on an explicitly selected device.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^\\/"
+          },
+          "maxBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65536,
+            "default": 16384
+          },
+          "offset": {
+            "type": "integer",
+            "default": 0
+          },
+          "length": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 200
+          }
+        },
+        "required": [
+          "device",
+          "path"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_write_file",
+      "description": "Use this to write a user-authorized file. Keep the same callId for the same write intent.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^\\/"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 65536
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "rewrite",
+              "append"
+            ],
+            "default": "rewrite"
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "path",
+          "content"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_start_process",
+      "description": "Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "sessionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32768
+          },
+          "cwd": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^\\/"
+          },
+          "transport": {
+            "type": "string",
+            "enum": [
+              "pipe",
+              "pty"
+            ]
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 0
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "sessionId",
+          "command",
+          "cwd"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_process_output",
+      "description": "Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "sessionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "offset": {
+            "type": "integer",
+            "default": 0
+          },
+          "maxBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65536,
+            "default": 8192
+          }
+        },
+        "required": [
+          "device",
+          "sessionId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_start_batch",
+      "description": "Use this to launch up to 16 independent authorized workers. Set each noninteractive worker transport to pipe; use pty when a terminal is required. Use separate working directories for edits, stable IDs, and artifact hashes where possible. This launches commands; it does not supply or pay for language models.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "batchId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "workers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "$ref": "#/properties/batchId"
+                },
+                "role": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "command": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32768
+                },
+                "cwd": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4096,
+                  "pattern": "^\\/"
+                },
+                "transport": {
+                  "type": "string",
+                  "enum": [
+                    "pipe",
+                    "pty"
+                  ],
+                  "description": "pipe for noninteractive jobs; pty for terminal-dependent programs. Omission preserves legacy PTY behavior."
+                },
+                "startTimeoutMs": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000,
+                  "default": 0
+                },
+                "artifacts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      },
+                      "minBytes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 16777216
+                      },
+                      "sha256": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "maxItems": 32
+                }
+              },
+              "required": [
+                "id",
+                "role",
+                "command",
+                "cwd"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 16
+          },
+          "wait_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 0
+          },
+          "maxTotalBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65536,
+            "default": 16384
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "batchId",
+          "workers"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_collect_batch",
+      "description": "Use this to recover or collect a batch without relaunching workers. Check all worker exits and declared artifacts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "batchId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "wait_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30000,
+            "default": 0
+          },
+          "maxBytesPerWorker": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 16384,
+            "default": 4096
+          },
+          "maxTotalBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65536,
+            "default": 16384
+          }
+        },
+        "required": [
+          "device",
+          "batchId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_cancel_batch",
+      "description": "Use this only when the user asks to stop an owned batch or worker.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "batchId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "workerId": {
+            "$ref": "#/properties/batchId"
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "batchId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_browser_workflow",
+      "description": "Use this for an authorized bounded Ego Lite browser workflow on the local host. Requires Ego Lite already installed. Reuse sessionId and phaseId; require an explicit final condition. Stop for user control. Never replay an uncertain phase.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "const": "local"
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "sessionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "phaseId": {
+            "$ref": "#/properties/sessionId"
+          },
+          "goal": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "allowedOrigins": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "minItems": 1,
+            "maxItems": 32
+          },
+          "allowedMutations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "open",
+                "click",
+                "click-text",
+                "fill",
+                "select"
+              ]
+            },
+            "maxItems": 5
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 60000,
+            "default": 30000
+          },
+          "workflow": {
+            "type": "object",
+            "properties": {
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "open",
+                        "click",
+                        "click-text",
+                        "fill",
+                        "select",
+                        "snapshot",
+                        "extract",
+                        "verify",
+                        "wait"
+                      ]
+                    },
+                    "page": {
+                      "type": "string",
+                      "pattern": "^p[1-9][0-9]{0,2}$",
+                      "default": "p1"
+                    },
+                    "url": {
+                      "type": "string",
+                      "maxLength": 4096
+                    },
+                    "expectedUrl": {
+                      "type": "string",
+                      "maxLength": 4096
+                    },
+                    "selector": {
+                      "type": "string",
+                      "maxLength": 2000
+                    },
+                    "text": {
+                      "type": "string",
+                      "maxLength": 1000
+                    },
+                    "value": {
+                      "type": "string",
+                      "maxLength": 12000
+                    },
+                    "after": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "maxLength": 4096
+                        },
+                        "selector": {
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        "text": {
+                          "type": "string",
+                          "maxLength": 12000,
+                          "description": "With selector: normalized exact element text. Without selector: body substring."
+                        },
+                        "value": {
+                          "type": "string",
+                          "maxLength": 12000
+                        },
+                        "absent": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "condition": {
+                      "$ref": "#/properties/workflow/properties/steps/items/properties/after"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 40
+                    },
+                    "maxChars": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 12000
+                    },
+                    "includeText": {
+                      "type": "boolean"
+                    },
+                    "timeout_ms": {
+                      "type": "integer",
+                      "minimum": 50,
+                      "maximum": 30000
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "maxItems": 16
+              },
+              "final": {
+                "$ref": "#/properties/workflow/properties/steps/items/properties/after"
+              },
+              "finalPage": {
+                "type": "string",
+                "pattern": "^p[1-9][0-9]{0,2}$",
+                "default": "p1"
+              }
+            },
+            "required": [
+              "steps",
+              "final"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "sessionId",
+          "phaseId",
+          "goal",
+          "allowedOrigins",
+          "allowedMutations",
+          "workflow"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    }
+  ]
+}

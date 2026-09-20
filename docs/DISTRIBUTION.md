@@ -16,6 +16,8 @@ For this product, a public service needs authenticated per-user device pairing a
 
 The root `plugin.json` follows the [portable plugin layout](https://developers.openai.com/plugins/build/plugins#plugin-structure). It includes a provider-neutral skill. A manifest alone does not make local execution available in ChatGPT, and a skills-only listing would not fulfill the execution-product claim.
 
+The separate [personal connector](PERSONAL_CONNECTOR.md), component version 0.1.0, supplies an authenticated HTTPS endpoint backed by an outbound Mac agent. Its owner connected it in ChatGPT developer mode. An ordinary chat performed a verified read and one file write, but the broader mutation acceptance did not pass: the model selected incorrect append content and the client blocked worker execution. Direct protocol tests passed; these do not override the chat result. The deployment uses existing free hosting and requires no OpenAI API key. Public users must deploy their own single-owner instance; the author's endpoint is private.
+
 ## Observed Claude Code host integration
 
 The real Claude Code CLI recognized the plugin, its `durable-execution` skill, and its MCP server. From a directory outside the source checkout, `claude --plugin-dir /absolute/path/navish-commander mcp list` reported `plugin:navish-commander:navish-commander` as **Connected**. This tests the host's plugin path expansion and MCP handshake, not a simulated manifest reader. Run it against the extracted release ZIP to verify your installation without a model call.

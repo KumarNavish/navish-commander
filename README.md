@@ -2,7 +2,7 @@
 
 Run authorized work from an MCP client, reconnect after an interruption, and collect the same workers without starting them again.
 
-This repository packages the existing Commander runtime as a local MCP server and Claude Desktop extension. It provides file operations, persistent processes, durable receipts, and parallel batches with optional artifact verification. It does not supply a language model or require a model subscription of its own.
+This repository packages the existing Commander runtime as a local MCP server and Claude Desktop extension, with an optional authenticated personal ChatGPT connector. It provides file operations, persistent processes, durable receipts, and parallel batches with optional artifact verification. It does not supply a language model or require a model subscription of its own.
 
 **Release status: 1.5.0-rc.2, evaluation candidate.** Final execution-route tests measured **2.80× and 3.11× throughput** against hosted Remote Desktop Commander (20 paired rounds per mode; 95% lower bounds 2.63× and 2.95×). The fixed delivery-fault suite observed **0/30 failed workflows versus RDC’s 10/30**, exceeding the 50% reduction target. These compare this local plugin with RDC’s cloud relay on the same Mac using deterministic workers; they do not establish a 2× improvement in language-model planning or everyday chat reliability. The [acceptance ledger](docs/ACCEPTANCE.md) records the passed Codex conversation/reconnect checks, Claude Code host connection, and distribution limits. All samples and the earlier failed benchmarks remain public.
 
@@ -47,7 +47,9 @@ The package stores private state under the current user's Commander directories.
 
 ## ChatGPT availability
 
-The portable plugin manifest and provider-neutral skill are included. This local stdio package is **not a public ChatGPT connector**. OpenAI's current public MCP submission path requires a production HTTPS endpoint, user authentication for private data and actions, domain verification, and review. See [distribution requirements](docs/DISTRIBUTION.md). No hosted endpoint or store approval is claimed by this release.
+The optional [personal HTTPS connector](docs/PERSONAL_CONNECTOR.md) has been deployed on an existing Netlify Free account and connected to ChatGPT through owner-only OAuth. A fresh ordinary ChatGPT chat automatically selected it and read an undisclosed fixture from the Mac. Direct HTTPS protocol tests verified duplicate suppression, reconnect, and four worker artifacts. The subsequent ChatGPT mutation test exposed a content-selection error and approval-layer blocks; fully unattended chat execution is **not certified**. See the [sanitized evidence](evidence/personal-connector-acceptance.json).
+
+Anyone may deploy a separate single-owner instance from source. No OpenAI API key or paid hosting is required by this implementation. The Mac must be online and free hosting quotas apply. This is personal developer-mode availability, not an approved public directory listing. The local plugin's 2× benchmark does not establish a 2× speedup for the HTTPS connector; its final 20-round comparison measured 0.94× RDC with every worker outcome verified. [Distribution requirements](docs/DISTRIBUTION.md) and the acceptance ledger distinguish these routes.
 
 ## Verify a downloaded release
 

@@ -2,6 +2,8 @@ node_modules/
 .venv/
 dist/
 .bench/
+.netlify/
+.env*
 *.log
 **/__pycache__/
 **/test-runtime-homes.json

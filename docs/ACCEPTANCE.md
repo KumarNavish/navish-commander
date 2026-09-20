@@ -24,7 +24,9 @@ Final release results are recorded against source revision `55e71d443d003a1c65ef
 | Actual authorized-client conversation using the packaged server | PASS: Codex, eight initial calls and four calls after a new client process connected; all fixture predicates verified |
 | Claude model conversation | Not observed; Desktop quota prompted the user-authorized client substitution |
 | Actual Claude Desktop extension installation | Not observed |
-| Public hosted ChatGPT execution connector | Not implemented or submitted |
+| Personal authenticated ChatGPT connector | Implemented and connected; fresh ordinary ChatGPT read verified; direct HTTPS write/reconnect/four-worker checks pass |
+| Unattended ChatGPT worker conversation | Not passed: model selected the wrong append content; approval layer stopped replay and worker launches |
+| Public ChatGPT directory approval | Not submitted or approved |
 | Cross-platform CI and extracted final bundle | PASS: six CI jobs; 92 runtime/MCP tests per platform matrix, 17 Chromium fixture tests, extracted-bundle MCP checks |
 | Installed Ego Lite and historical Komoot session | Earlier acceptance used a new authorized space; the original uncertain session remains preserved |
 
@@ -33,3 +35,11 @@ The benchmark uses deterministic shell workers, not model-powered agents. The pr
 Controlled Chromium tests use a real browser and a test-only Ego adapter. They do not certify the installed Ego Lite application or a chat UI. The original rc.1 CI included a Chromium startup timeout; its transient cause was not established. Subsequent passing runs do not erase that observation.
 
 A first rc.2 Linux/Node 24 run failed because a test assumed an acknowledged input would produce shell output within 150 ms. The corrected test sends once, observes durable output with a bounded wait, and always cleans up its owned process. Run `35496170506` remains linked as adverse evidence; run `35496397251` passed all six jobs.
+
+## Personal HTTPS connector evidence
+
+The first two four-round pilots measured 0.931× and 0.925× RDC throughput. Independent storage reads were parallelized, and a 20-round follow-up measured 1.072×, with every outcome verified. Those observations remain public. The optional HTTPS route has not met the 2× target. The local-plugin results above must not be attributed to this different transport. A further recovery correction exposes receipt lookup by the original call ID after a lost first response and preserves uncertainty when queue publication acknowledgements are missing.
+
+The single-owner relay uses authenticated OAuth/PKCE and a separate agent credential. Its background Mac installation is pinned and its journals persist across restarts. The implementation requires no paid model API or new subscription. Free hosting and existing ChatGPT account limits still apply. Source publication and self-tests are not independent certification or a universal reliability guarantee.
+
+The final corrected connector was deployed and installed with matching source SHA-256 `4502665fd83db14f3e2f358a5aa147ba95c0eab2af2005ebf18597a04e0b63e9`. Twenty paired inline rounds measured **0.9361×** throughput (paired 95% interval **0.8347–1.0005×**). All 40 product-workflow observations verified, covering 160 workers. The 2× HTTPS gate remains **FAIL**. The [complete final report](../evidence/personal-connector-final-inline.json) records the source and installation hashes; the earlier favorable and unfavorable observations remain alongside it.
