@@ -6,7 +6,9 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
-const cli=fileURLToPath(new URL('../runtime/app/bin/navish.mjs',import.meta.url));
+const cli=process.env.NAVISH_MCP_SERVER
+  ?path.resolve(path.dirname(process.env.NAVISH_MCP_SERVER),'../runtime/app/bin/navish.mjs')
+  :fileURLToPath(new URL('../runtime/app/bin/navish.mjs',import.meta.url));
 function lab(t){
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'navish-job-cli-'));
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
