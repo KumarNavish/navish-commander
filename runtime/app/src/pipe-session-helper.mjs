@@ -14,11 +14,6 @@ const meta={sessionId:path.basename(dir),helperPid:process.pid,state:'launching'
   command:[shell,...command],cwd,outputFile,controlDir,ackDir,transport:'pipe-file-control',inputReady:false};
 const child=spawn(shell,command,{cwd,env:process.env,detached:true,stdio:['pipe','pipe','pipe']});
 let terminal=false,controlBusy=false,spawnError;
-function notifyObserver(){
-  // Optional latency hint only, after durable publication. The session files
-  // remain authoritative and the worker survives a disconnected observer.
-  try{if(process.connected)process.send({type:'session-state'},()=>{});}catch{}
-}
 function append(bytes){
   let offset=0;
   while(offset<bytes.length)offset+=fs.writeSync(output,bytes,offset,bytes.length-offset);
@@ -28,7 +23,6 @@ child.stdin.on('error',()=>{}); // A finished worker can close input before a qu
 child.once('spawn',()=>{
   Object.assign(meta,{pid:child.pid,state:'running',inputReady:true,inputReadyAt:new Date().toISOString()});
   writeJson(metaFile,meta);
-  notifyObserver();
 });
 child.once('error',error=>{spawnError=error.code||'SPAWN_FAILED';});
 function signal(sig){
@@ -80,5 +74,4 @@ child.once('close',(code,sig)=>{
   const exitCode=spawnError?127:code??-(os.constants.signals[sig]||1);
   writeJson(metaFile,{...meta,pid:child.pid??null,state:exitCode===0?'completed':'failed',exitCode,
     finishedAt:new Date().toISOString(),...(spawnError?{launchError:spawnError}:{})});
-  notifyObserver();
 });
