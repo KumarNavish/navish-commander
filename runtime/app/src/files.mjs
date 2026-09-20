@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
-import { ensureDir } from './util.mjs';
+import crypto from 'node:crypto';
+import { ensureDir, atomicWrite } from './util.mjs';
 
-function allowed(p, config){
+export function allowed(p, config){
   const rp=path.resolve(String(p)); const roots=config.allowedDirectories||[];
   if(!roots.length) return rp;
   const ok=roots.some(r=>{const rr=path.resolve(r); return rp===rr||rp.startsWith(rr+path.sep)});
@@ -87,17 +88,56 @@ export function createDirectoryTool(args,config){const p=allowed(args.path,confi
 export function moveFileTool(args,config){const s=allowed(args.source,config),d=allowed(args.destination,config); ensureDir(path.dirname(d)); fs.renameSync(s,d); return {source:s,destination:d};}
 export function listDirectoryTool(args,config){
   const root=allowed(args.path,config); const depth=Math.max(1,Math.min(Number(args.depth||2),8)); const limit=Math.max(1,Math.min(Number(args.limitPerDirectory||200),2000));
-  const entries=[];
+  const entries=[],maxEntries=Math.max(1,Math.min(Number(args.maxEntries||1000),10000));let truncated=false;
   function walk(dir,level){
     const names=fs.readdirSync(dir,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name));
     for(const ent of names.slice(0,limit)){
+      if(entries.length>=maxEntries){truncated=true;return;}
       const full=path.join(dir,ent.name), rel=path.relative(root,full)||'.'; let st; try{st=fs.lstatSync(full)}catch{continue}
       entries.push({path:rel,type:ent.isDirectory()?'directory':ent.isSymbolicLink()?'symlink':'file',size:st.size,mode:modeOctal(st),mtime:st.mtime.toISOString()});
       if(ent.isDirectory()&&level<depth) walk(full,level+1);
     }
-    if(names.length>limit) entries.push({path:path.relative(root,dir)||'.',type:'truncated',hidden:names.length-limit});
+    if(names.length>limit){truncated=true;if(entries.length<maxEntries)entries.push({path:path.relative(root,dir)||'.',type:'truncated',hidden:names.length-limit});}
   }
-  walk(root,1); return {root,entries};
+  walk(root,1); return {root,entries,truncated};
+}
+
+const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+export async function getFileInfoTool(args,config){
+  const p=allowed(args.path,config),st=fs.lstatSync(p);
+  const result={path:p,type:st.isSymbolicLink()?'symlink':st.isDirectory()?'directory':'file',size:st.size,
+    mode:modeOctal(st),created:st.birthtime.toISOString(),modified:st.mtime.toISOString()};
+  if(!st.isFile())return result;
+  // Stream metadata so a large log does not require loading its contents.
+  const fd=await fs.promises.open(p,'r'),digest=crypto.createHash('sha256'),buffer=Buffer.alloc(65536);
+  let lines=0,total=0,text=true;
+  try{for(;;){const {bytesRead:n}=await fd.read(buffer,0,buffer.length,null);if(!n)break;
+    const chunk=buffer.subarray(0,n);if(!total)text=isProbablyText(chunk);
+    digest.update(chunk);for(let i=0;i<n;i++)if(chunk[i]===10)lines++;total+=n;
+  }}finally{await fd.close();}
+  return {...result,sha256:digest.digest('hex'),...(text?{lineCount:total?lines+1:0,lastLine:total?lines:-1,appendPosition:total?lines+1:0}:{})};
+}
+
+export function editBlockTool(args,config){
+  const p=allowed(args.file_path,config),st=fs.lstatSync(p);
+  if(!st.isFile())throw new Error('edit_block requires a regular text file');
+  if(st.size>16*1024*1024)throw new Error('edit_block text file exceeds 16 MiB');
+  const before=fs.readFileSync(p),beforeSha256=hash(before);
+  if(args.expectedSha256&&args.expectedSha256!==beforeSha256)throw new Error('EDIT_SOURCE_CHANGED: read the current file before editing');
+  if(!isProbablyText(before))throw new Error('edit_block requires text; binary document editing is not supported');
+  const source=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(before);
+  const old=args.old_string,replacement=args.new_string,expected=args.expected_replacements??1;
+  if(typeof old!=='string'||!old.length||typeof replacement!=='string'||!Number.isSafeInteger(expected)||expected<1)throw new Error('nonempty old_string, new_string, and positive expected_replacements required');
+  let count=0,at=0;while((at=source.indexOf(old,at))!==-1){count++;at+=old.length;}
+  if(count!==expected)throw new Error(`EDIT_MATCH_COUNT: expected ${expected} exact occurrence(s), found ${count}; no file was changed`);
+  const outputBytes=before.length+count*(Buffer.byteLength(replacement)-Buffer.byteLength(old));
+  if(outputBytes>16*1024*1024)throw new Error('edit_block result exceeds 16 MiB; no file was changed');
+  const after=Buffer.from(source.split(old).join(replacement));
+  // Commander mutations share a filesystem resource lock. Also detect changes
+  // from another editor during preparation before atomically replacing the file.
+  if(hash(fs.readFileSync(p))!==beforeSha256)throw new Error('EDIT_SOURCE_CHANGED: no file was changed');
+  atomicWrite(p,after,st.mode&0o777);
+  return {path:p,replacements:count,beforeSha256,sha256:hash(after),bytes:after.length};
 }
 export function findTextTool(args,config){
   const root=allowed(args.path,config); const pattern=String(args.pattern??''); if(!pattern) throw new Error('pattern required');

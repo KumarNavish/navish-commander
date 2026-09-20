@@ -58,7 +58,7 @@ test('HTTP MCP enforces auth while supporting actual SDK initialization and cata
   });
   try{
     await client.connect(transport);
-    const list=await client.listTools();assert.equal(list.tools.length,14);
+    const list=await client.listTools();assert.equal(list.tools.length,33);
     assert.equal(list.tools.find(t=>t.name==='commander_write_file').annotations.readOnlyHint,false);
     const offline=await client.callTool({name:'commander_devices',arguments:{}});
     assert.equal(offline.structuredContent.code,'MAC_AGENT_OFFLINE');assert.equal(offline.structuredContent.dispatched,false);
