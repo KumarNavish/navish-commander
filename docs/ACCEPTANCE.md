@@ -1,8 +1,25 @@
 # Acceptance ledger
 
-## Development candidate 1.6.0-rc.4 / connector 0.4.0
+## Development candidate 1.6.0-rc.4 / connector 0.4.1
 
-Adds native DOCX, XLSX, PDF, image and URL workflows. Document writes use staged validation and the existing durable call receipts. Four MCP document regressions cover Word and Excel edits, invalid and stale inputs, PDF page operations, native images, URL reads and reconnection. The full local suite passes 141 tests. This is functional evidence; final hosted RDC comparison, extracted-package checks and actual-chat acceptance are recorded separately as they complete.
+Adds native DOCX, XLSX, PDF, image and URL workflows. Document writes use staged validation and existing durable call receipts. Large outbound responses are compressed with a bounded decoder; durable records retain their original JSON representation. The full local suite passes 142 tests.
+
+The [actual Latest + Extra High document conversation](CHAT_DOCUMENTS.md) produced and read back a corrected workbook, Word report, two-page PDF and handoff. Independent artifact and arithmetic checks passed. All 41 visible tool calls were exported with no mismatched response identities. Two Word writes were blocked by OpenAI's safety checks; the client subsequently retried those intents despite the connector's instruction to stop. **Artifact completion passed; unattended certification failed.** The owner had selected Allow all actions. No model runner or paid model API was invoked.
+
+After candidate selection, a [predeclared 50-pair confirmation](../evidence/personal-0.4.1-final-plan.json) verified all 400 worker outcomes. Commander measured **808.325 ms** median versus hosted RDC's **1,680.730 ms**, or **2.0793×**, with paired 95% interval **1.9883–2.1652×**. The strict lower-bound-at-least-2 gate **fails**. The [30-workflow delivery comparison](../evidence/personal-0.4.1-delivery.json) passes: **0/30 Commander failures versus 10/30 RDC failures**, all RDC failures being duplicate effects. Both products passed normal delivery and client reconnect. This fixed mixture is not a population reliability estimate.
+
+The 0.4.0, 0.4.1 qualification and rejected 0.4.2 notification-candidate measurements remain in `evidence/`. The notification change was removed after it failed to improve hosted performance. The final confirmation was run once with exactly 50 pairs; no failed sample was dropped, no timing-based rerun replaced it, and selection samples were not pooled into its interval.
+
+Recompute the final records without making a live request:
+
+```sh
+node scripts/verify-current-connector.mjs evidence/personal-0.4.1-final-inline.json evidence/personal-0.4.1-delivery.json evidence/personal-0.4.1-final-plan.json
+node scripts/verify-chat-documents.mjs
+```
+
+The [Claude host installation](../evidence/claude-host-installation-20260920.json) verifies the current extension installed and enabled, all 33 tool permissions persisting, and an identical installed runtime digest. A fresh ZIP extraction passed 49 MCP tests, strict plugin validation, and a real Claude Code MCP connection check without a model call. A Claude model conversation is untested.
+
+The deployed personal ChatGPT connection uses the direct Cloudflare MCP route. Public distribution remains self-hosted, and these results do not establish a public directory approval or full unattended certification.
 
 ## Historical 1.6.0-rc.3 / connector 0.3.0 core tools
 

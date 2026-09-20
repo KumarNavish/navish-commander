@@ -2,7 +2,7 @@
 
 Use ChatGPT or Claude as the reasoning agent and Commander as the execution layer for authorized files, shell commands, browser workflows and parallel command batches on your machines.
 
-**Runtime 1.6.0-rc.4 / personal connector 0.4.0 removes the Codex-backed job executor introduced in rc.1.** That design consumed Codex allowance and did not meet the intended chat-only workflow. The current runtime does not discover or launch Codex, Claude Code or a separate model service. The chat client generates the code and commands, interprets outputs and decides the next step.
+**Runtime 1.6.0-rc.4 / personal connector 0.4.1** adds native Word, Excel and PDF workflows, images and explicit URL reads. The runtime does not discover or launch Codex, Claude Code or a separate model service. The chat client generates the code and commands, interprets outputs and decides the next step.
 
 ## Work directly from chat
 
@@ -18,13 +18,15 @@ Commander retains receipts, process output and batch state. Already-started comm
 
 For example: “Use Commander on my Mac to fix the failing parser test in this repository. Read the code, make the edit, run the relevant tests, and verify the result. Keep all reasoning in this chat; do not invoke Codex or another model runner.”
 
-The current candidate exposes 32 MCP tools, including directory browsing, multi-file reads, exact text editing, file metadata, durable paginated search, interactive process input and process recovery. Search and input survive client reconnects. See [RDC capability coverage](docs/RDC_CAPABILITIES.md) for the remaining gaps.
+The current candidate exposes 33 local MCP tools (34 through the personal connector, including its receipt tool). It supports directory browsing, multi-file and document reads, exact text and spreadsheet edits, PDF creation and page operations, file metadata, durable paginated search, interactive process input and process recovery. Search and input survive client reconnects. See [document formats](docs/DOCUMENTS.md) and [RDC capability coverage](docs/RDC_CAPABILITIES.md) for limits.
 
 ## Candidate and evidence
 
 The removed rc.1 executor's two model-backed tests consumed Codex usage and do **not** establish the requested chat-only capability. Their original records remain public. Historical job status, listing, cancellation and `navish jobs` / `navish job` are retained to recover those records; no new model-backed jobs can be launched. See [historical recovery](docs/AGENT_JOBS.md).
 
-The rc.1 / 0.2.0 deterministic comparison measured 1.93× RDC throughput, below the strict 2× gate. Its controlled delivery suite recorded 0/30 Commander failures versus 10/30 RDC duplicate effects. These records remain bound to that older source; no new performance or unattended-certification claim is made for this correction. See the [acceptance ledger](docs/ACCEPTANCE.md).
+The final 50-pair hosted RDC comparison measured **2.079× median throughput**, with a paired 95% interval of **1.988–2.165×**; the strict 2× confidence gate is not passed. All 400 worker outcomes verified. Controlled delivery recorded **0/30 Commander failures versus 10/30 RDC duplicate effects**; normal delivery and reconnect passed for both. These are bounded execution measurements, not a general model-productivity claim.
+
+An actual Latest / Extra High ChatGPT conversation completed and independently verified the Word, Excel and PDF workflow. Two platform approval blocks and subsequent client retries fail unattended certification despite successful artifacts. The full 41-call export and generated synthetic artifacts are published. See the [acceptance ledger](docs/ACCEPTANCE.md) and [document conversation](docs/CHAT_DOCUMENTS.md).
 
 ## Install the Claude Code plugin
 
@@ -34,11 +36,11 @@ For the current package version, use `navish-commander-1.6.0-rc.4.zip` from the 
 claude --plugin-dir /absolute/path/to/extracted/navish-commander
 ```
 
-The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use that root as the plugin directory. The 1.6.0-rc.1 source passes Claude plugin validation and the 138-test runtime/MCP suite on Linux and macOS. Historically, the 1.5.0-rc.3 package also passed a real Claude Code MCP connection check and 24 extracted-bundle tests. The earlier rc.2 package was exercised by a ChatGPT-authenticated Codex client across a restart; those older conversations are not rc.3 or 1.6.0-rc.1 conversation evidence. [Inspect the earlier client evidence](evidence/chat-client-rc2.json).
+The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use that root as the plugin directory. The current source passes 142 local runtime/MCP tests. A fresh ZIP extraction passed 49 MCP tests, strict plugin validation, and the real Claude Code MCP connection check. These host checks do not invoke a model. Historical client evidence remains in the acceptance ledger and does not certify changed source.
 
 ## Claude Desktop package
 
-For the current package version, use `navish-commander-1.6.0-rc.4.mcpb` from the [candidate release](https://github.com/KumarNavish/navish-commander/releases/tag/v1.6.0-rc.4). In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions. The earlier 1.5.0-rc.3 release validated the bundle format; Desktop GUI installation and a Claude Desktop conversation were not observed. That evidence does not validate the current candidate.
+For the current package version, use `navish-commander-1.6.0-rc.4.mcpb` from the [candidate release](https://github.com/KumarNavish/navish-commander/releases/tag/v1.6.0-rc.4). In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions. The current candidate was installed and enabled in Claude Desktop 2.2553.1. All 33 tools were discovered, and their owner-selected Always allow settings persisted after reopening configuration. Its installed runtime matches the tested source. A Claude model conversation remains untested because the account had reached its limit. See [host installation evidence](evidence/claude-host-installation-20260920.json).
 
 The package includes its JavaScript dependencies. The host needs Node.js 22.16 or later. Noninteractive pipe workers require only Node. Interactive PTY workers additionally need Python 3.9 or later on PATH; `NAVISH_PYTHON` can select an interpreter. macOS and Linux are the intended runtime platforms; Windows is not supported by the PTY worker implementation. Claude's platform availability is separate from the server's Linux support.
 

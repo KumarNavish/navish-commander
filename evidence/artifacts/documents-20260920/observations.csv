@@ -1,0 +1,6 @@
+batch,baseline_ms,candidate_ms,include
+A,200,100,true
+B,210,105,true
+C,190,95,true
+D,205,100,true
+E,220,110,true

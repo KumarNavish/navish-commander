@@ -1,0 +1,107 @@
+{
+  "task": "synthetic document acceptance pilot",
+  "scope_note": "Synthetic pilot data for document handling; not a product benchmark or product certification.",
+  "artifacts": {
+    "workbook": {
+      "path": "$TRIAL/metrics.xlsx",
+      "sha256": "f98c54bd1a67ce6fa88b6c37c298b294290e03eece2e0b00923fe5462bed6149"
+    },
+    "word": {
+      "path": "$TRIAL/study-summary.docx",
+      "sha256": "6e7ad18b60d2f1bbec18a5129baff3dae9276288714097767b2c65f9d143ca54"
+    },
+    "pdf": {
+      "path": "$TRIAL/results.pdf",
+      "sha256": "c5fba6a797691429cbdb992fbfa61756bf4953fb2b26a26c6e53e51f9f1a8bfe",
+      "page_count": 2
+    },
+    "handoff": {
+      "path": "$TRIAL/handoff.json"
+    }
+  },
+  "results": {
+    "sample_n": 5,
+    "included_batches": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "median_baseline_ms": 205,
+    "median_candidate_ms": 100,
+    "baseline_candidate_median_ratio": 2.05,
+    "median_paired_saving_ms": 105,
+    "median_paired_reduction_pct": 50,
+    "paired_savings_ms": [
+      100,
+      105,
+      95,
+      105,
+      110
+    ],
+    "paired_reductions_pct": [
+      50,
+      50,
+      50,
+      51.21951219512195,
+      50
+    ]
+  },
+  "workbook_correction": {
+    "raw_measurements_preserved": true,
+    "batch_E_include_changed_from": false,
+    "batch_E_include_changed_to": true,
+    "summary": {
+      "sample_n": 5,
+      "median_baseline_ms": 205,
+      "median_candidate_ms": 100,
+      "ratio": 2.05
+    }
+  },
+  "verification": {
+    "independent_arithmetic": {
+      "method": "ordinary local python3 command reading observations.csv",
+      "session_id": "chat-docs-20260920-calc",
+      "exit_code": 0,
+      "matched_reported_values": true
+    },
+    "native_readback": {
+      "xlsx_raw_and_summary": true,
+      "docx": true,
+      "pdf": true,
+      "pdf_page_count": 2,
+      "pdf_page_1": "results",
+      "pdf_page_2": "methods and limitations"
+    },
+    "preserved_sources": {
+      "brief_md": {
+        "sha256": "273c9704faca811e39a8bb702f369920219f53a20718bfb1f1c29b75bc26e5b0",
+        "matches_before": true
+      },
+      "observations_csv": {
+        "sha256": "0f2f8b47b1f0b3c8907a87aafd996310e160935c5cd4f172f1d14d248b03544b",
+        "matches_before": true
+      }
+    },
+    "incomplete_steps": []
+  },
+  "stable_mutation_identities": {
+    "xlsx_include_e": {
+      "call_id": "chat-docs-20260920-xlsx-include-e",
+      "operation_id": "6fc51c3d5d15414f48ac2c6039512105e7e24b200325155bad4bc5d5adacefdb"
+    },
+    "xlsx_summary": {
+      "call_id": "chat-docs-20260920-xlsx-summary",
+      "operation_id": "41b0222edb8054aa658ea4b93381e6fffee6c08a6d471453755054b4b1094ed1"
+    },
+    "word_final_cleanup": {
+      "call_id": "chat-docs-20260920-docx-strip-bold",
+      "operation_id": "1f9c0587b192bf4a956d3ebe3674e90f5bf864489b461869dac3b41cfe06dffe"
+    },
+    "pdf": {
+      "call_id": "chat-docs-20260920-pdf",
+      "operation_id": "0b7a22fd9641868f7f696d57b7e22cb5af399cc63f061991f84a7e3f058672cc"
+    }
+  }
+}
