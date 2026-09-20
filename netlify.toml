@@ -10,6 +10,10 @@
   function = "poll"
   path = "/agent/poll"
 
+[[edge_functions]]
+  function = "mcp"
+  path = "/mcp"
+
 [[headers]]
   for = "/*"
   [headers.values]

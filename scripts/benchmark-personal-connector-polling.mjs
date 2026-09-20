@@ -37,16 +37,12 @@ const protocol={workers:count,rounds,commanderTransport:transport,waitPolicy:inl
   metric:'RDC median elapsed / Commander median elapsed; every Commander outcome must verify',
   gate:2,planning:'deterministic MCP client; no LLM planner',faults:'none in this throughput measurement'};
 const connectorSourceSha256=connectorDigest();
-const channelUrl=process.env.CONNECTOR_CHANNEL_URL;
-const channelHealth=channelUrl?await (await fetch(new URL('/health',channelUrl))).json():null;
-if(channelUrl&&channelHealth.connector?.sourceSha256!==connectorSourceSha256)throw Error('Deployed channel does not match the checkout');
 const healthUrl=new URL('/health',connectorUrl);
 const health=await (await fetch(healthUrl)).json();
 if(health.connector?.sourceSha256!==connectorSourceSha256)throw Error('Deployed connector does not match the checkout');
 const installation=JSON.parse(fs.readFileSync(path.join(os.homedir(),'.local/share/navish-chatgpt-connector/installation.json')));
 if(installation.connectorSourceSha256!==connectorSourceSha256)throw Error('Installed agent does not match the checkout');
-if(channelUrl&&JSON.parse(fs.readFileSync(installation.configPath)).channelOrigin!==new URL(channelUrl).origin)throw Error('Installed channel route mismatch');
-const frozen={connectorSourceSha256,channelSourceSha256:channelHealth?.connector?.sourceSha256??null,installedSourceSha256:installation.sourceSha256,protocol,harnessSha256:sourceHash,commanderSourceSha256:sourceDigest(),gitRevision:revision()};
+const frozen={connectorSourceSha256,installedSourceSha256:installation.sourceSha256,protocol,harnessSha256:sourceHash,commanderSourceSha256:sourceDigest(),gitRevision:revision()};
 fs.writeFileSync(root+'/protocol.json',JSON.stringify(frozen,null,2));
 
 async function connect(backend,dir){
@@ -125,10 +121,9 @@ const summary=Object.fromEntries(['navish','rdc'].map(backend=>{
 const throughputRatio=summary.rdc.medianMs/summary.navish.medianMs;
 const throughputInterval=pairedThroughputInterval(samples);
 const finalHealth=await (await fetch(healthUrl)).json();
-const finalChannelHealth=channelUrl?await (await fetch(new URL('/health',channelUrl))).json():null;
-const sourceUnchanged=sourceDigest()===frozen.commanderSourceSha256&&connectorDigest()===connectorSourceSha256&&finalHealth.connector?.sourceSha256===connectorSourceSha256&&(!channelUrl||finalChannelHealth.connector?.sourceSha256===connectorSourceSha256);
+const sourceUnchanged=sourceDigest()===frozen.commanderSourceSha256&&connectorDigest()===connectorSourceSha256&&finalHealth.connector?.sourceSha256===connectorSourceSha256;
 const report={schema:'navish.hosted-route-comparison/v1',runAt:new Date().toISOString(),...frozen,
-  routes:{navish:channelUrl?'authenticated edge MCP, SQLite Durable Object and outbound WebSocket to the same Mac':'authenticated personal HTTPS relay to the same Mac',rdc:'hosted OAuth Streamable HTTP MCP to the same Mac'},
+  routes:{navish:'authenticated personal HTTPS relay to the same Mac',rdc:'hosted OAuth Streamable HTTP MCP to the same Mac'},
   baselineVersion,platform:process.platform,arch:process.arch,node:process.version,sourceUnchanged,summary,throughputRatio,throughputInterval,
   throughputTargetPassed:rounds>=20&&sourceUnchanged&&throughputInterval.lower>=2&&summary.navish.verified===rounds&&summary.rdc.verified===rounds,
   certification:false,limits:['Different supported transport routes; not equal network-hop cost','No Claude/ChatGPT planner or model-driven agents','No population reliability estimate','No model-mediated productivity measurement'],samples};

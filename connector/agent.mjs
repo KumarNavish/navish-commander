@@ -4,6 +4,7 @@ import path from 'node:path';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
 import {executeJournaledJob} from './journal.mjs';
+import {runChannelAgent} from './channel-agent.mjs';
 import {acquireBridgeLock} from '../runtime/app/src/control-lock.mjs';
 import {closeStateTransactions} from '../runtime/app/src/state-lock.mjs';
 import catalog from './catalog.json' with {type:'json'};
@@ -23,17 +24,18 @@ async function request(endpoint,data){
   if(!r.ok)throw Error('RELAY_HTTP_'+r.status);
   return r.json();
 }
-const executeJob=job=>{
+const executeJob=(job,upload=result=>request('/agent/result',result))=>{
   const tool=catalog.tools.find(t=>t.name===job.name);
   if(!tool)throw Error('UNKNOWN_JOB_TOOL');
   // Recovery semantics come from the installed catalog, never a relay flag.
   return executeJournaledJob({job:{...job,mutating:tool.annotations?.readOnlyHint!==true},stateDir:config.stateDir,
-    call:(name,args)=>client.callTool({name,arguments:args},undefined,{timeout:120000}),upload:result=>request('/agent/result',result)});
+    call:(name,args)=>client.callTool({name,arguments:args},undefined,{timeout:120000}),upload});
 };
 const stop=()=>{stopping=true;};process.on('SIGTERM',stop);process.on('SIGINT',stop);
 let heartbeat=0,backoff=1000;
 try{
-  while(!stopping){
+  if(config.channelOrigin)await runChannelAgent({origin:config.channelOrigin,token:config.agentToken,executeJob,stopped:()=>stopping});
+  else while(!stopping){
     try{
       if(Date.now()-heartbeat>60000){await request('/agent/heartbeat',{});heartbeat=Date.now();}
       if(inflight.size>=4){await Promise.race(inflight.values());continue;}

@@ -3,6 +3,8 @@ node_modules/
 dist/
 .bench/
 .netlify/
+.wrangler/
+.dev.vars*
 .env*
 *.log
 **/__pycache__/

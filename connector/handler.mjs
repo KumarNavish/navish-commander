@@ -13,9 +13,10 @@ const receiptTool={name:'commander_connector_receipt',description:'Inspect an op
   inputSchema:{type:'object',properties:{operationId:{type:'string',pattern:'^[a-f0-9]{64}$'},callId:{type:'string',pattern:callIdPattern.source}},oneOf:[{required:['operationId']},{required:['callId']}],additionalProperties:false},
   annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true,openWorldHint:false}};
 
-export function createHandler({origin,secret,ownerPasswordHash,agentToken,store,catalog,waitMs=40000,buildInfo}) {
+export function createHandler({origin,secret,ownerPasswordHash,agentToken,store,catalog,waitMs=40000,buildInfo,queueOverride}) {
   const auth=createAuth({origin,secret,ownerPasswordHash,agentToken,store});
-  const queue=createQueue({store,catalog,waitMs});
+  const legacyQueue=createQueue({store,catalog,waitMs});
+  const queue=queueOverride??legacyQueue;
   const protectedTools=[...catalog.tools,receiptTool].map(t=>({...t,securitySchemes:[{type:'oauth2',scopes:[SCOPE]}],_meta:{...t._meta,securitySchemes:[{type:'oauth2',scopes:[SCOPE]}]}}));
   async function body(req,form=false) {
     const parts=[];let size=0;
@@ -54,7 +55,7 @@ export function createHandler({origin,secret,ownerPasswordHash,agentToken,store,
         if(req.method==='POST'&&p==='/agent/heartbeat') {
           await store.setJSON('agent/heartbeat',{at:Date.now(),version:catalog.version});return json({accepted:true});
         }
-        if(req.method==='POST'&&p==='/agent/result')return json(await queue.complete(await body(req)));
+        if(req.method==='POST'&&p==='/agent/result')return json(await legacyQueue.complete(await body(req)));
         return json({error:'NOT_FOUND'},404);
       }
       if(p!=='/mcp')return json({error:'NOT_FOUND'},404);
