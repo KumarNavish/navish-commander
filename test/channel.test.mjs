@@ -139,7 +139,7 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
     assert.ok(token.access_token);assert.equal((await request(origin+'/oauth/token',{method:'POST',body:new URLSearchParams(grant)})).status,400);
     const publicClient=new Client({name:'channel-public-test',version:'1'});
     await publicClient.connect(new StreamableHTTPClientTransport(new URL(origin+'/mcp'),{requestInit:{headers:{authorization:'Bearer '+token.access_token}}}));
-    try{assert.equal((await publicClient.listTools()).tools.length,11);
+    try{assert.equal((await publicClient.listTools()).tools.length,15);
       const empty=await publicClient.callTool({name:'commander_connector_receipt',arguments:{callId:'not-dispatched'}});assert.equal(empty.structuredContent.state,'unknown');
       const devices=await publicClient.callTool({name:'commander_devices',arguments:{}});assert.equal(devices.structuredContent.state,'completed');}
     finally{await publicClient.close();}
