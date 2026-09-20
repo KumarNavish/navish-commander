@@ -1,0 +1,33 @@
+{
+  "schema": "navish.channel-shutdown-regression/v1",
+  "date": "2026-09-20",
+  "affectedVersion": "0.1.0",
+  "fixedVersion": "0.1.1",
+  "affectedConnectorSha256": "87bd658b2c5ead959a5cf515e1b0fdb133d6c9aac4db15a7f5b5aa0058977490",
+  "fixedConnectorSha256": "346ba2324e4427f1e31dda7558646716050175f777525dad97bb2f350fc307e1",
+  "observedFailure": {
+    "ciRun": "https://github.com/KumarNavish/navish-commander/actions/runs/35512073992",
+    "runtime": "Ubuntu, Node 22.16.0",
+    "error": "TEST_TIMEOUT: agent shutdown",
+    "logSha256": "1981edc04ec1892d9bc24d3b77286431352aaca2def08c962bd3d2315a9dda04"
+  },
+  "boundedRegressions": {
+    "previousImplementationExit": 1,
+    "previousLogSha256": "961a34052c57d4d2e8246332508d1477c93ecd46a19ef7df8dc1eecf56b02174",
+    "cases": [
+      "error without a close event",
+      "graceful stop without a close event"
+    ],
+    "fixedImplementationPassed": true
+  },
+  "fix": "Settle the connection once before requesting close; ignore late messages and clear timers and pending acknowledgement waits. Durable execution journals are unchanged.",
+  "validation": {
+    "runtimeAndIntegrationTests": 105,
+    "passed": 105,
+    "suiteLogSha256": "c97eee6fdcafec571a186282fc091925bb65c52b189dffdb0e24e8d7cf2e950d",
+    "node2216ChannelTests": 5,
+    "node2216Passed": 5,
+    "node2216LogSha256": "3c7c11d7af2cdcc37b61f552712d76bb2b28496973061aac7fcc96a19e5d8864"
+  },
+  "scope": "The recorded CI failure occurred during agent shutdown. Missing close events are covered by deterministic regressions; other emulator/proxy failures remain separate evidence."
+}

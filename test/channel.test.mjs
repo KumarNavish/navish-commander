@@ -44,6 +44,36 @@ test('a synchronous error from WebSocket close cannot re-enter the error handler
   assert.equal(closes,1);assert.equal(calls,0);
 });
 
+test('an error without a close event releases the agent connection',async()=>{
+  let stopped=false,socket,forcedClose=false;
+  class MissingCloseSocket extends EventTarget {
+    readyState=0;
+    constructor(){super();socket=this;queueMicrotask(()=>this.dispatchEvent(new Event('error')));}
+    close(){stopped=true;this.readyState=3;}
+  }
+  // This cleanup makes the old implementation terminate and fail the predicate.
+  const cleanup=setTimeout(()=>{forcedClose=true;socket?.dispatchEvent(new Event('close'));},100);
+  try{await runChannelAgent({origin:'https://channel.example',token:'t'.repeat(64),WebSocketImpl:MissingCloseSocket,
+    stopped:()=>stopped,executeJob:async()=>assert.fail('No job should be dispatched'),log:()=>{}});
+    assert.equal(forcedClose,false,'The agent must not depend on a later close event');
+  }finally{clearTimeout(cleanup);}
+});
+
+test('graceful stop does not require a WebSocket close event',async()=>{
+  let stopped=false,socket,forcedClose=false;
+  class MissingCloseSocket extends EventTarget {
+    readyState=0;
+    constructor(){super();socket=this;queueMicrotask(()=>{this.readyState=1;this.dispatchEvent(new Event('open'));stopped=true;});}
+    send(){}
+    close(){this.readyState=2;}
+  }
+  const cleanup=setTimeout(()=>{forcedClose=true;socket?.dispatchEvent(new Event('close'));},2000);
+  try{await runChannelAgent({origin:'https://channel.example',token:'t'.repeat(64),WebSocketImpl:MissingCloseSocket,
+    stopped:()=>stopped,executeJob:async()=>assert.fail('No job should be dispatched'),log:()=>{}});
+    assert.equal(forcedClose,false,'Shutdown must settle before a missing peer close event');
+  }finally{clearTimeout(cleanup);}
+});
+
 test('real SQLite Durable Object and outbound agent reconcile duplicates, reconnect, failed workers and restart', {timeout:120000}, async(t)=>{
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'navish-channel-'));
   fs.mkdirSync(root+'/journal');
@@ -80,10 +110,11 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
   class LocalSocket extends WebSocket{constructor(url,protocols){super(url.replace('wss://channel.example',origin.replace('http:','ws:')),protocols);sockets.push(this);}}
   try{
     await start();await client.connect(stdio);
-    // Fully consume negative probes and close their client connections before
-    // OAuth: an unread early response can contaminate the dev proxy pool.
-    // Do not retry registration or any subsequent mutation on failure.
-    const deniedInvoke=await request(origin+'/invoke',{method:'POST',body:'{}',headers:{connection:'close'}});
+    // Authentication rejects before parsing a body. Keep these local proxy
+    // probes bodyless: workerd dev-proxy early-body cancellation can break the
+    // following connection. Authenticated bodies are exercised by the real SDK;
+    // unauthorized bodies are covered by handler and deployed-route checks.
+    const deniedInvoke=await request(origin+'/invoke',{method:'POST',headers:{connection:'close'}});
     assert.equal(deniedInvoke.status,401);await deniedInvoke.text();
     const first=job('commander_write_file',{device:'local',callId:'channel-once',path:root+'/effect',content:'once\n',mode:'append'});
     assert.equal((await http('/invoke',first)).structuredContent.code,'MAC_AGENT_OFFLINE');
@@ -93,7 +124,7 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
     for(let i=0;i<100;i++){if((await http('/status',{})).online)break;await delay(50);}
     assert.equal((await http('/status',{})).online,true);
     // Exercise the public OAuth and SDK endpoint, not just the internal queue.
-    const deniedMcp=await request(origin+'/mcp',{method:'POST',body:'{}',headers:{connection:'close'}});
+    const deniedMcp=await request(origin+'/mcp',{method:'POST',headers:{connection:'close'}});
     assert.equal(deniedMcp.status,401);await deniedMcp.text();
     phase='OAuth registration';
     const registrationResponse=await request(origin+'/oauth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({redirect_uris:['https://chatgpt.com/connector_platform_oauth_redirect']})});

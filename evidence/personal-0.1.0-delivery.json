@@ -1,6 +1,6 @@
 {
   "schema": "navish.controlled-delivery-comparison/v1",
-  "runAt": "2026-09-20T13:09:29.644Z",
+  "runAt": "2026-09-20T12:42:25.520Z",
   "protocol": {
     "repetitionsPerScenario": 10,
     "scenarios": [
@@ -18,9 +18,9 @@
   },
   "harnessSha256": "83cc59705da7bf5e3ce71bcf8ceb269c92b53e7ef97131b6e359046f98fc2a41",
   "commanderSourceSha256": "761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615",
-  "gitRevision": "1c81166cc8abd9ec067d5afeb0e226978a56e73a",
-  "connectorSourceSha256": "346ba2324e4427f1e31dda7558646716050175f777525dad97bb2f350fc307e1",
-  "installedSourceSha256": "385070a1c02dd981023b73e91f6ab1fbc3d224c9abf43f5a6d4868a5ea2d03fd",
+  "gitRevision": "6ee0a026e60ace02158d635a63bd7f84d2a97702",
+  "connectorSourceSha256": "87bd658b2c5ead959a5cf515e1b0fdb133d6c9aac4db15a7f5b5aa0058977490",
+  "installedSourceSha256": "301778edb8f8926586c6a88c5b34fc1d545c425e00da4c1de3bd0105ddd4fc92",
   "sourceUnchanged": true,
   "routes": {
     "navish": "authenticated edge MCP, SQLite Durable Object and outbound WebSocket to the same Mac",

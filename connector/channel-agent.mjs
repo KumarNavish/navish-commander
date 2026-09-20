@@ -14,14 +14,23 @@ export async function runChannelAgent({origin,token,executeJob,stopped,WebSocket
     try{
       await new Promise((resolve,reject)=>{
         const ws=new WebSocketImpl(origin.replace(/^https:/,'wss:')+'/agent',['navish-agent','token.'+token]);socket=ws;
-        let lastSeen=Date.now(),lastPing=0,opened=false;
+        let lastSeen=Date.now(),lastPing=0,opened=false,settled=false;
+        const settle=()=>{
+          if(settled)return;settled=true;clearInterval(timer);
+          if(socket===ws)socket=undefined;
+          for(const ack of [...acks.values()])ack.reject(Error('CHANNEL_DISCONNECTED'));
+          opened||stopped()?resolve():reject(Error('CHANNEL_CONNECT_FAILED'));
+        };
+        const disconnect=()=>{settle();try{ws.close();}catch{}};
         const timer=setInterval(()=>{
-          if(stopped()){if(!inflight.size)ws.close(1000,'Agent stopping');return;}
-          if(Date.now()-lastSeen>150000){ws.close();return;}
+          if(stopped()){if(!inflight.size)disconnect();return;}
+          if(ws.readyState>=2){settle();return;}
+          if(Date.now()-lastSeen>150000){disconnect();return;}
           if(ws.readyState===1&&Date.now()-lastPing>=30000){lastPing=Date.now();ws.send(JSON.stringify({type:'ping'}));}
         },1000);
-        ws.addEventListener('open',()=>{opened=true;lastSeen=Date.now();ws.send(JSON.stringify({type:'ready'}));});
+        ws.addEventListener('open',()=>{if(settled){try{ws.close();}catch{}return;}opened=true;lastSeen=Date.now();ws.send(JSON.stringify({type:'ready'}));});
         ws.addEventListener('message',event=>{
+          if(settled)return;
           lastSeen=Date.now();let b;
           try{b=JSON.parse(event.data);}catch{ws.close();return;}
           if(b.type==='ready'){backoff=1000;return;}
@@ -30,18 +39,14 @@ export async function runChannelAgent({origin,token,executeJob,stopped,WebSocket
           if(inflight.size>=4){ws.close();return;}
           const job=b.job;
           const p=Promise.resolve().then(()=>executeJob(job,upload))
-            .catch(e=>{log(JSON.stringify({event:'job-not-acknowledged',id:job.id,code:e.message}));ws.close();})
-            .finally(()=>{inflight.delete(job.id);if(stopped()&&!inflight.size)ws.close(1000,'Agent stopping');});
+            .catch(e=>{log(JSON.stringify({event:'job-not-acknowledged',id:job.id,code:e.message}));disconnect();})
+            .finally(()=>{inflight.delete(job.id);if(stopped()&&!inflight.size)disconnect();});
           inflight.set(job.id,p);
         });
-        // Older Node WebSockets may emit error synchronously from close().
-        // Remove this listener before closing so that error cannot re-enter it.
-        ws.addEventListener('error',()=>{ws.close();},{once:true});
-        ws.addEventListener('close',()=>{
-          clearInterval(timer);if(socket===ws)socket=undefined;
-          for(const ack of [...acks.values()])ack.reject(Error('CHANNEL_DISCONNECTED'));
-          opened?resolve():reject(Error('CHANNEL_CONNECT_FAILED'));
-        });
+        // Older Node versions can omit close after an error, or emit error
+        // synchronously from close(). Settle once before asking the socket to close.
+        ws.addEventListener('error',disconnect,{once:true});
+        ws.addEventListener('close',settle,{once:true});
       });
     }catch(e){log(JSON.stringify({event:'channel-unavailable',code:e.message,retryInMs:backoff}));}
     if(!stopped()){await new Promise(r=>setTimeout(r,backoff));backoff=Math.min(backoff*2,60000);}

@@ -1,13 +1,13 @@
 {
   "schema": "navish.hosted-route-comparison/v1",
-  "runAt": "2026-09-20T13:08:19.800Z",
-  "connectorSourceSha256": "346ba2324e4427f1e31dda7558646716050175f777525dad97bb2f350fc307e1",
-  "channelSourceSha256": "346ba2324e4427f1e31dda7558646716050175f777525dad97bb2f350fc307e1",
-  "installedSourceSha256": "385070a1c02dd981023b73e91f6ab1fbc3d224c9abf43f5a6d4868a5ea2d03fd",
+  "runAt": "2026-09-20T12:41:09.736Z",
+  "connectorSourceSha256": "87bd658b2c5ead959a5cf515e1b0fdb133d6c9aac4db15a7f5b5aa0058977490",
+  "channelSourceSha256": "87bd658b2c5ead959a5cf515e1b0fdb133d6c9aac4db15a7f5b5aa0058977490",
+  "installedSourceSha256": "301778edb8f8926586c6a88c5b34fc1d545c425e00da4c1de3bd0105ddd4fc92",
   "deploymentProfile": {
     "processType": "Interactive",
     "legacyTimers": true,
-    "plistSha256": "a6f28d60f2405019b789ff2690b0343ceb072622eb832ecd9755a25b27c35158"
+    "plistSha256": "6a0912a01e1ca9080e748149e1934c62f4e8b8bd645f359963266371dd03d9e7"
   },
   "protocol": {
     "workers": 4,
@@ -29,7 +29,7 @@
   },
   "harnessSha256": "072b5d6c156734b4a7e959d4e0d51405a98f82578026d119b5146b53b7aaa3c7",
   "commanderSourceSha256": "761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615",
-  "gitRevision": "1c81166cc8abd9ec067d5afeb0e226978a56e73a",
+  "gitRevision": "6ee0a026e60ace02158d635a63bd7f84d2a97702",
   "routes": {
     "navish": "authenticated edge MCP, SQLite Durable Object and outbound WebSocket to the same Mac",
     "rdc": "hosted OAuth Streamable HTTP MCP to the same Mac"
@@ -50,24 +50,24 @@
     "navish": {
       "rounds": 20,
       "verified": 20,
-      "medianMs": 837.415,
-      "p95Ms": 886.396,
+      "medianMs": 793.06,
+      "p95Ms": 864.596,
       "calls": 20
     },
     "rdc": {
       "rounds": 20,
       "verified": 20,
-      "medianMs": 1730.5700000000002,
-      "p95Ms": 2009.987,
+      "medianMs": 2005.2,
+      "p95Ms": 2378.2065000000002,
       "calls": 160
     }
   },
-  "throughputRatio": 2.066561979424778,
+  "throughputRatio": 2.5284341663934637,
   "throughputInterval": {
     "method": "paired percentile bootstrap; seed 1729; 10000 resamples",
     "level": 0.95,
-    "lower": 2.0102286691886944,
-    "upper": 2.1859430289115847,
+    "lower": 2.2544508691922713,
+    "upper": 2.7347014560734872,
     "scope": "uncertainty across these repeated workload rounds, not a future service guarantee"
   },
   "throughputTargetPassed": true,
@@ -85,7 +85,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 765.77
+      "elapsedMs": 741.15
     },
     {
       "backend": "rdc",
@@ -93,7 +93,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1666.69
+      "elapsedMs": 2729.26
     },
     {
       "backend": "rdc",
@@ -101,7 +101,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1719.39
+      "elapsedMs": 1787.74
     },
     {
       "backend": "navish",
@@ -109,7 +109,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 776.59
+      "elapsedMs": 867.94
     },
     {
       "backend": "navish",
@@ -117,7 +117,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 843.74
+      "elapsedMs": 820.3
     },
     {
       "backend": "rdc",
@@ -125,7 +125,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1725.01
+      "elapsedMs": 1918.06
     },
     {
       "backend": "rdc",
@@ -133,7 +133,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1635.42
+      "elapsedMs": 2316.75
     },
     {
       "backend": "navish",
@@ -141,7 +141,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 830.79
+      "elapsedMs": 789.94
     },
     {
       "backend": "navish",
@@ -149,7 +149,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 796.85
+      "elapsedMs": 764.83
     },
     {
       "backend": "rdc",
@@ -157,7 +157,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1670.37
+      "elapsedMs": 1641.85
     },
     {
       "backend": "rdc",
@@ -165,7 +165,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1747.82
+      "elapsedMs": 2359.73
     },
     {
       "backend": "navish",
@@ -173,7 +173,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 886.18
+      "elapsedMs": 761.75
     },
     {
       "backend": "navish",
@@ -181,7 +181,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 863.46
+      "elapsedMs": 810.6
     },
     {
       "backend": "rdc",
@@ -189,7 +189,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1878.94
+      "elapsedMs": 1649.48
     },
     {
       "backend": "rdc",
@@ -197,7 +197,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1712.37
+      "elapsedMs": 2035.89
     },
     {
       "backend": "navish",
@@ -205,7 +205,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 890.5
+      "elapsedMs": 725.17
     },
     {
       "backend": "navish",
@@ -213,7 +213,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 831.09
+      "elapsedMs": 749.33
     },
     {
       "backend": "rdc",
@@ -221,7 +221,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 2018.48
+      "elapsedMs": 2098.45
     },
     {
       "backend": "rdc",
@@ -229,7 +229,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1947.6
+      "elapsedMs": 2012.88
     },
     {
       "backend": "navish",
@@ -237,7 +237,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 848.42
+      "elapsedMs": 796.18
     },
     {
       "backend": "navish",
@@ -245,7 +245,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 844.99
+      "elapsedMs": 768.07
     },
     {
       "backend": "rdc",
@@ -253,7 +253,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1797.04
+      "elapsedMs": 1965.78
     },
     {
       "backend": "rdc",
@@ -261,7 +261,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1736.13
+      "elapsedMs": 1801.46
     },
     {
       "backend": "navish",
@@ -269,7 +269,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 830.29
+      "elapsedMs": 763.37
     },
     {
       "backend": "navish",
@@ -277,7 +277,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 802.25
+      "elapsedMs": 766.88
     },
     {
       "backend": "rdc",
@@ -285,7 +285,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1581.77
+      "elapsedMs": 2129.34
     },
     {
       "backend": "rdc",
@@ -293,7 +293,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1881.34
+      "elapsedMs": 1851.81
     },
     {
       "backend": "navish",
@@ -301,7 +301,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 849.23
+      "elapsedMs": 864.42
     },
     {
       "backend": "navish",
@@ -309,7 +309,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 829.25
+      "elapsedMs": 838.71
     },
     {
       "backend": "rdc",
@@ -317,7 +317,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1815.26
+      "elapsedMs": 1743.52
     },
     {
       "backend": "rdc",
@@ -325,7 +325,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1637.42
+      "elapsedMs": 2194.3
     },
     {
       "backend": "navish",
@@ -333,7 +333,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 813
+      "elapsedMs": 809.87
     },
     {
       "backend": "navish",
@@ -341,7 +341,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 797.55
+      "elapsedMs": 838.55
     },
     {
       "backend": "rdc",
@@ -349,7 +349,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1714.44
+      "elapsedMs": 1997.52
     },
     {
       "backend": "rdc",
@@ -357,7 +357,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 2009.54
+      "elapsedMs": 2276.47
     },
     {
       "backend": "navish",
@@ -365,7 +365,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 876.23
+      "elapsedMs": 789.14
     },
     {
       "backend": "navish",
@@ -373,7 +373,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 870.8
+      "elapsedMs": 851.81
     },
     {
       "backend": "rdc",
@@ -381,7 +381,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1931.33
+      "elapsedMs": 1633.64
     },
     {
       "backend": "rdc",
@@ -389,7 +389,7 @@
       "workers": 4,
       "verified": true,
       "calls": 8,
-      "elapsedMs": 1609.27
+      "elapsedMs": 2099.18
     },
     {
       "backend": "navish",
@@ -397,7 +397,7 @@
       "workers": 4,
       "verified": true,
       "calls": 1,
-      "elapsedMs": 875.17
+      "elapsedMs": 816.7
     }
   ]
 }
