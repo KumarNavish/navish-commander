@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { ensureDir, nowIso, readJson, writeJson, isSafeId } from './util.mjs';
+import { ensureDir, nowIso, readJson, writeJson, isSafeId, syncDirectory } from './util.mjs';
 import { paths as getPaths, ensureBase } from './config.mjs';
 import { withStateTransaction, processOwner, ownerIsLive } from './state-lock.mjs';
 
@@ -130,7 +130,17 @@ export function beginCall({callId,intent,resources=[],mutating=false},P=getPaths
     const r={callId,intentHash:hash,state:'running',startedAt:nowIso(),mutating,resources:rs,intent,owner:processOwner()};
     // Register ownership first. A crash between these writes is conservatively recoverable.
     writeJson(activePath(P,callId),r,0o600);
-    try{saveRaw(r,P)}catch(e){removeActive(callId,P);throw e}
+    try{
+      // Both admission records have identical bytes. Reuse the already flushed
+      // inode, then durably publish its receipt name. Terminal updates replace
+      // the receipt atomically, leaving the original active claim intact.
+      try{fs.linkSync(activePath(P,callId),receiptPath(P,callId));}
+      catch(e){
+        if(!['EXDEV','EPERM','ENOTSUP','EOPNOTSUPP'].includes(e.code))throw e;
+        saveRaw(r,P);return {replay:false,receipt:r};
+      }
+      syncDirectory(P.receiptsDir);
+    }catch(e){removeActive(callId,P);throw e}
     return {replay:false,receipt:r};
   },transactionOptions);
 }

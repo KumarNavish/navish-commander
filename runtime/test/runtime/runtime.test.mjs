@@ -7,7 +7,7 @@ import crypto from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {paths,ensureBase} from '../../app/src/config.mjs';
-import {callTool,TOOL_NAMES} from '../../app/src/core.mjs';
+import {callTool,observeLocalTool,TOOL_NAMES} from '../../app/src/core.mjs';
 import {readOutputWindow,startProcessTool,inspectProcessSession} from '../../app/src/process.mjs';
 import {closeStateTransactions} from '../../app/src/state-lock.mjs';
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
@@ -24,6 +24,14 @@ async function until(predicate,timeout=5000){const end=Date.now()+timeout;while(
 function batchFile(P,id){return path.join(P.stateRoot,'agent-batches',id+'.json')}
 
 test('full core imports both Ego tools and real execution primitives',()=>{for(const name of ['browser_agent','browser_agent_health','start_process','agent_batch_collect'])assert.ok(TOOL_NAMES.includes(name))});
+test('observation API rejects mutation and unknown tools before dispatch',async()=>{
+  const {home,P}=setup();
+  for(const tool of ['write_file','start_process','browser_agent','future_tool']){
+    await assert.rejects(observeLocalTool({tool,args:{path:path.join(home,'effect'),content:'bad'}},P),{code:'OBSERVATION_TOOL_NOT_ALLOWED'});
+  }
+  assert.equal(fs.existsSync(path.join(home,'effect')),false);
+  assert.deepEqual(fs.readdirSync(P.receiptsDir),[]);
+});
 test('one call runs three real PTY workers and verifies declared artifact hashes',async()=>{
   const {home,P}=setup();const workers=['alpha','beta','gamma'].map(id=>worker(id,home,{artifacts:[{path:id+'.txt',sha256:crypto.createHash('sha256').update(id).digest('hex')}]}));
   const receipt=await call(P,'agent_batch_start',{batchId:'complete',workers,wait_ms:5000});
@@ -55,6 +63,22 @@ test('bounded local wait returns running, not false task completion',async()=>{
 test('nonzero worker exit remains a failed task although observation call completes',async()=>{
   const {home,P}=setup();const r=await call(P,'agent_batch_start',{batchId:'failed',workers:[worker('x',home,{command:'printf issue; exit 7'})],wait_ms:5000});
   assert.equal(r.state,'completed');assert.equal(r.result.state,'failed');assert.equal(r.result.workers[0].exitCode,7);
+});
+test('one invalid launch retains its diagnostic while other workers complete once',async()=>{
+  const {home,P}=setup();
+  const args={batchId:'mixed-launch',workers:[
+    worker('ok',home,{command:'printf once >> effects.txt'}),
+    worker('bad',path.join(home,'absent-directory'))
+  ],wait_ms:5000};
+  const first=await call(P,'agent_batch_start',args);
+  assert.equal(first.result.state,'failed');
+  assert.equal(first.result.workers[0].state,'completed');
+  assert.equal(first.result.workers[1].state,'failed');
+  assert.ok(first.result.workers[1].launchError);
+  const again=await call(P,'agent_batch_start',args);
+  assert.equal(again.result.reused,true);
+  assert.equal(again.result.workers[1].state,'failed');
+  assert.equal(fs.readFileSync(path.join(home,'effects.txt'),'utf8'),'once');
 });
 test('exit zero does not satisfy a missing artifact contract',async()=>{
   const {home,P}=setup();const r=await call(P,'agent_batch_start',{batchId:'artifact',workers:[worker('x',home,{command:'true',artifacts:[{path:'missing.txt'}]})],wait_ms:5000});

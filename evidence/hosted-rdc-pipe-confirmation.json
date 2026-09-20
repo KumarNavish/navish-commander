@@ -1,0 +1,386 @@
+{
+  "schema": "navish.hosted-route-comparison/v1",
+  "runAt": "2026-09-20T06:56:09.504Z",
+  "protocol": {
+    "workers": 4,
+    "rounds": 20,
+    "commanderTransport": "pipe",
+    "waitPolicy": "staged",
+    "work": "sleep 0.20, exact output artifact, exactly-one append effect",
+    "order": "alternating paired order",
+    "concurrency": "four simultaneous RDC calls or one four-worker Commander batch",
+    "timing": "initialized clients; launch through independently verified artifacts and client close",
+    "baselineInitialWaitMs": 1,
+    "baselineCollectWaitMs": 100,
+    "commanderInitialWaitMs": 0,
+    "polling": "RDC concurrent per-worker polling; Commander server-side batch collection",
+    "metric": "RDC median elapsed / Commander median elapsed; every Commander outcome must verify",
+    "gate": 2,
+    "planning": "deterministic MCP client; no LLM planner",
+    "faults": "none in this throughput measurement"
+  },
+  "harnessSha256": "f928d41c082322a3575ad7a3b36bfe5ce6bb8b0a9f48a0d549ccf03523349bcf",
+  "commanderSourceSha256": "2cfbf18a16b8a66553eca6fddae525c7847bac0a6de03ac4003ff0ade2ac1422",
+  "routes": {
+    "navish": "local stdio MCP",
+    "rdc": "hosted OAuth Streamable HTTP MCP to the same Mac"
+  },
+  "baselineVersion": {
+    "server": {
+      "name": "desktop-commander-remote-mcp",
+      "version": "1.0.0",
+      "description": "Control your desktop remotely - execute commands, manage files, read/write content, and automate tasks on a remote machine via MCP"
+    },
+    "device": "0.2.48"
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v26.8.2",
+  "summary": {
+    "navish": {
+      "rounds": 20,
+      "verified": 20,
+      "medianMs": 551.27,
+      "p95Ms": 689.9180000000001,
+      "calls": 40
+    },
+    "rdc": {
+      "rounds": 20,
+      "verified": 20,
+      "medianMs": 1412.0749999999998,
+      "p95Ms": 1680.509,
+      "calls": 160
+    }
+  },
+  "throughputRatio": 2.5614943675512905,
+  "throughputTargetPassed": true,
+  "certification": false,
+  "limits": [
+    "Different supported transport routes; not equal network-hop cost",
+    "No Claude/ChatGPT planner or model-driven agents",
+    "No population reliability estimate",
+    "No hosted Navish connector"
+  ],
+  "samples": [
+    {
+      "backend": "navish",
+      "round": 0,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 593.41
+    },
+    {
+      "backend": "rdc",
+      "round": 0,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1450.57
+    },
+    {
+      "backend": "rdc",
+      "round": 1,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1362.55
+    },
+    {
+      "backend": "navish",
+      "round": 1,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 502.62
+    },
+    {
+      "backend": "navish",
+      "round": 2,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 517.28
+    },
+    {
+      "backend": "rdc",
+      "round": 2,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1677.07
+    },
+    {
+      "backend": "rdc",
+      "round": 3,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1426.29
+    },
+    {
+      "backend": "navish",
+      "round": 3,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 564.32
+    },
+    {
+      "backend": "navish",
+      "round": 4,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 537.36
+    },
+    {
+      "backend": "rdc",
+      "round": 4,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1332.52
+    },
+    {
+      "backend": "rdc",
+      "round": 5,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1586.12
+    },
+    {
+      "backend": "navish",
+      "round": 5,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 506.46
+    },
+    {
+      "backend": "navish",
+      "round": 6,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 517.79
+    },
+    {
+      "backend": "rdc",
+      "round": 6,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1484.64
+    },
+    {
+      "backend": "rdc",
+      "round": 7,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1474.56
+    },
+    {
+      "backend": "navish",
+      "round": 7,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 499.01
+    },
+    {
+      "backend": "navish",
+      "round": 8,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 680.78
+    },
+    {
+      "backend": "rdc",
+      "round": 8,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1464.73
+    },
+    {
+      "backend": "rdc",
+      "round": 9,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1397.86
+    },
+    {
+      "backend": "navish",
+      "round": 9,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 573.95
+    },
+    {
+      "backend": "navish",
+      "round": 10,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 547.66
+    },
+    {
+      "backend": "rdc",
+      "round": 10,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1607.16
+    },
+    {
+      "backend": "rdc",
+      "round": 11,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1352.36
+    },
+    {
+      "backend": "navish",
+      "round": 11,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 548.67
+    },
+    {
+      "backend": "navish",
+      "round": 12,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 537.76
+    },
+    {
+      "backend": "rdc",
+      "round": 12,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1515.25
+    },
+    {
+      "backend": "rdc",
+      "round": 13,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1344.55
+    },
+    {
+      "backend": "navish",
+      "round": 13,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 610.79
+    },
+    {
+      "backend": "navish",
+      "round": 14,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 608.48
+    },
+    {
+      "backend": "rdc",
+      "round": 14,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1364.38
+    },
+    {
+      "backend": "rdc",
+      "round": 15,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1345.83
+    },
+    {
+      "backend": "navish",
+      "round": 15,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 628.45
+    },
+    {
+      "backend": "navish",
+      "round": 16,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 536.48
+    },
+    {
+      "backend": "rdc",
+      "round": 16,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1371.18
+    },
+    {
+      "backend": "rdc",
+      "round": 17,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1349.82
+    },
+    {
+      "backend": "navish",
+      "round": 17,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 553.87
+    },
+    {
+      "backend": "navish",
+      "round": 18,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 558.72
+    },
+    {
+      "backend": "rdc",
+      "round": 18,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1745.85
+    },
+    {
+      "backend": "rdc",
+      "round": 19,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1349.46
+    },
+    {
+      "backend": "navish",
+      "round": 19,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 863.54
+    }
+  ]
+}

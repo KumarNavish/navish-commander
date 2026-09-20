@@ -12,6 +12,8 @@ const root=fs.mkdtempSync(path.join(os.tmpdir(),'commander-comparison-'));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const rounds=Number(process.env.BENCH_ROUNDS||10),count=4;
 const samples=[];
+const transport=process.env.BENCH_TRANSPORT||'pty';
+if(!['pty','pipe'].includes(transport))throw Error('BENCH_TRANSPORT must be pty or pipe');
 function lab(backend,round) {
   const dir=path.join(root,backend+'-'+round);fs.mkdirSync(dir);
   fs.mkdirSync(dir+'/.claude-server-commander');
@@ -32,7 +34,7 @@ async function run(backend,round,restart) {
     const id='worker-'+n,cwd=l.dir+'/'+id;fs.mkdirSync(cwd);
     // Identical shell and work; the marker detects accidental relaunch.
     const command=`printf once >> '${cwd}/effects'; sleep 0.20; printf '${id}' > '${cwd}/result'; printf '${id}'`;
-    return {id,role:'deterministic IO worker',cwd,command,artifacts:[{path:'result',sha256:crypto.createHash('sha256').update(id).digest('hex')}]};
+    return {id,role:'deterministic IO worker',cwd,command,...(transport==='pipe'?{transport}:{}),artifacts:[{path:'result',sha256:crypto.createHash('sha256').update(id).digest('hex')}]};
   });
   const start=performance.now();let verified=false,reason=null;
   try{

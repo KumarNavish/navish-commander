@@ -13,7 +13,7 @@ import { listDevices,remoteCall,pairAdd,pairRemove } from './remote.mjs';
 import { nowIso, randomId, writeJson, sleep } from './util.mjs';
 import { performance } from 'node:perf_hooks';
 
-export const VERSION='1.5.0-rc.1';
+export const VERSION='1.5.0-rc.2';
 export const TOOL_NAMES=['get_config','set_config_value','read_file','read_multiple_files','write_file','create_directory','list_directory','move_file','find_text','start_process','read_process_output','interact_with_process','force_terminate','list_sessions','list_processes','kill_process','browser_agent','browser_agent_health','browser_command','get_usage_stats','get_recent_tool_calls','agent_batch_start','agent_batch_status','agent_batch_collect','agent_batch_send','agent_batch_cancel','agent_batch_list'];
 
 function audit(P,event){fs.appendFileSync(P.auditLog,JSON.stringify({at:nowIso(),...event})+'\n',{mode:0o600});}
@@ -100,6 +100,21 @@ export async function callTool({target='local',tool,args={},callId=randomId('cal
   }
   record({event:receipt.receiptFinalizationPending?'call-finalization-pending':'call-finished',callId,tool,state:receipt.state});
   return auditRecorded?receipt:{...receipt,auditRecorded:false};
+}
+
+// These MCP observations have no caller-supplied intent ID or external effect.
+// They must see current state, not create/replay a durable mutation receipt.
+// Keep an explicit small allowlist: being absent from MUTATING is insufficient.
+const REPEATABLE_OBSERVATIONS=new Set(['read_file','read_process_output','agent_batch_collect']);
+export async function observeLocalTool({tool,args={}},P=getPaths()){
+  if(!REPEATABLE_OBSERVATIONS.has(tool))throw Object.assign(new Error('tool requires durable call admission'),{code:'OBSERVATION_TOOL_NOT_ALLOWED'});
+  const startedAt=nowIso();
+  let outcome;
+  try{outcome={state:'completed',result:await executeLocal(tool,args,{P,config:loadConfig(P)})};}
+  catch(e){outcome={state:'failed',result:null,reason:e.message,code:e.code||null};}
+  let auditRecorded=true;
+  try{audit(P,{event:'observation-finished',tool,state:outcome.state});}catch{auditRecorded=false;}
+  return {...outcome,startedAt,finishedAt:nowIso(),observation:true,receiptPersisted:false,auditRecorded};
 }
 
 export function reconcile({callId,resources=[]},P=getPaths()){const changed=reconcileQuarantine({callId,resources},P);return {changed,receipt:callId?loadReceipt(callId,P):null};}

@@ -1,10 +1,26 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { withStateTransaction, processOwner, ownerIsLive } from './state-lock.mjs';
 import { ensureDir, readJson, writeJson, randomId, isSafeId, run, sleep } from './util.mjs';
+
+let preparedPython;
+export function prepareProcessRuntime(){
+  if(preparedPython)return preparedPython;
+  try{
+    // macOS /usr/bin/python3 is a developer-tools launcher. Re-entering it for
+    // every worker repeats its environment discovery, especially with a fresh
+    // HOME. Resolve the selected interpreter once, preserving virtualenv paths.
+    const value=JSON.parse(execFileSync(process.env.NAVISH_PYTHON||'python3',
+      ['-S','-c','import json,sys; print(json.dumps({"executable":sys.executable,"version":list(sys.version_info[:3])}))'],
+      {encoding:'utf8',timeout:5000,maxBuffer:4096,stdio:['ignore','pipe','ignore']}));
+    if(!path.isAbsolute(value.executable)||!Array.isArray(value.version)||value.version[0]!==3||value.version[1]<9)throw Error('unsupported Python');
+    fs.accessSync(value.executable,fs.constants.X_OK);
+    return preparedPython={available:true,executable:value.executable,version:value.version.join('.')};
+  }catch{return preparedPython={available:false,reason:'Python 3.9 or newer is required for process workers'};}
+}
 
 function sessionDir(P,id){
   if(!isSafeId(id))throw Object.assign(new Error('invalid session id'),{code:'INVALID_SESSION_ID',dispatched:false});
@@ -88,7 +104,12 @@ export async function startProcessTool(args,P){
   if(!fs.statSync(cwd).isDirectory())throw launchError('PROCESS_CWD_NOT_DIRECTORY',sessionId);
   if(args.env!=null&&(typeof args.env!=='object'||Array.isArray(args.env)))throw launchError('INVALID_PROCESS_ENV',sessionId);
   const env=Object.fromEntries(Object.entries(args.env||{}).map(([k,v])=>[k,String(v)]));
-  const specHash=crypto.createHash('sha256').update(stable({command,shell,cwd,env})).digest('hex');
+  const transport=args.transport??'pty';
+  if(!['pty','pipe'].includes(transport))throw launchError('INVALID_PROCESS_TRANSPORT',sessionId);
+  const python=transport==='pty'?prepareProcessRuntime():null;
+  if(python&&!python.available)throw launchError('PROCESS_PYTHON_UNAVAILABLE',sessionId);
+  // Keep existing PTY fingerprints identical across upgrades.
+  const specHash=crypto.createHash('sha256').update(stable({command,shell,cwd,env,...(transport==='pipe'?{transport}:{})})).digest('hex');
   const claimFile=path.join(dir,'launch.json');
   // Persist the identity BEFORE crossing the process-launch boundary. Even a
   // coordinator crash between spawn and metadata publication cannot permit replay.
@@ -104,13 +125,21 @@ export async function startProcessTool(args,P){
     return true;
   });
   if(claimed){
+    if(transport==='pipe'){
+      const helper=path.join(path.dirname(fileURLToPath(import.meta.url)),'pipe-session-helper.mjs');
+      await new Promise((resolve,reject)=>{
+        const child=spawn(process.execPath,[helper,dir,cwd,shell,'-lc',command],{detached:true,stdio:'ignore',env:{...process.env,...env}});
+        child.once('error',()=>reject(launchError('PROCESS_LAUNCH_OUTCOME_UNCERTAIN',sessionId,true)));
+        child.once('spawn',()=>{child.unref();resolve();});
+      });
+    }else{
     const helper=path.join(path.dirname(fileURLToPath(import.meta.url)),'session-helper.py');
     // The helper uses only the standard library; skip unrelated site startup hooks.
     // Await this owned launcher asynchronously so independent batch launches can
     // progress concurrently. The durable claim above still precedes dispatch.
     await new Promise((resolve,reject)=>{
       let settled=false,timer;
-      const child=spawn('python3',['-S',helper,'--daemonize','--state-dir',dir,'--cwd',cwd,'--',shell,'-lc',command],{
+      const child=spawn(python.executable,['-S',helper,'--daemonize','--state-dir',dir,'--cwd',cwd,'--',shell,'-lc',command],{
         stdio:'ignore',env:{...process.env,...env}
       });
       const finish=ok=>{if(settled)return;settled=true;clearTimeout(timer);ok?resolve():reject(launchError('PROCESS_LAUNCH_OUTCOME_UNCERTAIN',sessionId,true));};
@@ -122,6 +151,7 @@ export async function startProcessTool(args,P){
         child.kill('SIGTERM');finish(false);
       },5000);
     });
+    }
   }
   let latest=null;
   for(let i=0;i<150;i++){latest=meta(P,sessionId);if(latest)break;await sleep(20)}
@@ -173,11 +203,15 @@ export async function terminateProcessTool(args,P){
   const m=byPid(P,args.pid)||meta(P,args.sessionId);if(!m)throw new Error('session not found');
   const st=sessionState(m,P);if(st.state==='running'){
     try{await fileRequest(st,{action:'signal',signal:Number(args.signal||15)},2000)}
-    catch{try{process.kill(Number(st.pid),Number(args.signal||15))}catch{}}
+    catch{
+      // A stale PID can belong to an unrelated process after helper loss. Only
+      // the original supervisor may signal its owned worker/process group.
+      throw Object.assign(new Error('process termination acknowledgement not observed'),{code:'PROCESS_TERMINATION_UNCERTAIN',uncertain:true,dispatched:true});
+    }
   }
   const deadline=Date.now()+2000;let latest=st;
   while(Date.now()<deadline){latest=sessionState(meta(P,st.sessionId)||latest,P);if(latest.state!=='running')break;await sleep(50)}
-  return {pid:st.pid,sessionId:st.sessionId,terminated:true,state:latest.state};
+  return {pid:st.pid,sessionId:st.sessionId,terminated:['completed','failed'].includes(latest.state),state:latest.state};
 }
 
 export function listSessionsTool(args,P){if(!fs.existsSync(P.sessionsDir))return {sessions:[]};return {sessions:fs.readdirSync(P.sessionsDir).map(id=>sessionState(meta(P,id),P)).filter(Boolean)}}

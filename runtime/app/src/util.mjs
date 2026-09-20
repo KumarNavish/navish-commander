@@ -9,6 +9,11 @@ export function sha256Text(s){ return crypto.createHash('sha256').update(s).dige
 export function sha256Json(x){ return sha256Text(JSON.stringify(x,Object.keys(x||{}).sort())); }
 export function randomId(prefix='id'){ return `${prefix}-${Date.now().toString(36)}-${crypto.randomBytes(8).toString('hex')}`; }
 export function isSafeId(s){ return typeof s==='string' && /^[A-Za-z0-9._-]{1,160}$/.test(s) && s !== '.' && s !== '..'; }
+export function syncDirectory(directory){
+  const fd=fs.openSync(directory,'r');
+  try{fs.fsyncSync(fd);}catch(e){if(!['EINVAL','ENOTSUP','EBADF'].includes(e.code))throw e;}
+  finally{fs.closeSync(fd);}
+}
 export function atomicWrite(file, data, mode=0o600){
   ensureDir(path.dirname(file));
   const tmp=`${file}.tmp-${process.pid}-${crypto.randomBytes(8).toString('hex')}`;
@@ -16,9 +21,7 @@ export function atomicWrite(file, data, mode=0o600){
   try {
     fd=fs.openSync(tmp,'wx',mode); fs.writeFileSync(fd,data); fs.fsyncSync(fd); fs.closeSync(fd); fd=undefined;
     fs.renameSync(tmp,file); fs.chmodSync(file,mode);
-    const dir=fs.openSync(path.dirname(file),'r');
-    try { fs.fsyncSync(dir); } catch(e) { if(!['EINVAL','ENOTSUP','EBADF'].includes(e.code)) throw e; }
-    finally { fs.closeSync(dir); }
+    syncDirectory(path.dirname(file));
   } finally { if(fd!==undefined)fs.closeSync(fd); try{fs.unlinkSync(tmp)}catch(e){if(e.code!=='ENOENT')throw e} }
 }
 export function writeJson(file,obj,mode=0o600){ atomicWrite(file,`${JSON.stringify(obj,null,2)}\n`,mode); }

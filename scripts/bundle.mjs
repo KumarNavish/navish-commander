@@ -12,6 +12,9 @@ for(const name of ['src','runtime/app','skills','.claude-plugin','.mcp.json','pl
 const run=(cmd,args,cwd=root)=>{const r=spawnSync(cmd,args,{cwd,stdio:'inherit'});if(r.status!==0)throw Error(cmd+' failed: '+r.status);};
 run('npm',['ci','--omit=dev','--ignore-scripts','--no-fund'],stage);
 const cli=path.join(root,'node_modules/.bin/mcpb');
+// MCPB excludes lockfiles by default. Retain the authored locks so a downloaded
+// archive can be compared directly with the release checkout.
+fs.writeFileSync(path.join(stage,'.mcpbignore'),'!package-lock.json\n!runtime/app/package-lock.json\n');
 run(cli,['validate',path.join(stage,'manifest.json')]);
 const version=JSON.parse(fs.readFileSync('package.json')).version;
 const bundle=path.join(dist,`navish-commander-${version}.mcpb`);

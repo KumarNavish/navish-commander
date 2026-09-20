@@ -1,0 +1,289 @@
+{
+  "schema": "navish.local-mcp-comparison/v1",
+  "runAt": "2026-09-20T06:37:32.343Z",
+  "scope": "Local stdio MCP execution; excludes hosted RDC relay, ChatGPT/Claude planning, model quality and cloud network.",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v26.8.2",
+  "baseline": {
+    "name": "@wonderwhy-er/desktop-commander",
+    "version": "0.2.51"
+  },
+  "workload": {
+    "workers": 4,
+    "normalRounds": 10,
+    "reconnectRounds": 4,
+    "work": "0.20s delay, deterministic output and exactly-one file effect"
+  },
+  "summary": {
+    "navish": {
+      "samples": 14,
+      "failures": 0,
+      "normalMedianMs": 808.515,
+      "normalVerified": 10
+    },
+    "desktop-commander": {
+      "samples": 14,
+      "failures": 4,
+      "normalMedianMs": 624.185,
+      "normalVerified": 10
+    }
+  },
+  "throughputRatio": 0.7720141246606432,
+  "throughputTargetPassed": false,
+  "remoteCertification": false,
+  "samples": [
+    {
+      "backend": "navish",
+      "round": 0,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 1052.22
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 0,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 12,
+      "elapsedMs": 638.56
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 1,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 12,
+      "elapsedMs": 637.88
+    },
+    {
+      "backend": "navish",
+      "round": 1,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 1027.08
+    },
+    {
+      "backend": "navish",
+      "round": 2,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 782.19
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 2,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 12,
+      "elapsedMs": 622.52
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 3,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 12,
+      "elapsedMs": 605.69
+    },
+    {
+      "backend": "navish",
+      "round": 3,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 770.16
+    },
+    {
+      "backend": "navish",
+      "round": 4,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 787.84
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 4,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 12,
+      "elapsedMs": 636.67
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 5,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 12,
+      "elapsedMs": 625.85
+    },
+    {
+      "backend": "navish",
+      "round": 5,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 811.87
+    },
+    {
+      "backend": "navish",
+      "round": 6,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 816.15
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 6,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 12,
+      "elapsedMs": 582.22
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 7,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 12,
+      "elapsedMs": 575.95
+    },
+    {
+      "backend": "navish",
+      "round": 7,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 811.11
+    },
+    {
+      "backend": "navish",
+      "round": 8,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 796.6
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 8,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 12,
+      "elapsedMs": 658.82
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 9,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 12,
+      "elapsedMs": 620.38
+    },
+    {
+      "backend": "navish",
+      "round": 9,
+      "scenario": "uninterrupted",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 805.92
+    },
+    {
+      "backend": "navish",
+      "round": 10,
+      "scenario": "mcp-server-reconnect",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 849.46
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 10,
+      "scenario": "mcp-server-reconnect",
+      "workers": 4,
+      "verified": false,
+      "calls": 8,
+      "elapsedMs": 1600.18
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 11,
+      "scenario": "mcp-server-reconnect",
+      "workers": 4,
+      "verified": false,
+      "calls": 8,
+      "elapsedMs": 1530.34
+    },
+    {
+      "backend": "navish",
+      "round": 11,
+      "scenario": "mcp-server-reconnect",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 875.73
+    },
+    {
+      "backend": "navish",
+      "round": 12,
+      "scenario": "mcp-server-reconnect",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 903.38
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 12,
+      "scenario": "mcp-server-reconnect",
+      "workers": 4,
+      "verified": false,
+      "calls": 8,
+      "elapsedMs": 1512.37
+    },
+    {
+      "backend": "desktop-commander",
+      "round": 13,
+      "scenario": "mcp-server-reconnect",
+      "workers": 4,
+      "verified": false,
+      "calls": 8,
+      "elapsedMs": 1604.88
+    },
+    {
+      "backend": "navish",
+      "round": 13,
+      "scenario": "mcp-server-reconnect",
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 853.54
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "schema": "navish.hosted-route-comparison/v1",
+  "runAt": "2026-09-20T06:43:37.841Z",
+  "protocol": {
+    "workers": 4,
+    "rounds": 3,
+    "work": "sleep 0.20, exact output artifact, exactly-one append effect",
+    "order": "alternating paired order",
+    "concurrency": "four simultaneous RDC calls or one four-worker Commander batch",
+    "timing": "initialized clients; launch through independently verified artifacts and client close",
+    "baselineInitialWaitMs": 1,
+    "baselineCollectWaitMs": 100,
+    "commanderInitialWaitMs": 0,
+    "polling": "RDC concurrent per-worker polling; Commander server-side batch collection",
+    "metric": "RDC median elapsed / Commander median elapsed; every Commander outcome must verify",
+    "gate": 2,
+    "planning": "deterministic MCP client; no LLM planner",
+    "faults": "none in this throughput measurement"
+  },
+  "harnessSha256": "a60e9aa69bc31e820ce5adcc48029b0dcad9bdab256768da422b446c70366c3d",
+  "commanderSourceSha256": "68f6e3af6cbf1ed4c7c94170be93b5a82f3a95081abce7559c04895085644b32",
+  "routes": {
+    "navish": "local stdio MCP",
+    "rdc": "hosted OAuth Streamable HTTP MCP to the same Mac"
+  },
+  "baselineVersion": {
+    "server": {
+      "name": "desktop-commander-remote-mcp",
+      "version": "1.0.0",
+      "description": "Control your desktop remotely - execute commands, manage files, read/write content, and automate tasks on a remote machine via MCP"
+    },
+    "device": "0.2.48"
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v26.8.2",
+  "summary": {
+    "navish": {
+      "rounds": 3,
+      "verified": 3,
+      "medianMs": 892.42,
+      "p95Ms": 947.563,
+      "calls": 6
+    },
+    "rdc": {
+      "rounds": 3,
+      "verified": 3,
+      "medianMs": 1505.38,
+      "p95Ms": 1562.557,
+      "calls": 24
+    }
+  },
+  "throughputRatio": 1.6868514824858252,
+  "throughputTargetPassed": false,
+  "certification": false,
+  "limits": [
+    "Different supported transport routes; not equal network-hop cost",
+    "No Claude/ChatGPT planner or model-driven agents",
+    "No population reliability estimate",
+    "No hosted Navish connector"
+  ],
+  "samples": [
+    {
+      "backend": "navish",
+      "round": 0,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 953.69
+    },
+    {
+      "backend": "rdc",
+      "round": 0,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1568.91
+    },
+    {
+      "backend": "rdc",
+      "round": 1,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1505.38
+    },
+    {
+      "backend": "navish",
+      "round": 1,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 892.42
+    },
+    {
+      "backend": "navish",
+      "round": 2,
+      "workers": 4,
+      "verified": true,
+      "calls": 2,
+      "elapsedMs": 767.43
+    },
+    {
+      "backend": "rdc",
+      "round": 2,
+      "workers": 4,
+      "verified": true,
+      "calls": 8,
+      "elapsedMs": 1456.7
+    }
+  ]
+}

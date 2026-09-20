@@ -1,26 +1,58 @@
 # Compare complete outcomes
 
-The requested comparator is **Remote Desktop Commander**. The acceptance targets are at least a 50% reduction in failed or unresolved complete workflows and at least twice the completed-work throughput on identical multi-worker workloads. Neither target may substitute for the other.
+The requested comparator is **Remote Desktop Commander**. The targets are at least 50% fewer failed or unresolved workflows and at least twice the completed-work throughput. A lower tool-call count alone is insufficient.
 
-## Local diagnostic
+## Hosted execution-route comparison
 
-`scripts/benchmark.mjs` compares Commander over stdio MCP with `@wonderwhy-er/desktop-commander@0.2.51` over stdio MCP on the same host. It uses four concurrent deterministic workers, equal shell commands, separate temporary directories, exact output checks, and one-effect markers. Both sides may issue concurrent tool calls. There is no artificial serial baseline and no paid model call.
+`scripts/benchmark-hosted-rdc.mjs` authenticates to the real hosted RDC MCP endpoint. It compares four simultaneous RDC workers with one four-worker Commander batch on the same Mac. Each worker waits 0.20 seconds, writes a deterministic artifact, and appends exactly one effect marker. Both products must report successful exits and satisfy identical independent file predicates. RDC calls run concurrently.
 
-The harness alternates execution order. It runs ten uninterrupted rounds per backend and four reconnect rounds per backend. Startup is excluded for both; reconnect and final client close are included. Throughput compares median elapsed times of uninterrupted rounds and requires every Commander round to verify. Reconnect outcomes are reported separately. The mix is a fixed diagnostic, not an estimate of everyday failure prevalence.
+The chosen local Commander transport is `pipe`; this is an explicit product option for noninteractive work. Existing PTY behavior remains available. RDC uses its installed normal process implementation. The hosted service advertised version 1.0.0 and the selected device advertised 0.2.48 during initial checks; the report records those values. The separate local comparator is the newer pinned npm version 0.2.51. These versions and routes must not be conflated.
 
-This measures execution mechanics. It does not measure the hosted Remote Desktop Commander relay, ChatGPT or Claude planning, model-generated coordination, network faults, provider quality, or a representative production failure rate. Finite descriptive counts do not establish a universal reliability advantage. Zero observed failures does not prove zero risk.
+Twenty paired rounds alternate product order. MCP initialization is outside timing for both products. Launch, collection, independent verification, and client close are inside. Two wait policies are measured separately: staged submission/collection and inline completion with a 1,000 ms initial wait available to both products. If RDC's initial response lacks a successful exit status, collection is still required. Commander may finish in its initial bounded batch wait.
 
-Install and run the pinned local baseline without changing an existing installation:
+The report freezes source and harness hashes before execution, checks that source stayed unchanged, and records all samples, median, p95, tool counts, and a paired percentile bootstrap interval (10,000 resamples, seed 1729). A pass requires every outcome to verify and the lower 95% interval bound to exceed 2×. Reports from development are retained separately. Repeated measurements of one workload do not establish performance across arbitrary tasks.
+
+```sh
+node scripts/rdc-auth.mjs
+# Open the generated authorization URL using your own RDC account.
+# Use the exact device ID for the local benchmark host, never a research gateway.
+RDC_BENCH_DEVICE=YOUR_MAC_DEVICE_ID BENCH_TRANSPORT=pipe BENCH_ROUNDS=20 \
+  BENCH_REPORT=evidence/my-staged-run.json node scripts/benchmark-hosted-rdc.mjs
+RDC_BENCH_DEVICE=YOUR_MAC_DEVICE_ID BENCH_TRANSPORT=pipe BENCH_WAIT_POLICY=inline \
+  BENCH_ROUNDS=20 BENCH_REPORT=evidence/my-inline-run.json node scripts/benchmark-hosted-rdc.mjs
+```
+
+OAuth credentials stay in ignored `.bench/rdc-auth/`, with private file permissions. The harness verifies the host by reading an isolated nonce file through the selected RDC device. It uses only temporary fixture files and finite jobs. It does not restart the device agent or alter existing jobs.
+
+## Controlled delivery faults
+
+`scripts/benchmark-delivery.mjs` uses ten normal, ten duplicate-delivery, and ten client-reconnect workflows per product. The workflow appends one line and reads it back. The independent predicate requires exactly one line on disk. Duplicate delivery sends the identical MCP message, including JSON-RPC ID, twice concurrently; it does not invent a second user intent. The final observation waits for both sends to settle. Reconnect closes the client after an acknowledged append, reconnects, and observes without replaying the mutation.
+
+This compares native duplicate protection without adding a caller-written idempotency framework to RDC. The failure-reduction gate applies only to this fixed fault mixture. It is not a production failure estimate, an LLM evaluation, or evidence that RDC normally retries mutations incorrectly.
+
+```sh
+RDC_BENCH_DEVICE=YOUR_MAC_DEVICE_ID BENCH_ROUNDS=10 \
+  BENCH_REPORT=evidence/my-delivery-run.json node scripts/benchmark-delivery.mjs
+```
+
+## Local diagnostic and evidence boundary
+
+`scripts/benchmark.mjs` preserves the original same-host stdio comparison with `@wonderwhy-er/desktop-commander@0.2.51`. Both sides have isolated homes, the same commands, four concurrent workers, ten normal rounds and four MCP-server restarts. `BENCH_TRANSPORT=pipe` selects the new noninteractive supervisor; omission preserves the older PTY diagnostic. Do not combine server restarts with client reconnects as if they were the same fault.
 
 ```sh
 npm install --prefix .bench/baseline --ignore-scripts --no-audit --no-fund @wonderwhy-er/desktop-commander@0.2.51
 npm run benchmark
 ```
 
-The baseline's telemetry is disabled by environment and isolated config. Samples contain only timings, test identities, counts, and outcomes. Raw user state is never part of the workload. Temporary test directories are retained for diagnosis; no cleanup kills unrelated workers.
+The hosted-route results include the architectural advantage of local execution avoiding a cloud relay. They do not establish equal-network-hop performance, a hosted Navish service, model-driven multi-agent productivity, or a general chat reliability ratio. Real conversation tests must use matched clients/models and independently verified outputs before extending the claim to those settings.
 
-## Remote certification gate
+## Frozen rc.2 results
 
-Run both products from fresh conversations using the same model, resource limits, machine, prompts, and artifact predicates. Freeze the task set and failure-injection schedule first. Include file lifecycle, interrupted responses, reconnect, long-running jobs, concurrent workers, failures, and real browser workflows. Preserve failed trials and command/result identities. Report denominators, latency distribution, confidence intervals, duplicates, and unresolved effects.
+| Workload | Commander median | RDC median | Ratio | 95% paired interval |
+| --- | ---: | ---: | ---: | ---: |
+| Staged, 20 paired rounds | 518.130 ms | 1,451.105 ms | 2.8007× | 2.6295–2.8982× |
+| Inline, 20 paired rounds | 515.140 ms | 1,601.445 ms | 3.1088× | 2.9476–3.3892× |
 
-The current task has no callable authenticated RDC connector. Local Desktop Commander measurements must not be relabeled as Remote Desktop Commander measurements. Until the remote comparator and both real chat-client paths are exercised, the requested certification remains blocked regardless of local improvements.
+All 80 product-workflow outcomes verified. Final controlled delivery failures were 0/30 for Commander and 10/30 for RDC; RDC's ten duplicate-delivery trials produced duplicate effects. Both products passed every normal and reconnect trial. The measured relative failure reduction in this specified mixture was 100%; this does not imply a zero production failure rate.
+
+The three `evidence/hosted-rdc-rc2-*.json` files bind the trials to revision `55e71d443d003a1c65ef785911411f559550391b` and runtime digest `761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615`. Later documentation and evidence commits preserve those runtime bytes. `scripts/verify_release.py` checks that the downloaded release contains the same runtime, matches the authored files in its checkout, and satisfies the recorded gates. The complete harnesses allow independent reruns; the records are project-generated evidence, not a third-party certificate.
