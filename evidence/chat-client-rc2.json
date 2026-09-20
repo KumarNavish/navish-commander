@@ -1,0 +1,884 @@
+{
+  "schema": "navish.live-client-acceptance/v1",
+  "recordedAt": "2026-09-20T07:17:52.573242+00:00",
+  "version": "1.5.0-rc.2",
+  "client": {
+    "name": "Codex CLI",
+    "version": "0.155.0-alpha.9.2",
+    "authentication": "existing ChatGPT login",
+    "selection": "user authorized another existing client after Claude Desktop quota limit",
+    "approvalMode": "standard automatic review (--approve-for-me)",
+    "ephemeral": true,
+    "model": "client default; no model comparison claimed"
+  },
+  "package": {
+    "testedArchiveSha256": "85003f0c4dfd4e0b653d51c6ab2deb0162e943d56d9f8b0d8be3e31849f14678",
+    "runtimeSourceSha256": "761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615",
+    "sourceAndExtractedRuntimeBytesEqual": true,
+    "note": "Documentation may be repackaged; final release validation separately binds the published archive to this unchanged runtime."
+  },
+  "prompts": {
+    "initial": "This is a bounded live acceptance test of the packaged Navish Commander MCP plugin. Use ONLY mcp__navish_acceptance tools for the work below, no shell, file-edit tools, browser, or other connector. Do not delegate. Work only on device local and inside <FIXTURE>. Do not read other user files or affect other processes. All files below are disposable fixtures authorized by the user. Do not install anything, change permissions, or spend money.\n\n1. Discover devices and confirm local.\n2. Call commander_write_file with callId chat-one-append, path <FIXTURE>/effect.txt, mode append, content exactly once followed by a newline. Repeat precisely the same tool arguments once. Read the file and verify exactly one line, not two.\n3. Start one batch batchId chat-four-workers, callId chat-batch-launch. Create workers alpha, beta, gamma, delta, each transport pipe, cwd <FIXTURE>/NAME, role acceptance worker, command `printf NAME > result; printf NAME`. Each artifact is path result with SHA256 from this mapping: {\"alpha\": \"8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8\", \"beta\": \"f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753\", \"gamma\": \"be9d587defa1f0c09ef49eb17e206983a5f8f8289e4281860bd0ee5a19592c67\", \"delta\": \"4f4a9410ffcdf895c4adb880659e9b5c0dd1f23a30790684340b3eaacb045398\"}. Use wait_ms 1000. If necessary collect. Verify all four exits and hashes.\n4. Observe the same batch again without relaunching it.\n5. Start a pipe worker with callId chat-failed-launch, sessionId chat-exit-seven, cwd <FIXTURE>, command `exit 7`, timeout_ms 1000. Read its output and distinguish a completed tool observation from a failed worker.\n6. Report only a compact JSON object with keys device, appendExactlyOnce, workersVerified, workerFailureCorrectlyReported, stableBatchId, and caveats. Do not claim certification beyond the observations. Finish after these checks.\n",
+    "reconnect": "Read-only acceptance after an actual client restart. Use ONLY the navish_acceptance MCP tools, device local, no command execution, writes, launches, other tools, delegation or spending. The previous client has exited. Discover the local device; collect batch chat-four-workers with wait_ms 0 and verify exactly four completed workers alpha beta gamma delta with zero exit codes and all declared artifact hashes passing. Read <FIXTURE>/effect.txt and verify exactly one once line. Observe process chat-exit-seven and accurately report failed with exit code 7, even though the observation itself completed. Do not relaunch anything. Return compact JSON with reconnected, appendStillOnce, fourWorkersVerified, failedWorkerExitCode and any caveat."
+  },
+  "independentChecks": {
+    "singleAppendExactlyOnce": true,
+    "allFourArtifactsMatch": true,
+    "workerHashes": {
+      "alpha": "8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8",
+      "beta": "f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753",
+      "gamma": "be9d587defa1f0c09ef49eb17e206983a5f8f8289e4281860bd0ee5a19592c67",
+      "delta": "4f4a9410ffcdf895c4adb880659e9b5c0dd1f23a30790684340b3eaacb045398"
+    },
+    "durableMutationReceipts": 3,
+    "durableSessions": 5,
+    "allSessionIdentitiesAndTerminalRecordsUnchangedAfterClientRestart": true,
+    "failedWorkerExitCode": 7,
+    "onlyCommanderMcpToolsUsed": true
+  },
+  "priorAdverseAttempt": {
+    "configuration": "approval_policy=never",
+    "outcome": "client refused mutation tools before dispatch; no effects ran",
+    "rawTraceSha256": "c83bfacbc833b60bddf16ae0c57ee10ee9887971102c57685714cb8cd6d8ebce",
+    "resolution": "normal client automatic review with the same stable IDs; no bypass of a safety denial"
+  },
+  "limits": [
+    "One conversation plus a separate reconnect conversation, not a population completion-rate estimate",
+    "Codex exercised the packaged MCP server; Claude Code plugin loading was checked separately",
+    "Claude Desktop conversation was not run because of quota",
+    "Paths are normalized; raw private traces are hashed; no hidden model reasoning is published"
+  ],
+  "traces": [
+    {
+      "phase": "initial",
+      "rawTraceSha256": "2b7c845482986a34ea127cccd782c5a0079e675bc7714a67c49b75b12e486d66",
+      "calls": [
+        {
+          "tool": "commander_devices",
+          "arguments": {},
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"state\":\"completed\",\"devices\":[{\"id\":\"local\",\"type\":\"local\",\"online\":true}],\"platform\":\"darwin\",\"processRuntime\":{\"pythonAvailable\":true,\"pythonVersion\":\"3.9.6\"}}"
+              }
+            ],
+            "structured_content": {
+              "state": "completed",
+              "devices": [
+                {
+                  "id": "local",
+                  "type": "local",
+                  "online": true
+                }
+              ],
+              "platform": "darwin",
+              "processRuntime": {
+                "pythonAvailable": true,
+                "pythonVersion": "3.9.6"
+              }
+            }
+          },
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "tool": "commander_write_file",
+          "arguments": {
+            "callId": "chat-one-append",
+            "path": "<FIXTURE>/effect.txt",
+            "mode": "append",
+            "content": "once\n",
+            "device": "local"
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"callId\":\"chat-one-append\",\"state\":\"completed\",\"operationState\":\"completed\",\"startedAt\":\"2026-09-20T07:10:58.715Z\",\"finishedAt\":\"2026-09-20T07:10:58.762Z\",\"retrySafe\":false,\"result\":{\"path\":\"<FIXTURE>/effect.txt\",\"bytes\":5,\"mode\":\"append\"}}"
+              }
+            ],
+            "structured_content": {
+              "callId": "chat-one-append",
+              "state": "completed",
+              "operationState": "completed",
+              "startedAt": "2026-09-20T07:10:58.715Z",
+              "finishedAt": "2026-09-20T07:10:58.762Z",
+              "retrySafe": false,
+              "result": {
+                "path": "<FIXTURE>/effect.txt",
+                "bytes": 5,
+                "mode": "append"
+              }
+            }
+          },
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "tool": "commander_write_file",
+          "arguments": {
+            "callId": "chat-one-append",
+            "path": "<FIXTURE>/effect.txt",
+            "mode": "append",
+            "content": "once\n",
+            "device": "local"
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"callId\":\"chat-one-append\",\"state\":\"completed\",\"operationState\":\"completed\",\"startedAt\":\"2026-09-20T07:10:58.715Z\",\"finishedAt\":\"2026-09-20T07:10:58.762Z\",\"retrySafe\":false,\"result\":{\"path\":\"<FIXTURE>/effect.txt\",\"bytes\":5,\"mode\":\"append\"}}"
+              }
+            ],
+            "structured_content": {
+              "callId": "chat-one-append",
+              "state": "completed",
+              "operationState": "completed",
+              "startedAt": "2026-09-20T07:10:58.715Z",
+              "finishedAt": "2026-09-20T07:10:58.762Z",
+              "retrySafe": false,
+              "result": {
+                "path": "<FIXTURE>/effect.txt",
+                "bytes": 5,
+                "mode": "append"
+              }
+            }
+          },
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "tool": "commander_read_file",
+          "arguments": {
+            "device": "local",
+            "path": "<FIXTURE>/effect.txt"
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"state\":\"completed\",\"operationState\":\"completed\",\"startedAt\":\"2026-09-20T07:11:16.011Z\",\"finishedAt\":\"2026-09-20T07:11:16.013Z\",\"observation\":true,\"receiptPersisted\":false,\"retrySafe\":false,\"result\":{\"path\":\"<FIXTURE>/effect.txt\",\"type\":\"text\",\"content\":\"once\\n\",\"size\":5,\"truncated\":false,\"mode\":420}}"
+              }
+            ],
+            "structured_content": {
+              "state": "completed",
+              "operationState": "completed",
+              "startedAt": "2026-09-20T07:11:16.011Z",
+              "finishedAt": "2026-09-20T07:11:16.013Z",
+              "observation": true,
+              "receiptPersisted": false,
+              "retrySafe": false,
+              "result": {
+                "path": "<FIXTURE>/effect.txt",
+                "type": "text",
+                "content": "once\n",
+                "size": 5,
+                "truncated": false,
+                "mode": 420
+              }
+            }
+          },
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "tool": "commander_start_batch",
+          "arguments": {
+            "batchId": "chat-four-workers",
+            "callId": "chat-batch-launch",
+            "device": "local",
+            "wait_ms": 1000,
+            "workers": [
+              {
+                "id": "alpha",
+                "transport": "pipe",
+                "cwd": "<FIXTURE>/alpha",
+                "role": "acceptance worker",
+                "command": "printf alpha > result; printf alpha",
+                "artifacts": [
+                  {
+                    "path": "result",
+                    "sha256": "8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8"
+                  }
+                ]
+              },
+              {
+                "id": "beta",
+                "transport": "pipe",
+                "cwd": "<FIXTURE>/beta",
+                "role": "acceptance worker",
+                "command": "printf beta > result; printf beta",
+                "artifacts": [
+                  {
+                    "path": "result",
+                    "sha256": "f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753"
+                  }
+                ]
+              },
+              {
+                "id": "gamma",
+                "transport": "pipe",
+                "cwd": "<FIXTURE>/gamma",
+                "role": "acceptance worker",
+                "command": "printf gamma > result; printf gamma",
+                "artifacts": [
+                  {
+                    "path": "result",
+                    "sha256": "be9d587defa1f0c09ef49eb17e206983a5f8f8289e4281860bd0ee5a19592c67"
+                  }
+                ]
+              },
+              {
+                "id": "delta",
+                "transport": "pipe",
+                "cwd": "<FIXTURE>/delta",
+                "role": "acceptance worker",
+                "command": "printf delta > result; printf delta",
+                "artifacts": [
+                  {
+                    "path": "result",
+                    "sha256": "4f4a9410ffcdf895c4adb880659e9b5c0dd1f23a30790684340b3eaacb045398"
+                  }
+                ]
+              }
+            ]
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"callId\":\"chat-batch-launch\",\"state\":\"completed\",\"operationState\":\"completed\",\"startedAt\":\"2026-09-20T07:11:31.083Z\",\"finishedAt\":\"2026-09-20T07:11:31.413Z\",\"retrySafe\":false,\"batchId\":\"chat-four-workers\",\"result\":{\"batchId\":\"chat-four-workers\",\"state\":\"completed\",\"createdAt\":\"2026-09-20T07:11:31.117Z\",\"specHash\":\"4c422c086c54712b5a3a89565da492fc40fc8b304753e873f443d54ec8f603a9\",\"counts\":{\"unsubmitted\":0,\"launching\":0,\"running\":0,\"completed\":4,\"failed\":0,\"uncertain\":0,\"unknown\":0},\"workers\":[{\"id\":\"alpha\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/alpha\",\"sessionId\":\"batch-5ca6b22720ff95150bab7ae44c93cf6f74121f05849044d1\",\"pid\":48631,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.263Z\",\"finishedAt\":\"2026-09-20T07:11:31.342Z\",\"output\":\"alpha\",\"outputBytes\":5,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":5,\"sha256\":\"8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8\"}]},{\"id\":\"beta\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/beta\",\"sessionId\":\"batch-44511115abcfdee86b5dcddccd3220e1df899e6be2b7bea9\",\"pid\":48630,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.263Z\",\"finishedAt\":\"2026-09-20T07:11:31.303Z\",\"output\":\"beta\",\"outputBytes\":4,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":4,\"sha256\":\"f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753\"}]},{\"id\":\"gamma\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/gamma\",\"sessionId\":\"batch-13829e748b187b68f34664b1601c4c631e8b7ea14aea4088\",\"pid\":48634,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.294Z\",\"finishedAt\":\"2026-09-20T07:11:31.380Z\",\"output\":\"gamma\",\"outputBytes\":5,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":5,\"sha256\":\"be9d587defa1f0c09ef49eb17e206983a5f8f8289e4281860bd0ee5a19592c67\"}]},{\"id\":\"delta\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/delta\",\"sessionId\":\"batch-9cbd2a76ec5e1f95941ce9cd5cf6777ff8b98894baae58e6\",\"pid\":48635,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.295Z\",\"finishedAt\":\"2026-09-20T07:11:31.380Z\",\"output\":\"delta\",\"outputBytes\":5,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":5,\"sha256\":\"4f4a9410ffcdf895c4adb880659e9b5c0dd1f23a30790684340b3eaacb045398\"}]}],\"completionLevel\":\"workers-and-declared-artifacts\",\"goalVerified\":false,\"waitExpired\":false,\"reused\":false}}"
+              }
+            ],
+            "structured_content": {
+              "callId": "chat-batch-launch",
+              "state": "completed",
+              "operationState": "completed",
+              "startedAt": "2026-09-20T07:11:31.083Z",
+              "finishedAt": "2026-09-20T07:11:31.413Z",
+              "retrySafe": false,
+              "batchId": "chat-four-workers",
+              "result": {
+                "batchId": "chat-four-workers",
+                "state": "completed",
+                "createdAt": "2026-09-20T07:11:31.117Z",
+                "specHash": "4c422c086c54712b5a3a89565da492fc40fc8b304753e873f443d54ec8f603a9",
+                "counts": {
+                  "unsubmitted": 0,
+                  "launching": 0,
+                  "running": 0,
+                  "completed": 4,
+                  "failed": 0,
+                  "uncertain": 0,
+                  "unknown": 0
+                },
+                "workers": [
+                  {
+                    "id": "alpha",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/alpha",
+                    "sessionId": "batch-5ca6b22720ff95150bab7ae44c93cf6f74121f05849044d1",
+                    "pid": 48631,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.263Z",
+                    "finishedAt": "2026-09-20T07:11:31.342Z",
+                    "output": "alpha",
+                    "outputBytes": 5,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 5,
+                        "sha256": "8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "beta",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/beta",
+                    "sessionId": "batch-44511115abcfdee86b5dcddccd3220e1df899e6be2b7bea9",
+                    "pid": 48630,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.263Z",
+                    "finishedAt": "2026-09-20T07:11:31.303Z",
+                    "output": "beta",
+                    "outputBytes": 4,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 4,
+                        "sha256": "f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "gamma",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/gamma",
+                    "sessionId": "batch-13829e748b187b68f34664b1601c4c631e8b7ea14aea4088",
+                    "pid": 48634,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.294Z",
+                    "finishedAt": "2026-09-20T07:11:31.380Z",
+                    "output": "gamma",
+                    "outputBytes": 5,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 5,
+                        "sha256": "be9d587defa1f0c09ef49eb17e206983a5f8f8289e4281860bd0ee5a19592c67"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "delta",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/delta",
+                    "sessionId": "batch-9cbd2a76ec5e1f95941ce9cd5cf6777ff8b98894baae58e6",
+                    "pid": 48635,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.295Z",
+                    "finishedAt": "2026-09-20T07:11:31.380Z",
+                    "output": "delta",
+                    "outputBytes": 5,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 5,
+                        "sha256": "4f4a9410ffcdf895c4adb880659e9b5c0dd1f23a30790684340b3eaacb045398"
+                      }
+                    ]
+                  }
+                ],
+                "completionLevel": "workers-and-declared-artifacts",
+                "goalVerified": false,
+                "waitExpired": false,
+                "reused": false
+              }
+            }
+          },
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "tool": "commander_collect_batch",
+          "arguments": {
+            "batchId": "chat-four-workers",
+            "device": "local",
+            "wait_ms": 1000
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"state\":\"completed\",\"operationState\":\"completed\",\"startedAt\":\"2026-09-20T07:11:35.167Z\",\"finishedAt\":\"2026-09-20T07:11:35.174Z\",\"observation\":true,\"receiptPersisted\":false,\"retrySafe\":false,\"batchId\":\"chat-four-workers\",\"result\":{\"batchId\":\"chat-four-workers\",\"state\":\"completed\",\"createdAt\":\"2026-09-20T07:11:31.117Z\",\"specHash\":\"4c422c086c54712b5a3a89565da492fc40fc8b304753e873f443d54ec8f603a9\",\"counts\":{\"unsubmitted\":0,\"launching\":0,\"running\":0,\"completed\":4,\"failed\":0,\"uncertain\":0,\"unknown\":0},\"workers\":[{\"id\":\"alpha\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/alpha\",\"sessionId\":\"batch-5ca6b22720ff95150bab7ae44c93cf6f74121f05849044d1\",\"pid\":48631,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.263Z\",\"finishedAt\":\"2026-09-20T07:11:31.342Z\",\"output\":\"alpha\",\"outputBytes\":5,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":5,\"sha256\":\"8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8\"}]},{\"id\":\"beta\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/beta\",\"sessionId\":\"batch-44511115abcfdee86b5dcddccd3220e1df899e6be2b7bea9\",\"pid\":48630,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.263Z\",\"finishedAt\":\"2026-09-20T07:11:31.303Z\",\"output\":\"beta\",\"outputBytes\":4,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":4,\"sha256\":\"f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753\"}]},{\"id\":\"gamma\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/gamma\",\"sessionId\":\"batch-13829e748b187b68f34664b1601c4c631e8b7ea14aea4088\",\"pid\":48634,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.294Z\",\"finishedAt\":\"2026-09-20T07:11:31.380Z\",\"output\":\"gamma\",\"outputBytes\":5,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":5,\"sha256\":\"be9d587defa1f0c09ef49eb17e206983a5f8f8289e4281860bd0ee5a19592c67\"}]},{\"id\":\"delta\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/delta\",\"sessionId\":\"batch-9cbd2a76ec5e1f95941ce9cd5cf6777ff8b98894baae58e6\",\"pid\":48635,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.295Z\",\"finishedAt\":\"2026-09-20T07:11:31.380Z\",\"output\":\"delta\",\"outputBytes\":5,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":5,\"sha256\":\"4f4a9410ffcdf895c4adb880659e9b5c0dd1f23a30790684340b3eaacb045398\"}]}],\"completionLevel\":\"workers-and-declared-artifacts\",\"goalVerified\":false,\"waitExpired\":false}}"
+              }
+            ],
+            "structured_content": {
+              "state": "completed",
+              "operationState": "completed",
+              "startedAt": "2026-09-20T07:11:35.167Z",
+              "finishedAt": "2026-09-20T07:11:35.174Z",
+              "observation": true,
+              "receiptPersisted": false,
+              "retrySafe": false,
+              "batchId": "chat-four-workers",
+              "result": {
+                "batchId": "chat-four-workers",
+                "state": "completed",
+                "createdAt": "2026-09-20T07:11:31.117Z",
+                "specHash": "4c422c086c54712b5a3a89565da492fc40fc8b304753e873f443d54ec8f603a9",
+                "counts": {
+                  "unsubmitted": 0,
+                  "launching": 0,
+                  "running": 0,
+                  "completed": 4,
+                  "failed": 0,
+                  "uncertain": 0,
+                  "unknown": 0
+                },
+                "workers": [
+                  {
+                    "id": "alpha",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/alpha",
+                    "sessionId": "batch-5ca6b22720ff95150bab7ae44c93cf6f74121f05849044d1",
+                    "pid": 48631,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.263Z",
+                    "finishedAt": "2026-09-20T07:11:31.342Z",
+                    "output": "alpha",
+                    "outputBytes": 5,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 5,
+                        "sha256": "8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "beta",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/beta",
+                    "sessionId": "batch-44511115abcfdee86b5dcddccd3220e1df899e6be2b7bea9",
+                    "pid": 48630,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.263Z",
+                    "finishedAt": "2026-09-20T07:11:31.303Z",
+                    "output": "beta",
+                    "outputBytes": 4,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 4,
+                        "sha256": "f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "gamma",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/gamma",
+                    "sessionId": "batch-13829e748b187b68f34664b1601c4c631e8b7ea14aea4088",
+                    "pid": 48634,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.294Z",
+                    "finishedAt": "2026-09-20T07:11:31.380Z",
+                    "output": "gamma",
+                    "outputBytes": 5,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 5,
+                        "sha256": "be9d587defa1f0c09ef49eb17e206983a5f8f8289e4281860bd0ee5a19592c67"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "delta",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/delta",
+                    "sessionId": "batch-9cbd2a76ec5e1f95941ce9cd5cf6777ff8b98894baae58e6",
+                    "pid": 48635,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.295Z",
+                    "finishedAt": "2026-09-20T07:11:31.380Z",
+                    "output": "delta",
+                    "outputBytes": 5,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 5,
+                        "sha256": "4f4a9410ffcdf895c4adb880659e9b5c0dd1f23a30790684340b3eaacb045398"
+                      }
+                    ]
+                  }
+                ],
+                "completionLevel": "workers-and-declared-artifacts",
+                "goalVerified": false,
+                "waitExpired": false
+              }
+            }
+          },
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "tool": "commander_start_process",
+          "arguments": {
+            "callId": "chat-failed-launch",
+            "sessionId": "chat-exit-seven",
+            "device": "local",
+            "cwd": "<FIXTURE>",
+            "command": "exit 7",
+            "timeout_ms": 1000,
+            "transport": "pipe"
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"callId\":\"chat-failed-launch\",\"state\":\"completed\",\"operationState\":\"failed\",\"startedAt\":\"2026-09-20T07:11:42.515Z\",\"finishedAt\":\"2026-09-20T07:11:42.699Z\",\"retrySafe\":false,\"sessionId\":\"chat-exit-seven\",\"result\":{\"sessionId\":\"chat-exit-seven\",\"pid\":48683,\"state\":\"failed\",\"exitCode\":7,\"output\":\"\",\"offset\":0,\"nextOffset\":0,\"totalBytes\":0,\"truncated\":false,\"startedAt\":\"2026-09-20T07:11:42.635Z\",\"finishedAt\":\"2026-09-20T07:11:42.670Z\",\"reused\":false}}"
+              }
+            ],
+            "structured_content": {
+              "callId": "chat-failed-launch",
+              "state": "completed",
+              "operationState": "failed",
+              "startedAt": "2026-09-20T07:11:42.515Z",
+              "finishedAt": "2026-09-20T07:11:42.699Z",
+              "retrySafe": false,
+              "sessionId": "chat-exit-seven",
+              "result": {
+                "sessionId": "chat-exit-seven",
+                "pid": 48683,
+                "state": "failed",
+                "exitCode": 7,
+                "output": "",
+                "offset": 0,
+                "nextOffset": 0,
+                "totalBytes": 0,
+                "truncated": false,
+                "startedAt": "2026-09-20T07:11:42.635Z",
+                "finishedAt": "2026-09-20T07:11:42.670Z",
+                "reused": false
+              }
+            }
+          },
+          "error": null,
+          "status": "failed"
+        },
+        {
+          "tool": "commander_process_output",
+          "arguments": {
+            "device": "local",
+            "sessionId": "chat-exit-seven"
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"state\":\"completed\",\"operationState\":\"failed\",\"startedAt\":\"2026-09-20T07:11:45.744Z\",\"finishedAt\":\"2026-09-20T07:11:45.745Z\",\"observation\":true,\"receiptPersisted\":false,\"retrySafe\":false,\"sessionId\":\"chat-exit-seven\",\"result\":{\"sessionId\":\"chat-exit-seven\",\"pid\":48683,\"state\":\"failed\",\"exitCode\":7,\"output\":\"\",\"offset\":0,\"nextOffset\":0,\"totalBytes\":0,\"truncated\":false,\"startedAt\":\"2026-09-20T07:11:42.635Z\",\"finishedAt\":\"2026-09-20T07:11:42.670Z\"}}"
+              }
+            ],
+            "structured_content": {
+              "state": "completed",
+              "operationState": "failed",
+              "startedAt": "2026-09-20T07:11:45.744Z",
+              "finishedAt": "2026-09-20T07:11:45.745Z",
+              "observation": true,
+              "receiptPersisted": false,
+              "retrySafe": false,
+              "sessionId": "chat-exit-seven",
+              "result": {
+                "sessionId": "chat-exit-seven",
+                "pid": 48683,
+                "state": "failed",
+                "exitCode": 7,
+                "output": "",
+                "offset": 0,
+                "nextOffset": 0,
+                "totalBytes": 0,
+                "truncated": false,
+                "startedAt": "2026-09-20T07:11:42.635Z",
+                "finishedAt": "2026-09-20T07:11:42.670Z"
+              }
+            }
+          },
+          "error": null,
+          "status": "failed"
+        }
+      ],
+      "modelResult": {
+        "device": "local",
+        "appendExactlyOnce": true,
+        "workersVerified": {
+          "count": 4,
+          "allExitCodesZero": true,
+          "allHashesMatch": true
+        },
+        "workerFailureCorrectlyReported": {
+          "observation": "completed",
+          "operationState": "failed",
+          "exitCode": 7,
+          "output": ""
+        },
+        "stableBatchId": "chat-four-workers",
+        "caveats": [
+          "Batch reobserved without relaunch; worker identities unchanged.",
+          "Results cover only these local observations, not broader certification."
+        ]
+      }
+    },
+    {
+      "phase": "reconnect",
+      "rawTraceSha256": "7dde769a1104c2ec929ef64a92f1a2e51de5c0ec61ec25af0b8c9e7f78a2657e",
+      "calls": [
+        {
+          "tool": "commander_devices",
+          "arguments": {},
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"state\":\"completed\",\"devices\":[{\"id\":\"local\",\"type\":\"local\",\"online\":true}],\"platform\":\"darwin\",\"processRuntime\":{\"pythonAvailable\":true,\"pythonVersion\":\"3.9.6\"}}"
+              }
+            ],
+            "structured_content": {
+              "state": "completed",
+              "devices": [
+                {
+                  "id": "local",
+                  "type": "local",
+                  "online": true
+                }
+              ],
+              "platform": "darwin",
+              "processRuntime": {
+                "pythonAvailable": true,
+                "pythonVersion": "3.9.6"
+              }
+            }
+          },
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "tool": "commander_process_output",
+          "arguments": {
+            "device": "local",
+            "sessionId": "chat-exit-seven"
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"state\":\"completed\",\"operationState\":\"failed\",\"startedAt\":\"2026-09-20T07:15:43.012Z\",\"finishedAt\":\"2026-09-20T07:15:43.016Z\",\"observation\":true,\"receiptPersisted\":false,\"retrySafe\":false,\"sessionId\":\"chat-exit-seven\",\"result\":{\"sessionId\":\"chat-exit-seven\",\"pid\":48683,\"state\":\"failed\",\"exitCode\":7,\"output\":\"\",\"offset\":0,\"nextOffset\":0,\"totalBytes\":0,\"truncated\":false,\"startedAt\":\"2026-09-20T07:11:42.635Z\",\"finishedAt\":\"2026-09-20T07:11:42.670Z\"}}"
+              }
+            ],
+            "structured_content": {
+              "state": "completed",
+              "operationState": "failed",
+              "startedAt": "2026-09-20T07:15:43.012Z",
+              "finishedAt": "2026-09-20T07:15:43.016Z",
+              "observation": true,
+              "receiptPersisted": false,
+              "retrySafe": false,
+              "sessionId": "chat-exit-seven",
+              "result": {
+                "sessionId": "chat-exit-seven",
+                "pid": 48683,
+                "state": "failed",
+                "exitCode": 7,
+                "output": "",
+                "offset": 0,
+                "nextOffset": 0,
+                "totalBytes": 0,
+                "truncated": false,
+                "startedAt": "2026-09-20T07:11:42.635Z",
+                "finishedAt": "2026-09-20T07:11:42.670Z"
+              }
+            }
+          },
+          "error": null,
+          "status": "failed"
+        },
+        {
+          "tool": "commander_collect_batch",
+          "arguments": {
+            "batchId": "chat-four-workers",
+            "device": "local",
+            "wait_ms": 0
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"state\":\"completed\",\"operationState\":\"completed\",\"startedAt\":\"2026-09-20T07:15:43.016Z\",\"finishedAt\":\"2026-09-20T07:15:43.026Z\",\"observation\":true,\"receiptPersisted\":false,\"retrySafe\":false,\"batchId\":\"chat-four-workers\",\"result\":{\"batchId\":\"chat-four-workers\",\"state\":\"completed\",\"createdAt\":\"2026-09-20T07:11:31.117Z\",\"specHash\":\"4c422c086c54712b5a3a89565da492fc40fc8b304753e873f443d54ec8f603a9\",\"counts\":{\"unsubmitted\":0,\"launching\":0,\"running\":0,\"completed\":4,\"failed\":0,\"uncertain\":0,\"unknown\":0},\"workers\":[{\"id\":\"alpha\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/alpha\",\"sessionId\":\"batch-5ca6b22720ff95150bab7ae44c93cf6f74121f05849044d1\",\"pid\":48631,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.263Z\",\"finishedAt\":\"2026-09-20T07:11:31.342Z\",\"output\":\"alpha\",\"outputBytes\":5,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":5,\"sha256\":\"8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8\"}]},{\"id\":\"beta\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/beta\",\"sessionId\":\"batch-44511115abcfdee86b5dcddccd3220e1df899e6be2b7bea9\",\"pid\":48630,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.263Z\",\"finishedAt\":\"2026-09-20T07:11:31.303Z\",\"output\":\"beta\",\"outputBytes\":4,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":4,\"sha256\":\"f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753\"}]},{\"id\":\"gamma\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/gamma\",\"sessionId\":\"batch-13829e748b187b68f34664b1601c4c631e8b7ea14aea4088\",\"pid\":48634,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.294Z\",\"finishedAt\":\"2026-09-20T07:11:31.380Z\",\"output\":\"gamma\",\"outputBytes\":5,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":5,\"sha256\":\"be9d587defa1f0c09ef49eb17e206983a5f8f8289e4281860bd0ee5a19592c67\"}]},{\"id\":\"delta\",\"role\":\"acceptance worker\",\"cwd\":\"<FIXTURE>/delta\",\"sessionId\":\"batch-9cbd2a76ec5e1f95941ce9cd5cf6777ff8b98894baae58e6\",\"pid\":48635,\"state\":\"completed\",\"processState\":\"completed\",\"exitCode\":0,\"startedAt\":\"2026-09-20T07:11:31.295Z\",\"finishedAt\":\"2026-09-20T07:11:31.380Z\",\"output\":\"delta\",\"outputBytes\":5,\"outputTruncated\":false,\"artifacts\":[{\"path\":\"result\",\"ok\":true,\"bytes\":5,\"sha256\":\"4f4a9410ffcdf895c4adb880659e9b5c0dd1f23a30790684340b3eaacb045398\"}]}],\"completionLevel\":\"workers-and-declared-artifacts\",\"goalVerified\":false,\"waitExpired\":false}}"
+              }
+            ],
+            "structured_content": {
+              "state": "completed",
+              "operationState": "completed",
+              "startedAt": "2026-09-20T07:15:43.016Z",
+              "finishedAt": "2026-09-20T07:15:43.026Z",
+              "observation": true,
+              "receiptPersisted": false,
+              "retrySafe": false,
+              "batchId": "chat-four-workers",
+              "result": {
+                "batchId": "chat-four-workers",
+                "state": "completed",
+                "createdAt": "2026-09-20T07:11:31.117Z",
+                "specHash": "4c422c086c54712b5a3a89565da492fc40fc8b304753e873f443d54ec8f603a9",
+                "counts": {
+                  "unsubmitted": 0,
+                  "launching": 0,
+                  "running": 0,
+                  "completed": 4,
+                  "failed": 0,
+                  "uncertain": 0,
+                  "unknown": 0
+                },
+                "workers": [
+                  {
+                    "id": "alpha",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/alpha",
+                    "sessionId": "batch-5ca6b22720ff95150bab7ae44c93cf6f74121f05849044d1",
+                    "pid": 48631,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.263Z",
+                    "finishedAt": "2026-09-20T07:11:31.342Z",
+                    "output": "alpha",
+                    "outputBytes": 5,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 5,
+                        "sha256": "8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "beta",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/beta",
+                    "sessionId": "batch-44511115abcfdee86b5dcddccd3220e1df899e6be2b7bea9",
+                    "pid": 48630,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.263Z",
+                    "finishedAt": "2026-09-20T07:11:31.303Z",
+                    "output": "beta",
+                    "outputBytes": 4,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 4,
+                        "sha256": "f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "gamma",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/gamma",
+                    "sessionId": "batch-13829e748b187b68f34664b1601c4c631e8b7ea14aea4088",
+                    "pid": 48634,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.294Z",
+                    "finishedAt": "2026-09-20T07:11:31.380Z",
+                    "output": "gamma",
+                    "outputBytes": 5,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 5,
+                        "sha256": "be9d587defa1f0c09ef49eb17e206983a5f8f8289e4281860bd0ee5a19592c67"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "delta",
+                    "role": "acceptance worker",
+                    "cwd": "<FIXTURE>/delta",
+                    "sessionId": "batch-9cbd2a76ec5e1f95941ce9cd5cf6777ff8b98894baae58e6",
+                    "pid": 48635,
+                    "state": "completed",
+                    "processState": "completed",
+                    "exitCode": 0,
+                    "startedAt": "2026-09-20T07:11:31.295Z",
+                    "finishedAt": "2026-09-20T07:11:31.380Z",
+                    "output": "delta",
+                    "outputBytes": 5,
+                    "outputTruncated": false,
+                    "artifacts": [
+                      {
+                        "path": "result",
+                        "ok": true,
+                        "bytes": 5,
+                        "sha256": "4f4a9410ffcdf895c4adb880659e9b5c0dd1f23a30790684340b3eaacb045398"
+                      }
+                    ]
+                  }
+                ],
+                "completionLevel": "workers-and-declared-artifacts",
+                "goalVerified": false,
+                "waitExpired": false
+              }
+            }
+          },
+          "error": null,
+          "status": "completed"
+        },
+        {
+          "tool": "commander_read_file",
+          "arguments": {
+            "device": "local",
+            "path": "<FIXTURE>/effect.txt"
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"state\":\"completed\",\"operationState\":\"completed\",\"startedAt\":\"2026-09-20T07:15:43.026Z\",\"finishedAt\":\"2026-09-20T07:15:43.028Z\",\"observation\":true,\"receiptPersisted\":false,\"retrySafe\":false,\"result\":{\"path\":\"<FIXTURE>/effect.txt\",\"type\":\"text\",\"content\":\"once\\n\",\"size\":5,\"truncated\":false,\"mode\":420}}"
+              }
+            ],
+            "structured_content": {
+              "state": "completed",
+              "operationState": "completed",
+              "startedAt": "2026-09-20T07:15:43.026Z",
+              "finishedAt": "2026-09-20T07:15:43.028Z",
+              "observation": true,
+              "receiptPersisted": false,
+              "retrySafe": false,
+              "result": {
+                "path": "<FIXTURE>/effect.txt",
+                "type": "text",
+                "content": "once\n",
+                "size": 5,
+                "truncated": false,
+                "mode": 420
+              }
+            }
+          },
+          "error": null,
+          "status": "completed"
+        }
+      ],
+      "modelResult": {
+        "reconnected": true,
+        "appendStillOnce": true,
+        "fourWorkersVerified": true,
+        "failedWorkerExitCode": 7,
+        "caveat": "chat-exit-seven failed; only its observation completed. Batch verification covers exactly alpha, beta, gamma, delta, zero exits and all declared artifact hashes; goalVerified remains false."
+      }
+    }
+  ]
+}

@@ -45,3 +45,14 @@ npm run benchmark
 ```
 
 The hosted-route results include the architectural advantage of local execution avoiding a cloud relay. They do not establish equal-network-hop performance, a hosted Navish service, model-driven multi-agent productivity, or a general chat reliability ratio. Real conversation tests must use matched clients/models and independently verified outputs before extending the claim to those settings.
+
+## Frozen rc.2 results
+
+| Workload | Commander median | RDC median | Ratio | 95% paired interval |
+| --- | ---: | ---: | ---: | ---: |
+| Staged, 20 paired rounds | 518.130 ms | 1,451.105 ms | 2.8007× | 2.6295–2.8982× |
+| Inline, 20 paired rounds | 515.140 ms | 1,601.445 ms | 3.1088× | 2.9476–3.3892× |
+
+All 80 product-workflow outcomes verified. Final controlled delivery failures were 0/30 for Commander and 10/30 for RDC; RDC's ten duplicate-delivery trials produced duplicate effects. Both products passed every normal and reconnect trial. The measured relative failure reduction in this specified mixture was 100%; this does not imply a zero production failure rate.
+
+The three `evidence/hosted-rdc-rc2-*.json` files bind the trials to revision `55e71d443d003a1c65ef785911411f559550391b` and runtime digest `761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615`. Later documentation and evidence commits preserve those runtime bytes. `scripts/verify_release.py` checks that the downloaded release contains the same runtime, matches the authored files in its checkout, and satisfies the recorded gates. The complete harnesses allow independent reruns; the records are project-generated evidence, not a third-party certificate.

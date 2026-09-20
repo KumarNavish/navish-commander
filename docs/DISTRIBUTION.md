@@ -4,7 +4,7 @@ GitHub publication makes the source and downloadable packages available. It does
 
 ## Claude
 
-The `.mcpb` release bundles the local MCP server and production dependencies. The Claude plugin manifest and `.mcp.json` support a local Claude Code checkout. Validate with `claude plugin validate . --strict`. Actual Claude Desktop extension installation and conversational tool use remain separate acceptance gates from protocol tests.
+The `.mcpb` release bundles the local MCP server and production dependencies. The Claude plugin manifest and `.mcp.json` support a local Claude Code checkout. Validate with `claude plugin validate . --strict`. Actual Claude Desktop extension installation remains unobserved. Conversational acceptance used a user-authorized Codex client against the same packaged server after Claude Desktop reached its usage limit.
 
 Authoritative references: [MCP bundle format](https://github.com/modelcontextprotocol/mcpb/blob/main/MANIFEST.md), [Claude Desktop extension installation](https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop), and [Claude Code plugin reference](https://code.claude.com/docs/en/plugins-reference).
 

@@ -1,0 +1,93 @@
+{
+  "schema": "navish.release-evidence/v2",
+  "version": "1.5.0-rc.2",
+  "recordedAt": "2026-09-20T07:22:03.249371+00:00",
+  "codeCommit": "55e71d443d003a1c65ef785911411f559550391b",
+  "runtimeSourceSha256": "761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615",
+  "platform": "darwin-arm64",
+  "node": "26.8.2",
+  "coreAndMcpTests": {
+    "passed": 92,
+    "failed": 0
+  },
+  "chromiumFixtureTests": {
+    "passed": 17,
+    "failed": 0,
+    "scope": "real Chromium through test-only Ego adapter in CI; not installed Ego Lite"
+  },
+  "bundleMcpTests": {
+    "passed": 4,
+    "failed": 0,
+    "scope": "four MCP integration tests against an extracted ZIP; CI additionally runs six local unit regressions in the bundle job"
+  },
+  "claudeManifest": {
+    "strict": true,
+    "errors": 0,
+    "warnings": 0
+  },
+  "mcpbManifest": "validated",
+  "dependencyAudit": {
+    "knownVulnerabilities": 0
+  },
+  "definedLocalPluginAcceptance": "passed",
+  "productCertification": false,
+  "scope": "Project acceptance for the local Claude Code/MCP distribution; no independent or broad production certification",
+  "remoteRdcComparison": {
+    "staged": "hosted-rdc-rc2-throughput.json",
+    "inline": "hosted-rdc-rc2-inline.json",
+    "controlledDelivery": "hosted-rdc-rc2-delivery.json",
+    "definedThroughputAndDeliveryGates": "passed"
+  },
+  "actualAuthorizedClientConversation": {
+    "client": "Codex with existing ChatGPT login",
+    "evidence": "chat-client-rc2.json",
+    "initialToolCalls": 8,
+    "reconnectedToolCalls": 4,
+    "independentFixtureChecks": "passed"
+  },
+  "claudeCodeHost": {
+    "version": "2.1.273",
+    "pluginLoaded": true,
+    "mcpConnection": "Connected",
+    "scope": "real host against extracted release; no Claude model call"
+  },
+  "claudeDesktop": {
+    "installation": "not observed",
+    "conversation": "not run: usage limit; user authorized alternative client"
+  },
+  "chatgptPublicConnector": "not deployed",
+  "editorialReview": "Markup AI returned 403: authentication token is not associated with an organization; local editorial review completed.",
+  "githubCI": {
+    "url": "https://github.com/KumarNavish/navish-commander/actions/runs/35496397251",
+    "codeCommit": "55e71d443d003a1c65ef785911411f559550391b",
+    "jobsPassed": 6,
+    "jobsFailed": 0,
+    "runtimeMatrix": [
+      "macos Node 22.16.0",
+      "macos Node 24",
+      "ubuntu Node 22.16.0",
+      "ubuntu Node 24"
+    ],
+    "priorAdverseRuns": [
+      {
+        "url": "https://github.com/KumarNavish/navish-commander/actions/runs/35496170506",
+        "reason": "Input test assumed shell output within 150 ms after acknowledgement; fixed to observe durable output without resending input"
+      },
+      {
+        "url": "https://github.com/KumarNavish/navish-commander/actions/runs/35469023715",
+        "reason": "rc.1 Chromium startup timeout; transient cause not established"
+      }
+    ]
+  },
+  "publishedArtifacts": {
+    "navish-commander-1.5.0-rc.2.mcpb": "8b9035f9b076899d0331f25fbf830d350b970ca34acbe798b3a79c5b838f0540",
+    "navish-commander-1.5.0-rc.1.mcpb": "a846b1cae61dded1a1893f6d1c8aca5364957f72e6c999a95bedf6a384643ffe",
+    "navish-commander-1.5.0-rc.2.zip": "8b9035f9b076899d0331f25fbf830d350b970ca34acbe798b3a79c5b838f0540"
+  },
+  "archiveVerifier": {
+    "authoredFilesMatchCheckout": true,
+    "runtimeMatchesBenchmarksAndLiveClient": true,
+    "recordedComparativeGates": "passed",
+    "corruptArchiveRejected": true
+  }
+}
