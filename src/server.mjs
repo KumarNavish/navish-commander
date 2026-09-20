@@ -16,7 +16,7 @@ const id = z.string().min(1).max(120).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
 const absolutePath = z.string().min(1).max(4096).startsWith('/');
 const device = z.string().min(1).max(120).describe('Exact ID from commander_devices. local is this MCP server host.');
 const mutation = {device, callId:id.describe('Stable ID for this intent. Reuse after a lost response; never mint a retry ID.')};
-const server = new McpServer({name:'navish-commander', version:'1.6.0-rc.1'}, {
+const server = new McpServer({name:'navish-commander', version:'1.6.0-rc.2'}, {
   instructions:'Execute only user-authorized work. Discover devices first. Keep callId, sessionId and batchId across reconnects. A completed tool receipt may describe a running or failed worker. Inspect operationState and verify outputs. Never clear an uncertain record or retry a mutation with a new identity. Local shell commands have the OS account permissions; this server is not a sandbox.'
 });
 
@@ -102,13 +102,9 @@ register('commander_cancel_batch','Use this only when the user asks to stop an o
   {...mutation,batchId:id,workerId:id.optional()},false,args=>execute('agent_batch_cancel',args));
 
 const jobId=id.max(100);
-const check=z.object({name:z.string().min(1).max(120),argv:z.array(z.string().max(4096)).min(1).max(32)}).strict();
-register('commander_start_job','Use this for an authorized repository engineering goal. Commander creates an isolated Git checkout, invokes the existing ChatGPT-authenticated Codex CLI, and independently runs your declared check argv in its workspace sandbox. Requires an existing Codex subscription login; no API billing or automatic fallback. Source checkout is preserved. Keep jobId and callId stable. Reconnect with commander_job_status; never resubmit a denied or uncertain intent with a new ID. review_ready means a patch and passing checks, not certified goal correctness.',
-  {...mutation,device:z.literal('local'),jobId,repository:absolutePath,goal:z.string().min(1).max(16000),
-    checks:z.array(check).min(1).max(8),timeoutMs:z.number().int().min(1000).max(3600000).default(900000)},false,args=>execute('agent_job_start',args));
-register('commander_job_status','Recover a repository job from any chat without launching work. Inspect state, checks and changedFiles. includePatch returns a bounded patch window; continue with patch.nextOffset. Unknown or uncertain jobs are never restarted.',
+register('commander_job_status','Inspect a retained historical rc.1 repository job without launching work. New model-backed jobs are no longer supported. Inspect state, checks and changedFiles. includePatch returns a bounded patch window; continue with patch.nextOffset. Unknown or uncertain jobs are never restarted.',
   {device:z.literal('local'),jobId,includePatch:z.boolean().default(false),patchOffset:z.number().int().min(0).default(0),maxPatchBytes:z.number().int().min(1).max(32768).default(16384)},true,args=>execute('agent_job_status',args));
-register('commander_jobs','Find recent durable repository jobs when a chat has lost its job ID. No work is launched.',
+register('commander_jobs','List retained historical rc.1 repository job records. Recovery only; Commander no longer supplies a model executor.',
   {device:z.literal('local'),limit:z.number().int().min(1).max(50).default(10)},true,args=>execute('agent_job_list',args));
 register('commander_cancel_job','Request cancellation of an owned repository job. Partial changes are retained. Read status to observe cancellation; a request is not proof the executor stopped.',
   {...mutation,device:z.literal('local'),jobId},false,args=>execute('agent_job_cancel',args));

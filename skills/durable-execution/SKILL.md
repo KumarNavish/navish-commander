@@ -3,6 +3,8 @@ name: durable-execution
 description: Run authorized file, process, and independent worker-batch tasks through Navish Commander; recover known work after an interrupted tool response.
 ---
 
+The chat client supplies reasoning, planning and code generation. Commander supplies deterministic execution and durable state. Do not invoke Codex CLI, Claude Code, Work or model APIs through Commander workers as a fallback. The removed rc.1 repository-job executor is not available.
+
 Use Commander when the user requests execution on a configured machine. Discover exact IDs with `commander_devices`; `local` is the machine hosting the MCP server. Do not infer a remote target from list order.
 
 Before a mutation, choose a stable call ID and, for processes or batches, a stable session or batch ID. Keep the same intent and identity through a lost response. Inspect `commander_receipt`, `commander_process_output`, or `commander_collect_batch` to recover known work. An uncertain outcome does not authorize a replacement mutation.

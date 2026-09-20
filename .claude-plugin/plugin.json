@@ -1,6 +1,6 @@
 {
   "name": "navish-commander",
-  "version": "1.6.0-rc.1",
+  "version": "1.6.0-rc.2",
   "description": "Durable local execution and recoverable parallel worker batches over MCP.",
   "author": {
     "name": "KumarNavish"
