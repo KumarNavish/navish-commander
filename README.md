@@ -4,21 +4,23 @@ Run authorized work from an MCP client, reconnect after an interruption, and col
 
 This repository packages the existing Commander runtime as a local MCP server and Claude Desktop extension, with an optional authenticated personal ChatGPT connector. It provides file operations, persistent processes, durable receipts, and parallel batches with optional artifact verification. It does not supply a language model or require a model subscription of its own.
 
-**Release status: local runtime 1.5.0-rc.2; personal connector 0.1.1, evaluation candidates.** The deployed personal HTTPS connector measured **2.07× RDC throughput** across 20 paired rounds, with a paired 95% interval of **2.01–2.19×** and all 160 worker outcomes verified. Its controlled delivery suite observed **0/30 failed workflows versus RDC's 10/30**. The local plugin separately measured 2.80× staged and 3.11× inline throughput. These are deterministic execution workloads on the same Mac, not a general improvement in model planning or everyday chat reliability. The [acceptance ledger](docs/ACCEPTANCE.md) records conversation results, package checks, and remaining limits. All samples and earlier failed benchmarks remain public.
+**Current evaluation candidate: runtime 1.5.0-rc.3; personal connector 0.1.2.** A real ChatGPT **Latest + Extra High** evaluation exposed a file-reader defect: later line offsets could not reach text beyond the first response byte cap. This candidate fixes that defect and adds bounded continuation metadata. See the [conversation evaluation](docs/CHAT_EFFICACY.md) for every attempted, incomplete, and unrun task.
 
-## Install the verified Claude Code plugin
+The earlier **0.1.1 / rc.2 source snapshot** measured **2.07× RDC throughput** across 20 paired rounds (95% interval **2.01–2.19×**) and 0/30 controlled delivery failures versus RDC's 10/30. Those deterministic execution results remain source-bound historical evidence. They do not establish everyday chat reliability or comparative performance of the changed rc.3 runtime. Fully unattended ChatGPT operation remains **uncertified**.
 
-Download and extract `navish-commander-1.5.0-rc.2.zip` from [GitHub Releases](https://github.com/KumarNavish/navish-commander/releases), then run:
+## Install the Claude Code plugin
+
+Download and extract `navish-commander-1.5.0-rc.3.zip` from [GitHub Releases](https://github.com/KumarNavish/navish-commander/releases), then run:
 
 ```sh
 claude --plugin-dir /absolute/path/to/extracted/navish-commander
 ```
 
-The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use that root as the plugin directory. The real Claude Code host loaded this package and reported its MCP server connected. A ChatGPT-authenticated Codex client exercised the same packaged server and recovered its workers after a client restart. [Inspect the client evidence](evidence/chat-client-rc2.json).
+The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use that root as the plugin directory. The rc.3 package passes strict Claude plugin validation, a real Claude Code MCP connection check, and 24 extracted-bundle tests. The earlier rc.2 package was exercised by a ChatGPT-authenticated Codex client across a restart; those older conversations are not rc.3 conversation evidence. [Inspect the earlier client evidence](evidence/chat-client-rc2.json).
 
 ## Claude Desktop package
 
-Download `navish-commander-1.5.0-rc.2.mcpb` from [GitHub Releases](https://github.com/KumarNavish/navish-commander/releases). In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions. This release validates the bundle format; Desktop GUI installation and a Claude Desktop conversation were not observed.
+Download `navish-commander-1.5.0-rc.3.mcpb` from [GitHub Releases](https://github.com/KumarNavish/navish-commander/releases). In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions. This release validates the bundle format; Desktop GUI installation and a Claude Desktop conversation were not observed.
 
 The package includes its JavaScript dependencies. The host needs Node.js 22.16 or later. Noninteractive pipe workers require only Node. Interactive PTY workers additionally need Python 3.9 or later on PATH; `NAVISH_PYTHON` can select an interpreter. macOS and Linux are the intended runtime platforms; Windows is not supported by the PTY worker implementation. Claude's platform availability is separate from the server's Linux support.
 
@@ -49,21 +51,21 @@ The package stores private state under the current user's Commander directories.
 
 The optional [personal HTTPS connector](docs/PERSONAL_CONNECTOR.md) has been deployed on existing free hosting and connected to ChatGPT through owner-only OAuth. On 20 September the owner explicitly selected **Allow all actions**, and Plugin Management confirmed the setting. A fresh chat verified an exact append, duplicate suppression, and four concurrent worker artifacts; another chat recovered them without mutation. However, nine automated safety blocks occurred during the first conversation, and the deliberately failing worker never launched. The model retried denied intents with stable IDs. Fully unattended chat execution is **not certified**. See the [full-access conversation evidence](evidence/chatgpt-full-access-20260920.json), [connector release evidence](evidence/personal-connector-0.1.1-acceptance.json), and preserved [earlier chat failure](evidence/personal-connector-acceptance.json).
 
-Anyone may deploy a separate single-owner instance from source. No OpenAI API key or paid hosting is required by this implementation. The Mac must be online and free hosting quotas apply. This is personal developer-mode availability, not an approved public directory listing. The connector's own final comparison passes the 2× gate with its confidence interval above 2×. Earlier polling and default-scheduling runs failed and remain recorded. The measured route is ChatGPT's configured HTTPS endpoint, using a durable WebSocket channel and interactive macOS scheduling. [Distribution requirements](docs/DISTRIBUTION.md) and the acceptance ledger distinguish these routes.
+Anyone may deploy a separate single-owner instance from source. No OpenAI API key or paid hosting is required by this implementation. The Mac must be online and free hosting quotas apply. This is personal developer-mode availability, not an approved public directory listing. The recorded 0.1.1 comparison passes its 2× gate with its confidence interval above 2×; that measurement has not been reassigned to rc.3. Earlier polling and default-scheduling runs failed and remain recorded. The measured route is ChatGPT's configured HTTPS endpoint, using a durable WebSocket channel and interactive macOS scheduling. [Distribution requirements](docs/DISTRIBUTION.md) and the acceptance ledger distinguish these routes.
 
 ## Verify a downloaded release
 
 Check out the release tag, download the ZIP and `SHA256SUMS.txt` from the same release, and run:
 
 ```sh
-python3 scripts/verify_release.py /path/to/navish-commander-1.5.0-rc.2.zip /path/to/SHA256SUMS.txt
+python3 scripts/verify_release.py --integrity-only /path/to/navish-commander-1.5.0-rc.3.zip /path/to/SHA256SUMS.txt
 ```
 
-This checks the archive hash, every authored packaged file against the checkout, the runtime digest used in the live tests, and the recorded throughput and delivery predicates. It verifies the published evidence; it does not rerun RDC or provide a cryptographic signature. The hosted benchmark scripts and complete protocol are included for independent reruns using your own authorized RDC device.
+This checks the archive hash, every authored package file against the checkout, and its runtime digest. It explicitly reports comparative and conversation gates as **not evaluated**. Omitting `--integrity-only` retains the strict source-bound checks for the original rc.2 acceptance package; those checks must fail when applied to changed source.
 
-To verify the recorded personal connector gates against its source checkout, run `node scripts/verify-personal-connector.mjs`. This recomputes every predicate and checks source and harness hashes without using credentials or making network requests.
+The original comparison and full-access conversation records can be verified at commit `631721c88208f611e9a3817337cc21c4f959718f` using `node scripts/verify-personal-connector.mjs` and `node scripts/verify-chat-full-access.mjs`. CI keeps that immutable historical verification separate from tests and package-integrity checks of the current source. A historical verifier pass does not certify a later release.
 
-Run `node scripts/verify-chat-full-access.mjs` to verify the later conversation record, including its blocked acceptance status. A successful verifier exit means the evidence is consistent; it does not mean the unattended certification gate passed.
+Run `node scripts/verify-chat-efficacy.mjs` for the current Latest + Extra High evaluation record. It verifies all 18 assignments, including six unrun tasks and the separate two-chat reader confirmation. See [the evaluation report](docs/CHAT_EFFICACY.md) for reproducible fixtures and export-fidelity limits.
 
 ## Validate and build
 

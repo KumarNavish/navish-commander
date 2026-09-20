@@ -1,3 +1,13 @@
+# Runtime 1.5.0-rc.3 / personal connector 0.1.2
+
+A real Latest + Extra High ChatGPT task could not retrieve the last 470 lines of a 1,300-line file because the runtime clipped the file before applying line offsets. The reader now locates the requested line first using bounded-memory scanning, then limits returned bytes. Continuation metadata distinguishes a complete page from an incomplete line and EOF. UTF-8 and CRLF boundaries are preserved.
+
+Ten baseline conversations and two separate repaired-reader conversations produced 116 exported calls. The repaired reader passed both full-archive and Unicode-tail checks with all 21 outputs matching host journals exactly. Baseline incomplete work, six unrun mutation tasks, four null UI outputs, a misattributed output, and an omitted host error remain documented in [the evaluation report](CHAT_EFFICACY.md). The suite contains no new completed multi-agent workflow or model-mediated RDC comparison.
+
+The historical failures remain in the conversation evaluation. Platform permissions and tool safety annotations are unchanged. No denied mutation is replayed. This remains an evaluation candidate; earlier rc.2 throughput and conversation results are not relabeled as results for rc.3.
+
+Package/source integrity has an explicit `--integrity-only` verification mode which reports performance/conversation gates as not evaluated. The original strict verifier remains the default; CI validates older gates against their immutable source snapshot and validates current source and packages separately.
+
 # Personal connector 0.1.1
 
 Post-release acceptance update: the owner selected Allow all actions in ChatGPT. Fresh conversations verified exact append semantics, four parallel artifacts, and recovery from a new chat. Nine platform safety blocks occurred in the mutation conversation, including all five attempts to launch its deliberate failure worker; full unattended certification remains blocked. The evidence also records missing/misattributed UI-export outputs and independent host-journal verification. This update changes documentation and evidence only; the deployed source and benchmark results are unchanged.

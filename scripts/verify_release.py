@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Verify a downloaded release against this checkout and its recorded evidence.
 
-Usage: python3 scripts/verify_release.py RELEASE.zip SHA256SUMS.txt
-This checks integrity and recorded predicates; it does not rerun hosted trials.
+Usage: python3 scripts/verify_release.py [--integrity-only] RELEASE.zip SHA256SUMS.txt
+By default checks integrity and source-bound recorded gates. --integrity-only
+checks package/source integrity and explicitly leaves recorded gates unevaluated.
+Neither mode reruns hosted trials or certifies a product.
 """
 import hashlib
 import json
@@ -27,8 +29,12 @@ def record(name):
     return json.loads((root / "evidence" / name).read_text())
 
 
-require(len(sys.argv) == 3, __doc__.strip())
-archive, sums = map(Path, sys.argv[1:])
+arguments = sys.argv[1:]
+integrity_only = "--integrity-only" in arguments
+if integrity_only:
+    arguments.remove("--integrity-only")
+require(len(arguments) == 2, __doc__.strip())
+archive, sums = map(Path, arguments)
 expected = {line.split(maxsplit=1)[1].lstrip(" *"): line.split()[0]
             for line in sums.read_text().splitlines() if line.strip()}
 require(expected.get(archive.name) == digest(archive.read_bytes()), "archive checksum")
@@ -53,6 +59,13 @@ with zipfile.ZipFile(archive) as bundle:
         h.update(name.encode())
         h.update(bundle.read(name))
 source_hash = h.hexdigest()
+
+if integrity_only:
+    print(json.dumps({"archive": archive.name, "sha256": expected[archive.name],
+                      "runtimeSourceSha256": source_hash, "packageIntegrity": "passed",
+                      "recordedGates": "not_evaluated",
+                      "scope": "package/source integrity only; no benchmark or conversation certification"}, indent=2))
+    raise SystemExit(0)
 
 for name in ["hosted-rdc-rc2-throughput.json", "hosted-rdc-rc2-inline.json"]:
     report = record(name)

@@ -36,10 +36,10 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm ci --ignore-scripts
-      - run: node scripts/verify-personal-connector.mjs
-      - run: node scripts/verify-chat-full-access.mjs
+      - run: python3 scripts/chat-efficacy/generate-fixtures.py .bench/reproduced-fixtures
+      - run: node scripts/verify-chat-efficacy.mjs evidence/chat-efficacy-extra-high-20260920.json .bench/reproduced-fixtures
       - run: npm run bundle
-      - run: python3 scripts/verify_release.py dist/*.zip dist/SHA256SUMS.txt
+      - run: python3 scripts/verify_release.py --integrity-only dist/*.zip dist/SHA256SUMS.txt
       - run: NAVISH_MCP_SERVER=dist/navish-commander/src/server.mjs npm run test:mcp
       - uses: actions/upload-artifact@v4
         with:
@@ -48,6 +48,23 @@ jobs:
             dist/*.mcpb
             dist/*.zip
             dist/SHA256SUMS.txt
+  historical-acceptance:
+    # These measured outcomes certify only their original source snapshot.
+    # Keep their strict source checks, without applying them to a later repair.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 631721c88208f611e9a3817337cc21c4f959718f
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts
+      - run: node scripts/verify-personal-connector.mjs
+      - run: node scripts/verify-chat-full-access.mjs
+      - run: npm run bundle
+      - run: python3 scripts/verify_release.py dist/*.zip dist/SHA256SUMS.txt
   browser-fixture:
     runs-on: ubuntu-latest
     timeout-minutes: 10

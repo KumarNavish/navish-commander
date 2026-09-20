@@ -56,6 +56,10 @@ Before switching an existing installation, reconcile its old queue and local jou
 
 The channel atomically records immutable intents and results in SQLite and dispatches at most four simultaneous MCP calls. Each batch can manage its own parallel workers. Lost delivery reconnects to the same durable IDs and local journal. Failed responses do not cause automatic switching to the polling queue. Receipt lookup can read older polling records without dispatching them. `node --test test/channel.test.mjs` exercises the actual local Cloudflare runtime with isolated storage, including dropped delivery and process restart.
 
+## Bounded file reads in connector 0.1.2 / runtime rc.3
+
+Text line offsets are now resolved before applying the response byte limit. Responses expose `offset`, `returnedLines`, `nextOffset`, `hasMore`, and `partialLastLine`. A normal complete page can have `hasMore: true` and `truncated: false`. If the byte budget clips a line, `truncated` and `partialLastLine` identify the incomplete result, and the next offset does not skip that line. A single line longer than the permitted byte budget can still be incomplete; do not interpret an empty or partial byte-limited response as EOF. Binary reads preserve their existing prefix-byte behavior. Negative offsets preserve the existing whole-tail semantics.
+
 ## Recovery and execution semantics
 
 A mutating request needs a stable `callId`. The relay atomically records its canonical intent and rejects the same ID with different arguments. The agent writes and fsyncs a local journal before dispatch and retains the result before uploading it. A lost upload acknowledgement resends the recorded result. On an agent restart, a previously running mutation is reconciled through its original Commander receipt, never automatically executed again. The installed tool catalog determines mutation semantics.

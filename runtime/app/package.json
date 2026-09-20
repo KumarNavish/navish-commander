@@ -1,6 +1,6 @@
 {
   "name": "navish-commander",
-  "version": "1.5.0-rc.2",
+  "version": "1.5.0-rc.3",
   "description": "Encrypted durable desktop execution with local browser workflows and parallel workers",
   "type": "module",
   "bin": {
