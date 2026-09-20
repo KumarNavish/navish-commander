@@ -1,11 +1,18 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "navish-commander",
-  "version": "1.5.0-rc.3",
+  "version": "1.6.0-rc.1",
   "description": "Run authorized local work with durable receipts, recoverable processes, and parallel worker batches.",
-  "author": {"name": "KumarNavish"},
+  "author": {
+    "name": "KumarNavish"
+  },
   "homepage": "https://github.com/KumarNavish/navish-commander",
   "repository": "https://github.com/KumarNavish/navish-commander",
   "license": "MIT",
-  "keywords": ["mcp", "execution", "multi-agent", "recovery"]
+  "keywords": [
+    "mcp",
+    "execution",
+    "multi-agent",
+    "recovery"
+  ]
 }

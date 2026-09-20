@@ -1,8 +1,10 @@
 {
   "name": "navish-commander",
-  "version": "1.5.0-rc.3",
+  "version": "1.6.0-rc.1",
   "description": "Durable local execution and recoverable parallel worker batches over MCP.",
-  "author": {"name": "KumarNavish"},
+  "author": {
+    "name": "KumarNavish"
+  },
   "homepage": "https://github.com/KumarNavish/navish-commander",
   "repository": "https://github.com/KumarNavish/navish-commander",
   "license": "MIT"

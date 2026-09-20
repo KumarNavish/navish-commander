@@ -1,5 +1,5 @@
 {
-  "version": "1.5.0-rc.3",
+  "version": "1.6.0-rc.1",
   "tools": [
     {
       "name": "commander_devices",
@@ -495,6 +495,221 @@
           "device",
           "callId",
           "batchId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_start_job",
+      "description": "Use this for an authorized repository engineering goal. Commander creates an isolated Git checkout, invokes the existing ChatGPT-authenticated Codex CLI, and independently runs your declared check argv in its workspace sandbox. Requires an existing Codex subscription login; no API billing or automatic fallback. Source checkout is preserved. Keep jobId and callId stable. Reconnect with commander_job_status; never resubmit a denied or uncertain intent with a new ID. review_ready means a patch and passing checks, not certified goal correctness.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "const": "local"
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "jobId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "repository": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^\\/"
+          },
+          "goal": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "argv": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 4096
+                  },
+                  "minItems": 1,
+                  "maxItems": 32
+                }
+              },
+              "required": [
+                "name",
+                "argv"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 8
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 3600000,
+            "default": 900000
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "jobId",
+          "repository",
+          "goal",
+          "checks"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_job_status",
+      "description": "Recover a repository job from any chat without launching work. Inspect state, checks and changedFiles. includePatch returns a bounded patch window; continue with patch.nextOffset. Unknown or uncertain jobs are never restarted.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "const": "local"
+          },
+          "jobId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "includePatch": {
+            "type": "boolean",
+            "default": false
+          },
+          "patchOffset": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "maxPatchBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 32768,
+            "default": 16384
+          }
+        },
+        "required": [
+          "device",
+          "jobId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_jobs",
+      "description": "Find recent durable repository jobs when a chat has lost its job ID. No work is launched.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "const": "local"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 10
+          }
+        },
+        "required": [
+          "device"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_cancel_job",
+      "description": "Request cancellation of an owned repository job. Partial changes are retained. Read status to observe cancellation; a request is not proof the executor stopped.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "const": "local"
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "description": "Stable ID for this intent. Reuse after a lost response; never mint a retry ID."
+          },
+          "jobId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "jobId"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"

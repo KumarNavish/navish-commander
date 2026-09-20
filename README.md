@@ -4,7 +4,7 @@ Run authorized work from an MCP client, reconnect after an interruption, and col
 
 This repository packages the existing Commander runtime as a local MCP server and Claude Desktop extension, with an optional authenticated personal ChatGPT connector. It provides file operations, persistent processes, durable receipts, and parallel batches with optional artifact verification. It does not supply a language model or require a model subscription of its own.
 
-**Current evaluation candidate: runtime 1.5.0-rc.3; personal connector 0.1.3.** The runtime fixes a file-reader defect found in real ChatGPT **Latest + Extra High** use. Connector 0.1.3 adds persistent response identities and guidance for reconciling partial effects after an interrupted task. See [response recovery](docs/RESPONSE_RECOVERY.md) and the preserved [original conversation evaluation](docs/CHAT_EFFICACY.md).
+**Current development candidate: runtime 1.6.0-rc.1; personal connector 0.2.0.** Adds [durable repository jobs](docs/AGENT_JOBS.md): one goal starts an isolated Codex implementation, independent checks and a recoverable patch. Requires an existing ChatGPT Codex login and uses its subscription allowance. Live acceptance is pending; earlier releases and comparisons remain historical evidence.
 
 The earlier **0.1.1 / rc.2 source snapshot** measured **2.07× RDC throughput** across 20 paired rounds (95% interval **2.01–2.19×**) and 0/30 controlled delivery failures versus RDC's 10/30. Those deterministic execution results remain source-bound historical evidence. They do not establish everyday chat reliability or comparative performance of the changed rc.3 runtime. Fully unattended ChatGPT operation remains **uncertified**.
 
@@ -65,7 +65,7 @@ This checks the archive hash, every authored package file against the checkout, 
 
 The original comparison and full-access conversation records can be verified at commit `631721c88208f611e9a3817337cc21c4f959718f` using `node scripts/verify-personal-connector.mjs` and `node scripts/verify-chat-full-access.mjs`. CI keeps that immutable historical verification separate from tests and package-integrity checks of the current source. A historical verifier pass does not certify a later release.
 
-At the rc.3/0.1.2 source tag, `node scripts/verify-chat-efficacy.mjs` verifies the original 18 assignments, including the six then-unrun tasks and separate two-chat reader confirmation. Its strict source check is preserved in historical CI. At this connector revision, use `node scripts/verify-workflow-remediation.mjs` for the subsequent independent task attempts and response-recovery confirmation. Verifier success means record consistency, not universal certification.
+At the rc.3/0.1.2 source tag, `node scripts/verify-chat-efficacy.mjs` verifies the original 18 assignments, including the six then-unrun tasks and separate two-chat reader confirmation. Its strict source check is preserved in historical CI. At commit `321cf94a6dcf608323e73440153215ac217d46b0`, use `node scripts/verify-workflow-remediation.mjs` for the subsequent independent task attempts and response-recovery confirmation. Verifier success means record consistency, not universal certification.
 
 ## Validate and build
 

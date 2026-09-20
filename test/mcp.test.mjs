@@ -19,7 +19,7 @@ test('MCP handshake, exact device discovery, strict schema, and replay-safe file
   const lab=workspace(),c=await connect(lab);
   try {
     assert.ok((await c.call('commander_devices',{})).devices.some(d=>d.id==='local'));
-    const list=await c.client.listTools();assert.equal(list.tools.length,10);
+    const list=await c.client.listTools();assert.equal(list.tools.length,14);
     assert.equal(list.tools.find(x=>x.name==='commander_write_file').annotations.destructiveHint,true);
     const args={device:'local',callId:'write-once',path:lab.root+'/effect',content:'once',mode:'append'};
     assert.equal((await c.call('commander_write_file',args)).state,'completed');
