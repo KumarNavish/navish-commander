@@ -1,0 +1,31 @@
+{
+  "connectorSourceSha256": "7a28a8728e8a7981253b9c673e755cfe180884a54dbd2de0dbd878ad7c9fe5b4",
+  "channelSourceSha256": "7a28a8728e8a7981253b9c673e755cfe180884a54dbd2de0dbd878ad7c9fe5b4",
+  "installedSourceSha256": "1b8b243b21819df2cf11a55b15f79fd9728aa5d5f00732dd86e2710f9f8850ea",
+  "deploymentProfile": {
+    "processType": "Interactive",
+    "legacyTimers": true,
+    "plistSha256": "2a6d499065d02a0a98663fc9778a7285e6cb51e2ae0a383e5f4059c7ab778bc6"
+  },
+  "protocol": {
+    "workers": 4,
+    "rounds": 20,
+    "commanderTransport": "pipe",
+    "waitPolicy": "inline",
+    "work": "sleep 0.20, exact output artifact, exactly-one append effect",
+    "order": "alternating paired order",
+    "concurrency": "four simultaneous RDC calls or one four-worker Commander batch",
+    "timing": "initialized clients; launch through independently verified artifacts and client close",
+    "baselineInitialWaitMs": 1000,
+    "baselineCollectWaitMs": 100,
+    "commanderInitialWaitMs": 1000,
+    "polling": "RDC concurrent per-worker polling; Commander server-side batch collection",
+    "metric": "RDC median elapsed / Commander median elapsed; every Commander outcome must verify",
+    "gate": 2,
+    "planning": "deterministic MCP client; no LLM planner",
+    "faults": "none in this throughput measurement"
+  },
+  "harnessSha256": "072b5d6c156734b4a7e959d4e0d51405a98f82578026d119b5146b53b7aaa3c7",
+  "commanderSourceSha256": "972e9c5052be7c0b50e1b29a283fd835d0b34356c6890bcfafbba337d722cf31",
+  "gitRevision": "22ef3895fa0c88638176b623c8438044360fe39b"
+}

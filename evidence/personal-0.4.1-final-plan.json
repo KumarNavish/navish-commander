@@ -1,0 +1,38 @@
+{
+  "schema": "navish.final-heldout-confirmation/v1",
+  "frozenAt": "2026-09-20T21:29:54.462Z",
+  "selectedSourceRevision": "9932596cd7d5791976abd038713855605477a1bc",
+  "commanderSourceSha256": "ca4ed695e40d302fa1dca7bcd2ae20ed04b812b02f09c31eafe997348cc2cf5e",
+  "connectorSourceSha256": "b5c4b8008316fbdf273d53cbb881a0de0ed0ea6a7c4de2bcbe7850953f7eabeb",
+  "selectionReports": [
+    "personal-0.4.0-inline.json",
+    "personal-0.4.1-inline.json",
+    "personal-0.4.2-inline.json"
+  ],
+  "selection": "Restore the simpler 0.4.1 implementation after the IPC notification candidate failed to improve hosted performance. All candidate outcomes remain public.",
+  "protocol": {
+    "workers": 4,
+    "rounds": 50,
+    "commanderTransport": "pipe",
+    "waitPolicy": "inline",
+    "work": "sleep 0.20, exact output artifact, exactly-one append effect",
+    "order": "alternating paired order",
+    "concurrency": "four simultaneous RDC calls or one four-worker Commander batch",
+    "timing": "initialized clients; launch through independently verified artifacts and client close",
+    "baselineInitialWaitMs": 1000,
+    "baselineCollectWaitMs": 100,
+    "commanderInitialWaitMs": 1000,
+    "polling": "RDC concurrent per-worker polling; Commander server-side batch collection",
+    "metric": "RDC median elapsed / Commander median elapsed; every Commander outcome must verify",
+    "gate": 2,
+    "planning": "deterministic MCP client; no LLM planner",
+    "faults": "none in this throughput measurement"
+  },
+  "attempts": 1,
+  "stopping": "Exactly 50 paired alternating rounds. No optional early stop, replacement of failed samples, pooling with selection samples, or rerun based on the measured ratio.",
+  "gate": "All outcomes verified, unchanged source, and lower bound of the existing paired 95 percent bootstrap interval at least 2.",
+  "limits": [
+    "A final independent replication after candidate selection; earlier negative measurements remain part of the evidence.",
+    "This measures deterministic command execution, not general ChatGPT reliability or model-driven agent productivity."
+  ]
+}

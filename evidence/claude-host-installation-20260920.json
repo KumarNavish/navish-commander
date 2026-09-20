@@ -1,0 +1,36 @@
+{
+  "schema": "navish.claude-host-installation/v1",
+  "observedAt": "2026-09-20T21:59:24.095546+00:00",
+  "version": "1.6.0-rc.4",
+  "runtimeSourceSha256": "ca4ed695e40d302fa1dca7bcd2ae20ed04b812b02f09c31eafe997348cc2cf5e",
+  "desktop": {
+    "version": "2.2553.1",
+    "extensionId": "local.mcpb.kumarnavish.navish-commander",
+    "installed": true,
+    "enabled": true,
+    "installedRuntimeMatchesSource": true,
+    "tools": 33,
+    "permissionsAfterSettingsReentry": {
+      "alwaysAllow": 33,
+      "needsApproval": 0,
+      "blocked": 0
+    }
+  },
+  "claudeCode": {
+    "strictPluginValidationExit": 0,
+    "mcpListExit": 0,
+    "connection": "plugin:navish-commander:navish-commander: Connected",
+    "workingDirectoryOutsideCheckout": true,
+    "source": "freshly extracted ZIP"
+  },
+  "extractedPackageTests": {
+    "passed": 49,
+    "failed": 0
+  },
+  "claudeModelConversationObserved": false,
+  "modelCallsUsedForHostChecks": 0,
+  "limits": [
+    "Host loading and permissions do not establish a Claude model conversation.",
+    "The installed bundle preceded documentation-only release edits; the runtime digest is identical."
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "schema": "navish.chat-natural-recovery/v1",
+  "recordedAt": "2026-09-20T22:05:41.759901+00:00",
+  "conversation": "https://chatgpt.com/c/6ab05771-5fb8-83eb-9863-5240f03a94f5",
+  "source": {
+    "runtimeVersion": "1.6.0-rc.4",
+    "runtimeSourceSha256": "ca4ed695e40d302fa1dca7bcd2ae20ed04b812b02f09c31eafe997348cc2cf5e",
+    "connectorVersion": "0.4.1",
+    "connectorSourceSha256": "b5c4b8008316fbdf273d53cbb881a0de0ed0ea6a7c4de2bcbe7850953f7eabeb"
+  },
+  "mode": "Latest / Extra High",
+  "explicitPluginSelection": false,
+  "outsideInterventionAfterSubmission": false,
+  "mutations": 0,
+  "platformDenials": 0,
+  "outcome": "passed",
+  "exportSha256": "49d86bbe102537fb1e69afc25a96a64d9bd409465677ea1cff3ec60ad6230d44",
+  "calls": [
+    {
+      "name": "commander_devices",
+      "input": {},
+      "output": {
+        "state": "completed",
+        "devices": [
+          {
+            "id": "local",
+            "type": "local",
+            "online": true
+          }
+        ],
+        "platform": "darwin",
+        "processRuntime": {
+          "pythonAvailable": true,
+          "pythonVersion": "3.9.6"
+        },
+        "connectorOperation": {
+          "operationId": "9e3b11afaf321054cfff9de1dbd23e6c09033881e27ceabe00c72d240d15b111",
+          "toolName": "commander_devices",
+          "requestSha256": "98da55deff42d1c20de0ec6af483fa385fb413081e2e882dfc4ec6306678f4d7"
+        }
+      }
+    },
+    {
+      "name": "commander_read_file",
+      "input": {
+        "device": "local",
+        "path": "$TRIAL/handoff.json",
+        "maxBytes": 65536,
+        "offset": 0,
+        "length": 1000
+      },
+      "output": {
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T22:01:55.511Z",
+        "finishedAt": "2026-09-20T22:01:55.517Z",
+        "observation": true,
+        "receiptPersisted": false,
+        "retrySafe": false,
+        "result": {
+          "path": "$TRIAL/handoff.json",
+          "type": "text",
+          "content": "{\n  \"task\": \"synthetic document acceptance pilot\",\n  \"scope_note\": \"Synthetic pilot data for document handling; not a product benchmark or product certification.\",\n  \"artifacts\": {\n    \"workbook\": {\n      \"path\": \"$TRIAL/metrics.xlsx\",\n      \"sha256\": \"f98c54bd1a67ce6fa88b6c37c298b294290e03eece2e0b00923fe5462bed6149\"\n    },\n    \"word\": {\n      \"path\": \"$TRIAL/study-summary.docx\",\n      \"sha256\": \"6e7ad18b60d2f1bbec18a5129baff3dae9276288714097767b2c65f9d143ca54\"\n    },\n    \"pdf\": {\n      \"path\": \"$TRIAL/results.pdf\",\n      \"sha256\": \"c5fba6a797691429cbdb992fbfa61756bf4953fb2b26a26c6e53e51f9f1a8bfe\",\n      \"page_count\": 2\n    },\n    \"handoff\": {\n      \"path\": \"$TRIAL/handoff.json\"\n    }\n  },\n  \"results\": {\n    \"sample_n\": 5,\n    \"included_batches\": [\n      \"A\",\n      \"B\",\n      \"C\",\n      \"D\",\n      \"E\"\n    ],\n    \"median_baseline_ms\": 205,\n    \"median_candidate_ms\": 100,\n    \"baseline_candidate_median_ratio\": 2.05,\n    \"median_paired_saving_ms\": 105,\n    \"median_paired_reduction_pct\": 50,\n    \"paired_savings_ms\": [\n      100,\n      105,\n      95,\n      105,\n      110\n    ],\n    \"paired_reductions_pct\": [\n      50,\n      50,\n      50,\n      51.21951219512195,\n      50\n    ]\n  },\n  \"workbook_correction\": {\n    \"raw_measurements_preserved\": true,\n    \"batch_E_include_changed_from\": false,\n    \"batch_E_include_changed_to\": true,\n    \"summary\": {\n      \"sample_n\": 5,\n      \"median_baseline_ms\": 205,\n      \"median_candidate_ms\": 100,\n      \"ratio\": 2.05\n    }\n  },\n  \"verification\": {\n    \"independent_arithmetic\": {\n      \"method\": \"ordinary local python3 command reading observations.csv\",\n      \"session_id\": \"chat-docs-20260920-calc\",\n      \"exit_code\": 0,\n      \"matched_reported_values\": true\n    },\n    \"native_readback\": {\n      \"xlsx_raw_and_summary\": true,\n      \"docx\": true,\n      \"pdf\": true,\n      \"pdf_page_count\": 2,\n      \"pdf_page_1\": \"results\",\n      \"pdf_page_2\": \"methods and limitations\"\n    },\n    \"preserved_sources\": {\n      \"brief_md\": {\n        \"sha256\": \"273c9704faca811e39a8bb702f369920219f53a20718bfb1f1c29b75bc26e5b0\",\n        \"matches_before\": true\n      },\n      \"observations_csv\": {\n        \"sha256\": \"0f2f8b47b1f0b3c8907a87aafd996310e160935c5cd4f172f1d14d248b03544b\",\n        \"matches_before\": true\n      }\n    },\n    \"incomplete_steps\": []\n  },\n  \"stable_mutation_identities\": {\n    \"xlsx_include_e\": {\n      \"call_id\": \"chat-docs-20260920-xlsx-include-e\",\n      \"operation_id\": \"6fc51c3d5d15414f48ac2c6039512105e7e24b200325155bad4bc5d5adacefdb\"\n    },\n    \"xlsx_summary\": {\n      \"call_id\": \"chat-docs-20260920-xlsx-summary\",\n      \"operation_id\": \"41b0222edb8054aa658ea4b93381e6fffee6c08a6d471453755054b4b1094ed1\"\n    },\n    \"word_final_cleanup\": {\n      \"call_id\": \"chat-docs-20260920-docx-strip-bold\",\n      \"operation_id\": \"1f9c0587b192bf4a956d3ebe3674e90f5bf864489b461869dac3b41cfe06dffe\"\n    },\n    \"pdf\": {\n      \"call_id\": \"chat-docs-20260920-pdf\",\n      \"operation_id\": \"0b7a22fd9641868f7f696d57b7e22cb5af399cc63f061991f84a7e3f058672cc\"\n    }\n  }\n}\n",
+          "size": 3401,
+          "truncated": false,
+          "offset": 0,
+          "returnedLines": 108,
+          "nextOffset": null,
+          "hasMore": false,
+          "partialLastLine": false,
+          "mode": 420
+        },
+        "connectorOperation": {
+          "operationId": "e53d3d7ac7ff3083ef2d04f5ff104ff8e43730097092cb54c873cba1049dcc9a",
+          "toolName": "commander_read_file",
+          "requestSha256": "49bf2a68beb447b6b68c2882f2c64d7b7f823a3fca018ca88a45534ff474599f",
+          "device": "local",
+          "path": "$TRIAL/handoff.json"
+        }
+      }
+    }
+  ],
+  "verifiedResult": {
+    "sample_n": 5,
+    "included_batches": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "median_baseline_ms": 205,
+    "median_candidate_ms": 100,
+    "baseline_candidate_median_ratio": 2.05,
+    "median_paired_saving_ms": 105,
+    "median_paired_reduction_pct": 50,
+    "paired_savings_ms": [
+      100,
+      105,
+      95,
+      105,
+      110
+    ],
+    "paired_reductions_pct": [
+      50,
+      50,
+      50,
+      51.21951219512195,
+      50
+    ]
+  },
+  "limits": [
+    "One read-only recovery conversation; does not establish universal automatic routing or unattended mutation certification."
+  ],
+  "redactions": [
+    "Absolute test workspace root replaced with $TRIAL",
+    "Unrelated paired-device entries and empty UI metadata omitted"
+  ]
+}

@@ -16,12 +16,28 @@ const id = z.string().min(1).max(120).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
 const absolutePath = z.string().min(1).max(4096).startsWith('/');
 const device = z.string().min(1).max(120).describe('Exact ID from commander_devices. local is this MCP server host.');
 const mutation = {device, callId:id.describe('Stable ID for this intent. Reuse after a lost response; never mint a retry ID.')};
-const server = new McpServer({name:'navish-commander', version:'1.6.0-rc.3'}, {
+const server = new McpServer({name:'navish-commander', version:'1.6.0-rc.4'}, {
   instructions:'Execute only user-authorized work. Discover devices first. Keep callId, sessionId and batchId across reconnects. A completed tool receipt may describe a running or failed worker. Inspect operationState and verify outputs. Never clear an uncertain record or retry a mutation with a new identity. Local shell commands have the OS account permissions; this server is not a sandbox.'
 });
 
 function output(value) {
-  return {content:[{type:'text',text:JSON.stringify(value)}],structuredContent:value,
+  const images=[];let imageBytes=0;
+  const project=v=>{
+    if(Array.isArray(v))return v.map(project);
+    if(!v||typeof v!=='object')return v;
+    const result={};for(const [key,item] of Object.entries(v)){
+      if(key!=='imageBlocks'){result[key]=project(item);continue;}
+      result.images=[];
+      for(const img of item){
+        if(imageBytes+img.data.length>700000){result.imagesTruncated=true;continue;}
+        imageBytes+=img.data.length;images.push({type:'image',mimeType:img.mimeType,data:img.data});
+        result.images.push({mimeType:img.mimeType,...(img.page?{page:img.page}:{}),contentIndex:images.length});
+      }
+    }
+    return result;
+  };
+  const projected=project(value);
+  return {content:[{type:'text',text:JSON.stringify(projected)},...images],structuredContent:projected,
     isError:value.state==='failed'||value.operationState==='failed'};
 }
 // Do not return command bodies, environment variables, or owner metadata in receipts.
@@ -77,10 +93,10 @@ register('commander_receipt','Use this after a missing response to inspect a loc
   recoverRunningReceipts(P);
   return receiptView(loadReceipt(callId,P));
 });
-register('commander_read_file','Use this to read a bounded file on an explicitly selected device.',
-  {device,path:absolutePath,maxBytes:z.number().int().min(1).max(65536).default(16384),offset:z.number().int().default(0),length:z.number().int().min(1).max(1000).default(200)},true,
+register('commander_read_file','Read text, DOCX, XLSX, PDF or an image. Text offsets are lines; PDF offsets are pages; spreadsheets support sheet and range. DOCX offset 0 gives an outline and nonzero offsets give XML for precise edits. For an explicit HTTP(S) URL set isUrl. Inspect truncation; for PDF continuation pass nextOffset and options.textOffset=nextTextOffset. Images are native MCP content (700 KB aggregate base64 budget).',
+  {device,path:z.string().min(1).max(4096),isUrl:z.boolean().default(false),maxBytes:z.number().int().min(1).max(65536).default(16384),offset:z.number().int().default(0),length:z.number().int().min(1).max(1000).default(200),sheet:z.union([z.string(),z.number().int().min(0)]).optional(),range:z.string().max(256).optional(),options:z.object({extractImages:z.boolean().optional(),textOffset:z.number().int().min(0).optional()}).strict().optional()},true,
   args=>execute('read_file',args));
-register('commander_write_file','Use this to write a user-authorized file. Keep the same callId for the same write intent.',
+register('commander_write_file','Write authorized text, DOCX from Markdown, XLSX from JSON 2D rows or named sheets, or a base64 image. DOCX and images cannot append. Use write_pdf for PDFs. Keep the same callId for the same write intent.',
   {...mutation,path:absolutePath,content:z.string().max(65536),mode:z.enum(['rewrite','append']).default('rewrite')},false,args=>execute('write_file',args));
 register('commander_read_multiple_files','Read up to 16 files in one call. Missing files return individual errors. maxBytes is the per-file cap.',
   {device,paths:z.array(absolutePath).min(1).max(16),maxBytes:z.number().int().min(1).max(4096).default(4096)},true,args=>execute('read_multiple_files',args));
@@ -92,8 +108,11 @@ register('commander_move_file','Move or rename an authorized file or directory. 
   {...mutation,source:absolutePath,destination:absolutePath},false,args=>execute('move_file',args));
 register('commander_get_file_info','Read file metadata, SHA-256 and text line count without returning file content. Use sha256 as expectedSha256 for an edit.',
   {device,path:absolutePath},true,args=>execute('get_file_info',args));
-register('commander_edit_block','Surgically replace exact text in a UTF-8 file. Default requires one occurrence; ambiguity fails without writing. Set expectedSha256 from file info to reject a stale source. Preserves file permissions. Keep callId stable.',
-  {...mutation,file_path:absolutePath,old_string:z.string().min(1).max(65536),new_string:z.string().max(65536),expected_replacements:z.number().int().min(1).max(10000).default(1),expectedSha256:z.string().regex(/^[a-f0-9]{64}$/).optional()},false,args=>execute('edit_block',args));
+register('commander_edit_block','Replace exact UTF-8 text or DOCX XML using old_string/new_string. Default requires one occurrence; ambiguity fails without writing. For XLSX use range (Sheet1!A1:C3) and content (2D rows). expectedSha256 rejects a stale source. Writes are staged and validated. Keep callId stable.',
+  {...mutation,file_path:absolutePath,old_string:z.string().min(1).max(65536).optional(),new_string:z.string().max(65536).optional(),range:z.string().min(1).max(256).optional(),content:z.array(z.array(z.union([z.string().max(32768),z.number(),z.boolean(),z.null()])).max(256)).max(1000).optional(),expected_replacements:z.number().int().min(1).max(10000).default(1),expectedSha256:z.string().regex(/^[a-f0-9]{64}$/).optional()},false,args=>execute('edit_block',args));
+const pdfOptions=z.object({format:z.enum(['A4','A3','A5','Letter','Legal','Tabloid']).optional(),landscape:z.boolean().optional(),scale:z.number().min(0.1).max(2).optional(),margin:z.object({top:z.string(),bottom:z.string(),left:z.string(),right:z.string()}).strict().optional(),printBackground:z.boolean().optional(),preferCSSPageSize:z.boolean().optional()}).strict();
+register('commander_write_pdf','Create a PDF from Markdown/HTML using installed Chrome with a private profile, or apply ordered insert/delete page operations. Indexes are zero-based. Modifications require a distinct outputPath and preserve the source. Local images are supported; remote assets are not fetched. Reuse callId.',
+  {...mutation,path:absolutePath,outputPath:absolutePath.optional(),content:z.union([z.string().max(65536),z.array(z.union([z.object({type:z.literal('delete'),pageIndexes:z.array(z.number().int().min(0)).min(1).max(1000)}).strict(),z.object({type:z.literal('insert'),pageIndex:z.number().int().min(0),markdown:z.string().max(65536).optional(),sourcePdfPath:absolutePath.optional(),pdfOptions:pdfOptions.optional()}).strict()])).min(1).max(100)]),options:pdfOptions.optional(),expectedSha256:z.string().regex(/^[a-f0-9]{64}$/).optional()},false,args=>execute('write_pdf',args));
 const searchId=id.max(100);
 register('commander_start_search','Start a durable bounded search of file paths or text content. Keep sessionId and callId stable. Results stream while scanning and survive reconnection. Regex by default; set literalSearch for plain text. Symlinks and binary content are skipped; content files over 16 MiB are counted as skipped. Inspect truncated and skippedFiles.',
   {...mutation,sessionId:searchId,path:absolutePath,pattern:z.string().min(1).max(2000),searchType:z.enum(['files','content']).default('files'),filePattern:z.string().max(1000).optional(),ignoreCase:z.boolean().default(true),includeHidden:z.boolean().default(false),literalSearch:z.boolean().default(false),contextLines:z.number().int().min(0).max(10).default(2),maxResults:z.number().int().min(1).max(10000).default(1000),timeout_ms:z.number().int().min(100).max(300000).default(30000)},true,args=>execute('start_search',args));

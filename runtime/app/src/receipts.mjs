@@ -21,15 +21,15 @@ export function loadReceipt(callId,P=getPaths()){
 }
 function saveRaw(r,P){writeJson(receiptPath(P,r.callId),r,0o600);return r}
 export function saveReceipt(r,P=getPaths()){ensureBase(P);return withStateTransaction(P,()=>saveRaw(r,P))}
-const MUTATING=new Set(['edit_block','start_search','stop_search','set_config_value','browser_agent','write_file','create_directory','move_file','start_process','interact_with_process','force_terminate','kill_process','browser_command','pair_install','agent_batch_start','agent_batch_send','agent_batch_cancel','agentic_run','agentic_continue','agentic_cancel','agent_job_start','agent_job_cancel']);
+const MUTATING=new Set(['edit_block','start_search','stop_search','set_config_value','browser_agent','write_file','write_pdf','create_directory','move_file','start_process','interact_with_process','force_terminate','kill_process','browser_command','pair_install','agent_batch_start','agent_batch_send','agent_batch_cancel','agentic_run','agentic_continue','agentic_cancel','agent_job_start','agent_job_cancel']);
 // An unvalidated caller-supplied label must not downgrade a browser plan to a read.
 export function isMutating(tool,args={}){return MUTATING.has(tool)}
 export function defaultResources(tool,args={}){
   if(['agent_job_start','agent_job_cancel'].includes(tool))return ['agent-job:'+String(args.jobId??'unspecified')];
   if(['start_search','stop_search'].includes(tool))return ['search:'+String(args.sessionId??'unspecified')];
   if(tool==='set_config_value')return ['commander-config'];
-  if(['write_file','create_directory','move_file','edit_block'].includes(tool)){
-    return [...new Set([args.path,args.file_path,args.source,args.destination].filter(Boolean).map(p=>'fs:'+path.resolve(String(p))))];
+  if(['write_file','write_pdf','create_directory','move_file','edit_block'].includes(tool)){
+    return [...new Set([args.path,args.outputPath,args.file_path,args.source,args.destination,...(Array.isArray(args.content)?args.content.map(op=>op?.sourcePdfPath):[])].filter(Boolean).map(p=>'fs:'+path.resolve(String(p))))];
   }
   if(['interact_with_process','force_terminate','kill_process'].includes(tool))return [`process:${args.pid??args.sessionId??'unknown'}`];
   if(['agent_batch_start','agent_batch_send','agent_batch_cancel'].includes(tool)){

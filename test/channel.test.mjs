@@ -14,8 +14,19 @@ import {runChannelAgent} from '../connector/channel-agent.mjs';
 import {executeJournaledJob} from '../connector/journal.mjs';
 import {sha} from '../connector/auth.mjs';
 import {canonical,toolResult} from '../connector/queue.mjs';
+import {encodeChannelMessage,decodeChannelMessage,MAX_CHANNEL_MESSAGE_BYTES} from '../connector/channel-codec.mjs';
 const catalog=JSON.parse(fs.readFileSync(new URL('../connector/catalog.json',import.meta.url)));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
+
+test('channel compression preserves structured results and enforces the expanded byte budget',async()=>{
+  const value={type:'result',response:toolResult({state:'completed',content:'diagnostic line\n'.repeat(4000)})};
+  const wire=await encodeChannelMessage(value);assert.ok(wire instanceof Uint8Array);
+  assert.ok(wire.byteLength<JSON.stringify(value).length/10);
+  assert.deepEqual(await decodeChannelMessage(wire),value);
+  assert.deepEqual(await decodeChannelMessage(await encodeChannelMessage({type:'ready'})),{type:'ready'});
+  await assert.rejects(encodeChannelMessage({text:'x'.repeat(MAX_CHANNEL_MESSAGE_BYTES)}),/TOO_LARGE/);
+  await assert.rejects(decodeChannelMessage(new Uint8Array([1,2,3])));
+});
 
 test('channel client preserves operation ID on lost response and only falls back for receipt reads',async()=>{
   const calls=[],token='t'.repeat(64);let legacy=0;
@@ -139,7 +150,7 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
     assert.ok(token.access_token);assert.equal((await request(origin+'/oauth/token',{method:'POST',body:new URLSearchParams(grant)})).status,400);
     const publicClient=new Client({name:'channel-public-test',version:'1'});
     await publicClient.connect(new StreamableHTTPClientTransport(new URL(origin+'/mcp'),{requestInit:{headers:{authorization:'Bearer '+token.access_token}}}));
-    try{assert.equal((await publicClient.listTools()).tools.length,33);
+    try{assert.equal((await publicClient.listTools()).tools.length,34);
       const empty=await publicClient.callTool({name:'commander_connector_receipt',arguments:{callId:'not-dispatched'}});assert.equal(empty.structuredContent.state,'unknown');
       const devices=await publicClient.callTool({name:'commander_devices',arguments:{}});assert.equal(devices.structuredContent.state,'completed');}
     finally{await publicClient.close();}
@@ -155,6 +166,14 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
     const afterLoss=await http('/invoke',lost);
     assert.equal(afterLoss.structuredContent.state,'completed',JSON.stringify({agentLog,status:await http('/status',{}),receipt:await http('/receipt',{id:lost.id}),workerLog:workerLog.replaceAll(serverToken,'[token]').replaceAll(agentToken,'[token]')}));assert.equal(calls,2);
     assert.equal(fs.readFileSync(lost.args.path,'utf8'),'once\n');
+    phase='compressed result';
+    const large=root+'/large.txt';fs.writeFileSync(large,'complete result\n'.repeat(1000));
+    const readArgs={device:'local',path:large,maxBytes:32768,length:1000};
+    const readJob={id:sha('compressed-read'),name:'commander_read_file',args:readArgs,mutating:false,
+      fingerprint:sha(canonical({name:'commander_read_file',args:readArgs})),createdAt:Date.now(),expiresAt:Date.now()+60000};
+    const readResult=await http('/invoke',readJob);
+    assert.equal(readResult.structuredContent.result.content,'complete result\n'.repeat(1000).trimEnd());
+    assert.deepEqual(await http('/receipt',{id:readJob.id}),readResult);
     phase='worker batch';
     const workers=['a','b','c','d'].map(id=>{const cwd=root+'/'+id;fs.mkdirSync(cwd);return{id,role:'fixture',cwd,transport:'pipe',command:`printf '${id}' > result; ${id==='d'?'exit 7':'true'}`,artifacts:[{path:'result',sha256:sha(id)}]};});
     const batch=job('commander_start_batch',{device:'local',callId:'channel-batch',batchId:'channel-batch',workers,wait_ms:1000});

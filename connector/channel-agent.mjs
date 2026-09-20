@@ -1,15 +1,19 @@
 // The Mac only opens outbound TLS connections. Tokens travel in upgrade
 // headers, never query strings. The disk journal remains the execution owner.
+import {encodeChannelMessage} from './channel-codec.mjs';
 export async function runChannelAgent({origin,token,executeJob,stopped,WebSocketImpl=WebSocket,log=console.error}) {
   if(!/^https:\/\/[^/]+$/.test(origin)||!token||token.length<40)throw Error('INVALID_CHANNEL_CONFIG');
   const inflight=new Map(),acks=new Map();let socket,backoff=1000;
-  const upload=({id,fingerprint,response})=>new Promise((resolve,reject)=>{
+  const upload=async({id,fingerprint,response})=>{
+    const message=await encodeChannelMessage({type:'result',id,fingerprint,response});
+    return new Promise((resolve,reject)=>{
     if(socket?.readyState!==1){reject(Error('CHANNEL_DISCONNECTED'));return;}
     const timer=setTimeout(()=>{acks.delete(id);reject(Error('CHANNEL_ACK_TIMEOUT'));socket?.close();},10000);
     acks.set(id,{resolve:()=>{clearTimeout(timer);acks.delete(id);resolve();},reject:e=>{clearTimeout(timer);acks.delete(id);reject(e);}});
-    try{socket.send(JSON.stringify({type:'result',id,fingerprint,response}));}
+    try{socket.send(message);}
     catch(e){acks.get(id)?.reject(e);socket.close();}
-  });
+    });
+  };
   while(!stopped()){
     try{
       await new Promise((resolve,reject)=>{

@@ -3,7 +3,8 @@ import path from 'node:path';
 import os from 'node:os';
 import { paths as getPaths, ensureBase, loadConfig, loadDevices, saveConfig } from './config.mjs';
 import { beginCall, finishCall, defaultResources, isMutating, reconcileQuarantine, loadReceipt } from './receipts.mjs';
-import { readFileTool,readMultipleFilesTool,writeFileTool,createDirectoryTool,moveFileTool,listDirectoryTool,findTextTool,getFileInfoTool,editBlockTool } from './files.mjs';
+import { createDirectoryTool,moveFileTool,listDirectoryTool,findTextTool } from './files.mjs';
+import {readDocument as readFileTool,readDocuments as readMultipleFilesTool,writeDocument as writeFileTool,documentInfo as getFileInfoTool,editDocument as editBlockTool,writePdf} from './document-files.mjs';
 import {startSearchTool,getSearchResultsTool,stopSearchTool,listSearchesTool} from './search.mjs';
 import { startProcessTool,readProcessOutputTool,interactProcessTool,terminateProcessTool,listSessionsTool,listProcessesTool,killProcessTool } from './process.mjs';
 import { agentBatchStartTool,agentBatchStatusTool,agentBatchCollectTool,agentBatchSendTool,agentBatchCancelTool,agentBatchListTool } from './agents.mjs';
@@ -15,8 +16,8 @@ import { listDevices,remoteCall,pairAdd,pairRemove } from './remote.mjs';
 import { nowIso, randomId, writeJson, sleep } from './util.mjs';
 import { performance } from 'node:perf_hooks';
 
-export const VERSION='1.6.0-rc.3';
-export const TOOL_NAMES=['get_config','set_config_value','read_file','read_multiple_files','write_file','create_directory','list_directory','move_file','get_file_info','edit_block','start_search','get_more_search_results','stop_search','list_searches','find_text','start_process','read_process_output','interact_with_process','force_terminate','list_sessions','list_processes','kill_process','browser_agent','browser_agent_health','browser_command','get_usage_stats','get_recent_tool_calls','agent_batch_start','agent_batch_status','agent_batch_collect','agent_batch_send','agent_batch_cancel','agent_batch_list','agent_job_status','agent_job_list','agent_job_cancel'];
+export const VERSION='1.6.0-rc.4';
+export const TOOL_NAMES=['get_config','set_config_value','read_file','read_multiple_files','write_file','write_pdf','create_directory','list_directory','move_file','get_file_info','edit_block','start_search','get_more_search_results','stop_search','list_searches','find_text','start_process','read_process_output','interact_with_process','force_terminate','list_sessions','list_processes','kill_process','browser_agent','browser_agent_health','browser_command','get_usage_stats','get_recent_tool_calls','agent_batch_start','agent_batch_status','agent_batch_collect','agent_batch_send','agent_batch_cancel','agent_batch_list','agent_job_status','agent_job_list','agent_job_cancel'];
 
 function audit(P,event){fs.appendFileSync(P.auditLog,JSON.stringify({at:nowIso(),...event})+'\n',{mode:0o600});}
 function recentCalls(P,max=50){try{return fs.readFileSync(P.auditLog,'utf8').trim().split(/\n/).filter(Boolean).slice(-max).map(x=>JSON.parse(x))}catch{return []}}
@@ -28,6 +29,7 @@ async function executeLocal(tool,args,ctx){const {P,config}=ctx; switch(tool){
   case 'read_file': return readFileTool(args,config);
   case 'read_multiple_files': return readMultipleFilesTool(args,config);
   case 'write_file': return writeFileTool(args,config);
+  case 'write_pdf': return writePdf(args,config);
   case 'create_directory': return createDirectoryTool(args,config);
   case 'list_directory': return listDirectoryTool(args,config);
   case 'move_file': return moveFileTool(args,config);
