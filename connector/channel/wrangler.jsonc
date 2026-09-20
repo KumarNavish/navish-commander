@@ -2,6 +2,7 @@
   "name": "navish-commander-channel",
   "main": "worker.mjs",
   "compatibility_date": "2026-09-20",
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "preview_urls": false,
   "durable_objects": {

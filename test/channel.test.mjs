@@ -8,6 +8,7 @@ import net from 'node:net';
 import {spawn} from 'node:child_process';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
+import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {createChannelClient} from '../connector/channel-client.mjs';
 import {runChannelAgent} from '../connector/channel-agent.mjs';
 import {executeJournaledJob} from '../connector/journal.mjs';
@@ -31,11 +32,12 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
   fs.mkdirSync(root+'/journal');
   const listener=net.createServer();await new Promise(r=>listener.listen(0,'127.0.0.1',r));
   const port=listener.address().port;await new Promise(r=>listener.close(r));
-  const origin='http://127.0.0.1:'+port,serverToken=crypto.randomBytes(32).toString('hex'),agentToken=crypto.randomBytes(32).toString('hex');
+  const origin='http://127.0.0.1:'+port,serverToken=crypto.randomBytes(32).toString('hex'),agentToken=crypto.randomBytes(32).toString('hex'),ownerPassword=crypto.randomBytes(32).toString('hex');
   let worker,workerLog='',stopping=false,agent,calls=0,drop=false;const agentLog=[];
   async function start(){
     worker=spawn(process.execPath,['node_modules/wrangler/bin/wrangler.js','dev','--local','--ip','127.0.0.1','--port',String(port),
-      '--config','connector/channel/wrangler.jsonc','--persist-to',root+'/cloud','--var','SERVER_TOKEN:'+serverToken,'--var','AGENT_TOKEN:'+agentToken],
+      '--config','connector/channel/wrangler.jsonc','--persist-to',root+'/cloud','--var','SERVER_TOKEN:'+serverToken,'--var','AGENT_TOKEN:'+agentToken,
+      '--var','CONNECTOR_ORIGIN:'+origin,'--var','CONNECTOR_SECRET:'+serverToken,'--var','CONNECTOR_OWNER_PASSWORD_HASH:'+sha(ownerPassword)],
       {env:{...process.env,WRANGLER_SEND_METRICS:'false',CLOUDFLARE_API_TOKEN:'',CLOUDFLARE_ACCOUNT_ID:''},stdio:['ignore','pipe','pipe'],detached:process.platform!=='win32'});
     worker.stdout.on('data',b=>{workerLog+=b;});worker.stderr.on('data',b=>{workerLog+=b;});
     for(let i=0;i<100;i++){try{if((await fetch(origin+'/health')).ok)return;}catch{}if(worker.exitCode!==null)break;await delay(100);}
@@ -62,6 +64,22 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
         upload:async r=>{if(drop){drop=false;sockets.at(-1).close();throw Error('TEST_LOST_UPLOAD');}return upload(r);}})});
     for(let i=0;i<100;i++){if((await http('/status',{})).online)break;await delay(50);}
     assert.equal((await http('/status',{})).online,true);
+    // Exercise the public OAuth and SDK endpoint, not just the internal queue.
+    assert.equal((await fetch(origin+'/mcp',{method:'POST',body:'{}'})).status,401);
+    const registration=await (await fetch(origin+'/oauth/register',{method:'POST',body:JSON.stringify({redirect_uris:['https://chatgpt.com/connector_platform_oauth_redirect']})})).json();
+    const verifier=crypto.randomBytes(40).toString('base64url'),params={client_id:registration.client_id,redirect_uri:registration.redirect_uris[0],response_type:'code',resource:origin+'/mcp',scope:'commander',state:'fixture',code_challenge_method:'S256',code_challenge:crypto.createHash('sha256').update(verifier).digest('base64url')};
+    const html=await (await fetch(origin+'/oauth/authorize?'+new URLSearchParams(params))).text(),context=html.match(/name="context" value="([^"]+)"/)[1];
+    const consent=await fetch(origin+'/oauth/authorize',{method:'POST',redirect:'manual',headers:{origin},body:new URLSearchParams({context,password:ownerPassword})});assert.equal(consent.status,303);
+    const grant={grant_type:'authorization_code',client_id:registration.client_id,resource:origin+'/mcp',redirect_uri:params.redirect_uri,code:new URL(consent.headers.get('location')).searchParams.get('code'),code_verifier:verifier};
+    const token=await (await fetch(origin+'/oauth/token',{method:'POST',body:new URLSearchParams(grant)})).json();
+    assert.ok(token.access_token);assert.equal((await fetch(origin+'/oauth/token',{method:'POST',body:new URLSearchParams(grant)})).status,400);
+    const publicClient=new Client({name:'channel-public-test',version:'1'});
+    await publicClient.connect(new StreamableHTTPClientTransport(new URL(origin+'/mcp'),{requestInit:{headers:{authorization:'Bearer '+token.access_token}}}));
+    try{assert.equal((await publicClient.listTools()).tools.length,11);
+      const empty=await publicClient.callTool({name:'commander_connector_receipt',arguments:{callId:'not-dispatched'}});assert.equal(empty.structuredContent.state,'unknown');
+      const devices=await publicClient.callTool({name:'commander_devices',arguments:{}});assert.equal(devices.structuredContent.state,'completed');}
+    finally{await publicClient.close();}
+    calls=0;
     const responses=await Promise.all(Array.from({length:8},()=>http('/invoke',first)));
     assert.equal(calls,1);for(const r of responses)assert.equal(r.structuredContent.state,'completed');
     assert.equal(fs.readFileSync(first.args.path,'utf8'),'once\n');
@@ -81,7 +99,8 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
     await stop();await start();
     const retained=await http('/receipt',{id:first.id});assert.equal(retained.structuredContent.state,'completed');
     const before=calls;await http('/invoke',first);assert.equal(calls,before);assert.equal(fs.readFileSync(first.args.path,'utf8'),'once\n');
-  }finally{
+  }catch(e){console.error(workerLog.replaceAll(serverToken,'[token]').replaceAll(agentToken,'[token]'));throw e;}
+  finally{
     stopping=true;for(const ws of sockets)ws.close();if(agent)await agent;
     await client.close();await stop();fs.rmSync(root,{recursive:true,force:true});
   }

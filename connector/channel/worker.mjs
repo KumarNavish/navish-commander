@@ -1,8 +1,10 @@
 import {DurableObject} from 'cloudflare:workers';
 import catalog from '../catalog.json';
 import build from '../build.json';
+import {createHandler} from '../handler.mjs';
 
 const ID=/^[a-f0-9]{64}$/,CALL=/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/;
+const PUBLIC_PATHS=new Set(['/mcp','/.well-known/oauth-protected-resource','/.well-known/oauth-authorization-server','/oauth/register','/oauth/authorize','/oauth/token']);
 const canonical=x=>Array.isArray(x)?'['+x.map(canonical).join(',')+']':x&&typeof x==='object'?'{'+Object.keys(x).sort().map(k=>JSON.stringify(k)+':'+canonical(x[k])).join(',')+'}':JSON.stringify(x);
 const sha=async x=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(x))),v=>v.toString(16).padStart(2,'0')).join('');
 const result=(v,isError=false)=>({content:[{type:'text',text:JSON.stringify(v)}],structuredContent:v,isError});
@@ -26,6 +28,12 @@ export default {
   async fetch(req,env){
     const path=new URL(req.url).pathname;
     if(path==='/health'&&req.method==='GET')return json({service:'navish-commander-channel',connector:build});
+    if(PUBLIC_PATHS.has(path)){
+      if(!env.CONNECTOR_ORIGIN||!env.CONNECTOR_SECRET||!env.CONNECTOR_OWNER_PASSWORD_HASH)return json({error:'CONNECTOR_NOT_CONFIGURED'},503);
+      // OAuth, SDK parsing and durable execution run inside the Durable Object.
+      // The outer free-plan Worker only routes; it does not need paid CPU limits.
+      return env.CHANNEL.get(env.CHANNEL.idFromName('owner'),{locationHint:'weur'}).fetch(req);
+    }
     if(path==='/agent'&&req.method==='GET'&&req.headers.get('upgrade')?.toLowerCase()==='websocket'){
       const protocols=(req.headers.get('sec-websocket-protocol')??'').split(',').map(s=>s.trim());
       if(!protocols.includes('navish-agent')||!await authenticated(protocols.find(p=>p.startsWith('token.'))?.slice(6),env.AGENT_TOKEN))return json({error:'UNAUTHORIZED'},401);
@@ -42,6 +50,14 @@ export class CommanderChannel extends DurableObject {
     super(ctx,env);this.waiters=new Map();
     ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, job TEXT NOT NULL, response TEXT, created INTEGER NOT NULL)');
     ctx.storage.sql.exec('CREATE INDEX IF NOT EXISTS pending_jobs ON jobs(created) WHERE response IS NULL');
+    ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS auth_records (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
+    this.authStore={
+      get:async key=>{const row=ctx.storage.sql.exec('SELECT value FROM auth_records WHERE key=?',key).toArray()[0];return row?JSON.parse(row.value):null;},
+      setJSON:async(key,value,options={})=>{
+        const sql=options.onlyIfNew?'INSERT OR IGNORE INTO auth_records(key,value) VALUES(?,?) RETURNING key':'INSERT INTO auth_records(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value RETURNING key';
+        return {modified:ctx.storage.sql.exec(sql,key,JSON.stringify(value)).toArray().length>0};
+      }
+    };
   }
   row(id){return this.ctx.storage.sql.exec('SELECT * FROM jobs WHERE id=?',id).toArray()[0];}
   agent(){return this.ctx.getWebSockets('agent').find(ws=>{const a=ws.deserializeAttachment();return a?.ready&&Date.now()-a.seen<150000;});}
@@ -67,6 +83,17 @@ export class CommanderChannel extends DurableObject {
   }
   async fetch(req){
     const path=new URL(req.url).pathname;
+    if(PUBLIC_PATHS.has(path))return createHandler({origin:this.env.CONNECTOR_ORIGIN,secret:this.env.CONNECTOR_SECRET,
+      ownerPasswordHash:this.env.CONNECTOR_OWNER_PASSWORD_HASH,agentToken:this.env.AGENT_TOKEN,store:this.authStore,catalog,buildInfo:build,
+      queueOverride:{receipt:async id=>this.receipt(id),invoke:async(name,args)=>{
+        const tool=catalog.tools.find(t=>t.name===name);if(!tool)throw Error('UNKNOWN_TOOL');
+        const mutating=tool.annotations?.readOnlyHint!==true;
+        if(mutating&&!CALL.test(args.callId??''))throw Error('STABLE_CALL_ID_REQUIRED');
+        const id=await sha(mutating?'mutation:'+args.callId:crypto.randomUUID()),now=Date.now();
+        const job={id,name,args,mutating,fingerprint:await sha(canonical({name,args})),createdAt:now,expiresAt:now+600000};
+        const response=await this.fetch(new Request('https://channel.internal/invoke',{method:'POST',body:JSON.stringify(job)}));
+        if(!response.ok)throw Error('CHANNEL_RESPONSE_NOT_OBSERVED');return response.json();
+      }}})(req);
     if(path==='/agent'){
       for(const old of this.ctx.getWebSockets('agent')){const a=old.deserializeAttachment();old.serializeAttachment({...a,ready:false});old.close(1000,'Reconnected');}
       const [client,server]=Object.values(new WebSocketPair());

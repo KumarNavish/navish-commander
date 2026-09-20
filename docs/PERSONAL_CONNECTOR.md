@@ -1,6 +1,6 @@
 # Personal ChatGPT connector
 
-The optional HTTPS connector exposes the same ten Commander tools plus a connector receipt tool. It uses a dedicated Netlify site, owner-only OAuth with PKCE, and an outbound Mac agent. The persistent transport adds a Cloudflare SQLite Durable Object and an outbound WebSocket; the original Netlify polling transport remains an explicit installation option. The Mac opens no listening port. The existing local MCP/Claude plugin continues to work independently.
+The optional HTTPS connector exposes the same ten Commander tools plus a connector receipt tool. Its standalone Cloudflare endpoint uses owner-only OAuth with PKCE, a SQLite Durable Object, and an outbound Mac WebSocket. A Netlify OAuth/front-door installation and the original polling transport remain explicit options. The Mac opens no listening port. The existing local MCP/Claude plugin continues to work independently.
 
 This is a single-owner installation, not a multi-tenant public service. Anyone may use the source to deploy their own installation. Never distribute your installation password, agent token, signing secret, or authenticated endpoint access to other users.
 
@@ -15,6 +15,21 @@ The optional polling transport instead uses a five-second edge long poll and a h
 The Mac must be powered on, connected, and logged into the account running the LaunchAgent. There is no uptime SLA. Custom instructions guide tool selection; they cannot give a chat unavailable tools or override ChatGPT's approvals, usage limits, or safety checks.
 
 ## Deploy your own instance
+
+### Standalone Cloudflare endpoint
+
+This route needs no Netlify account or model API key. Confirm the account is on **Workers Free ($0)** before deployment.
+
+1. Clone this repository into a dedicated directory and run `npm ci --ignore-scripts`. Verify the local MCP setup. Authenticate the pinned Wrangler CLI with user/account read and Workers/Workers Scripts write scopes; set your own `CLOUDFLARE_ACCOUNT_ID` explicitly.
+2. Run `node connector/prepare-release.mjs`, then `WRANGLER_SEND_METRICS=false npx wrangler deploy --config connector/channel/wrangler.jsonc`. The initial service rejects execution until private credentials are installed. Record the returned HTTPS origin.
+3. Run `node connector/setup.mjs https://YOUR-WORKER.workers.dev --channel`. It creates private owner and Mac-agent configuration plus `channel-secrets.json`, refuses an existing directory, and prints no credentials. For an existing installation, preserve its configuration and receipts and reconcile pending operations before migration.
+4. Run `WRANGLER_SEND_METRICS=false npx wrangler secret bulk /ABSOLUTE/PRIVATE/PATH/channel-secrets.json --config connector/channel/wrangler.jsonc`. Keep this file outside Git. It contains the owner signing secret, owner password hash, agent token, internal server token, and origin. The Worker implements OAuth directly with single-use codes in its SQLite storage.
+5. Run `node connector/install-agent.mjs` on the Mac. Check the cloud `/health` source hash against the installation manifest. Use the private server token for `POST /status`; wait for `online: true` before acceptance. The public MCP endpoint must return 401 without OAuth. An offline agent yields a blocked, not-dispatched result.
+6. Create your personal ChatGPT developer app using `https://YOUR-WORKER.workers.dev/mcp`, OAuth, and scope `commander`. Authenticate with your private owner password. Verify all eleven tools and a fresh read-only fixture in ordinary chat. Choose permissions deliberately; this setup never disables platform safety review.
+
+OAuth and SDK processing execute within the Durable Object. The outer Worker only routes requests, avoiding a paid Worker CPU upgrade. The same persistent journal and duplicate-suppression rules below apply.
+
+### Optional Netlify front door
 
 1. Clone this repository into its own permanent directory and run `npm ci --ignore-scripts`. Use Node 22.16 or newer. Verify the normal local MCP setup first.
 2. Create a **dedicated** Netlify site on a confirmed free plan. Do not reuse an unrelated site's deployment. Link the checkout to this site using the official Netlify CLI.

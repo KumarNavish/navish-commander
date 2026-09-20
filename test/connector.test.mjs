@@ -166,5 +166,11 @@ test('private setup never prints credentials and refuses an existing installatio
     assert.equal(first.stdout.includes(owner.password),false);
     assert.notEqual(run().status,0);
     assert.equal(JSON.parse(fs.readFileSync(dir+'/owner.json')).password,owner.password);
+    const channelDir=root+'/channel',channel=spawnSync(process.execPath,['connector/setup.mjs','https://channel.example',channelDir,'--channel'],{encoding:'utf8'});
+    assert.equal(channel.status,0);
+    const secret=JSON.parse(fs.readFileSync(channelDir+'/channel-secrets.json')),agent=JSON.parse(fs.readFileSync(channelDir+'/agent.json'));
+    assert.equal(agent.channelOrigin,'https://channel.example');assert.equal(secret.AGENT_TOKEN,agent.agentToken);
+    assert.equal((fs.statSync(channelDir+'/channel-secrets.json').mode&0o777),0o600);
+    assert.equal(channel.stdout.includes(secret.SERVER_TOKEN),false);
   }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
