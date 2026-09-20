@@ -2,6 +2,7 @@ import {DurableObject} from 'cloudflare:workers';
 import catalog from '../catalog.json';
 import build from '../build.json';
 import {createHandler} from '../handler.mjs';
+import {decodeChannelMessage} from '../channel-codec.mjs';
 
 const ID=/^[a-f0-9]{64}$/,CALL=/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/;
 const PUBLIC_PATHS=new Set(['/mcp','/.well-known/oauth-protected-resource','/.well-known/oauth-authorization-server','/oauth/register','/oauth/authorize','/oauth/token']);
@@ -133,8 +134,7 @@ export class CommanderChannel extends DurableObject {
   }
   async webSocketMessage(ws,message){
     try{
-      if(typeof message!=='string'||message.length>1048576)throw Error('INVALID_MESSAGE');
-      const b=JSON.parse(message),a=ws.deserializeAttachment();
+      const b=await decodeChannelMessage(message),a=ws.deserializeAttachment();
       if(b.type==='ready'){a.ready=true;a.seen=Date.now();ws.serializeAttachment(a);ws.send(JSON.stringify({type:'ready'}));await this.dispatch();return;}
       if(!a.ready)throw Error('STALE_CONNECTION');
       a.seen=Date.now();ws.serializeAttachment(a);
