@@ -6,7 +6,14 @@
     "app": "Navish Commander",
     "permission": "full_access",
     "toolResult": "updated",
-    "explicitUserRequest": true
+    "explicitUserRequest": true,
+    "readback": {
+      "at": "2026-09-20T14:13:42.752522+00:00",
+      "status": "found",
+      "appPermission": "Allow all actions",
+      "globalPermission": "Allow low-risk actions",
+      "appSpecificOverride": true
+    }
   },
   "connectorVersion": "0.1.1",
   "connectorSourceSha256": "346ba2324e4427f1e31dda7558646716050175f777525dad97bb2f350fc307e1",
