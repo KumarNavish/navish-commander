@@ -56,7 +56,11 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
   class LocalSocket extends WebSocket{constructor(url,protocols){super(url.replace('wss://channel.example',origin.replace('http:','ws:')),protocols);sockets.push(this);}}
   try{
     await start();await client.connect(stdio);
-    assert.equal((await fetch(origin+'/invoke',{method:'POST',body:'{}'})).status,401);
+    // Fully consume negative probes and close their client connections before
+    // OAuth: an unread early response can contaminate the dev proxy pool.
+    // Do not retry registration or any subsequent mutation on failure.
+    const deniedInvoke=await fetch(origin+'/invoke',{method:'POST',body:'{}',headers:{connection:'close'}});
+    assert.equal(deniedInvoke.status,401);await deniedInvoke.text();
     const first=job('commander_write_file',{device:'local',callId:'channel-once',path:root+'/effect',content:'once\n',mode:'append'});
     assert.equal((await http('/invoke',first)).structuredContent.code,'MAC_AGENT_OFFLINE');
     agent=runChannelAgent({origin:'https://channel.example',token:agentToken,WebSocketImpl:LocalSocket,stopped:()=>stopping,log:v=>agentLog.push(v),
@@ -65,8 +69,12 @@ test('real SQLite Durable Object and outbound agent reconcile duplicates, reconn
     for(let i=0;i<100;i++){if((await http('/status',{})).online)break;await delay(50);}
     assert.equal((await http('/status',{})).online,true);
     // Exercise the public OAuth and SDK endpoint, not just the internal queue.
-    assert.equal((await fetch(origin+'/mcp',{method:'POST',body:'{}'})).status,401);
-    const registration=await (await fetch(origin+'/oauth/register',{method:'POST',body:JSON.stringify({redirect_uris:['https://chatgpt.com/connector_platform_oauth_redirect']})})).json();
+    const deniedMcp=await fetch(origin+'/mcp',{method:'POST',body:'{}',headers:{connection:'close'}});
+    assert.equal(deniedMcp.status,401);await deniedMcp.text();
+    const registrationResponse=await fetch(origin+'/oauth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({redirect_uris:['https://chatgpt.com/connector_platform_oauth_redirect']})});
+    const registrationBody=await registrationResponse.text();
+    assert.equal(registrationResponse.status,201,'OAuth registration: '+registrationBody);
+    const registration=JSON.parse(registrationBody);
     const verifier=crypto.randomBytes(40).toString('base64url'),params={client_id:registration.client_id,redirect_uri:registration.redirect_uris[0],response_type:'code',resource:origin+'/mcp',scope:'commander',state:'fixture',code_challenge_method:'S256',code_challenge:crypto.createHash('sha256').update(verifier).digest('base64url')};
     const html=await (await fetch(origin+'/oauth/authorize?'+new URLSearchParams(params))).text(),context=html.match(/name="context" value="([^"]+)"/)[1];
     const consent=await fetch(origin+'/oauth/authorize',{method:'POST',redirect:'manual',headers:{origin},body:new URLSearchParams({context,password:ownerPassword})});assert.equal(consent.status,303);

@@ -1,6 +1,6 @@
 # Acceptance ledger
 
-Version 1.5.0-rc.2 passes the defined local-plugin execution and conversation acceptance checks. Claude Code loaded the plugin and connected; the user-authorized alternative, Codex with its existing ChatGPT login, completed the packaged-server conversation and a separate reconnect conversation. The release remains an evaluation candidate: broad production chat reliability, independent certification, and ChatGPT directory approval are not established.
+The local runtime 1.5.0-rc.2 and personal connector 0.1.0 pass their defined execution throughput and controlled delivery gates. Version 1.5.0-rc.2 also passes the authorized local-client conversation checks. Claude Code loaded the plugin and connected; the user-authorized alternative, Codex with its existing ChatGPT login, completed the packaged-server conversation and a separate reconnect conversation. The release remains an evaluation candidate: broad production chat reliability, independent certification, and ChatGPT directory approval are not established.
 
 ## Comparative evidence
 
@@ -17,8 +17,8 @@ Final release results are recorded against source revision `55e71d443d003a1c65ef
 | Gate | Evidence/status |
 | --- | --- |
 | Real hosted RDC comparison | Executed through OAuth and Streamable HTTP |
-| 2× throughput in the defined execution workload | PASS: 2.80× staged and 3.11× inline; both lower interval bounds exceed 2× |
-| At least 50% fewer failures under the defined delivery faults | PASS: final fixed fault suite, 0/30 versus 10/30 failures (all ten RDC failures were duplicate effects) |
+| 2× throughput in the defined execution workload | PASS: personal HTTPS connector 2.304× (95% interval 2.122–2.401×); local plugin 2.80× staged and 3.11× inline |
+| At least 50% fewer failures under the defined delivery faults | PASS for both personal HTTPS and local routes: 0/30 versus 10/30 failures in each fixed suite (all RDC failures were duplicate effects) |
 | Duplicate suppression, caller loss, output draining, artifact verification, cancellation | Automated runtime/MCP regressions |
 | Claude Code recognizes the plugin and connects to its MCP server | Observed through `claude --plugin-dir … mcp list` |
 | Actual authorized-client conversation using the packaged server | PASS: Codex, eight initial calls and four calls after a new client process connected; all fixture predicates verified |
@@ -27,10 +27,10 @@ Final release results are recorded against source revision `55e71d443d003a1c65ef
 | Personal authenticated ChatGPT connector | Implemented and connected; fresh ordinary ChatGPT read verified; direct HTTPS write/reconnect/four-worker checks pass |
 | Unattended ChatGPT worker conversation | Not passed: model selected the wrong append content; approval layer stopped replay and worker launches |
 | Public ChatGPT directory approval | Not submitted or approved |
-| Cross-platform CI and extracted final bundle | PASS: six CI jobs; 92 runtime/MCP tests per platform matrix, 17 Chromium fixture tests, extracted-bundle MCP checks |
+| Cross-platform CI and extracted final bundle | PASS: six CI jobs; 102 runtime/MCP tests per platform matrix, 17 Chromium fixture tests, extracted-bundle MCP checks |
 | Installed Ego Lite and historical Komoot session | Earlier acceptance used a new authorized space; the original uncertain session remains preserved |
 
-The benchmark uses deterministic shell workers, not model-powered agents. The products take different supported routes: local stdio for Commander and the hosted relay for RDC. Network costs contribute to the measured difference. The local-only negative results remain relevant; these results do not show a universal runtime speedup.
+The benchmarks use deterministic shell workers, not model-powered agents. The original comparison uses local stdio for Commander and the hosted relay for RDC. The personal connector comparison uses both products' hosted HTTPS routes to the same Mac. Network and scheduling costs contribute to the measured differences. The local-only negative results remain relevant; these results do not show a universal runtime speedup.
 
 Controlled Chromium tests use a real browser and a test-only Ego adapter. They do not certify the installed Ego Lite application or a chat UI. The original rc.1 CI included a Chromium startup timeout; its transient cause was not established. Subsequent passing runs do not erase that observation.
 
@@ -38,8 +38,16 @@ A first rc.2 Linux/Node 24 run failed because a test assumed an acknowledged inp
 
 ## Personal HTTPS connector evidence
 
-The first two four-round pilots measured 0.931× and 0.925× RDC throughput. Independent storage reads were parallelized, and a 20-round follow-up measured 1.072×, with every outcome verified. Those observations remain public. The optional HTTPS route has not met the 2× target. The local-plugin results above must not be attributed to this different transport. A further recovery correction exposes receipt lookup by the original call ID after a lost first response and preserves uncertainty when queue publication acknowledgements are missing.
+The released connector source is `3ee6589c358cdda4f7e3f74a63cf728d61d2f4300e966a4ef6c71232c40b462a`. Its cloud health endpoints and pinned Mac installation attest that source. The core runtime digest remains `761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615`.
 
-The single-owner relay uses authenticated OAuth/PKCE and a separate agent credential. Its background Mac installation is pinned and its journals persist across restarts. The implementation requires no paid model API or new subscription. Free hosting and existing ChatGPT account limits still apply. Source publication and self-tests are not independent certification or a universal reliability guarantee.
+The actual personal ChatGPT HTTPS endpoint uses Netlify OAuth/edge routing, a Cloudflare SQLite Durable Object, and an outbound Mac WebSocket. With `ProcessType=Interactive` and precise timers, twenty paired inline rounds measured **2.304×** throughput (**833.36 ms** versus RDC's **1,920.05 ms**; paired 95% interval **2.122–2.401×**). All 40 product workflows and 160 workers verified. The separately frozen delivery suite observed **0/30** Commander failures and **10/30** RDC failures; all RDC failures were duplicate effects. Both products passed normal and reconnect cases. These gates pass for the specified workloads; the fixed fault mixture is not a production failure estimate.
 
-The final corrected connector was deployed and installed with matching source SHA-256 `4502665fd83db14f3e2f358a5aa147ba95c0eab2af2005ebf18597a04e0b63e9`. Twenty paired inline rounds measured **0.9361×** throughput (paired 95% interval **0.8347–1.0005×**). All 40 product-workflow observations verified, covering 160 workers. The 2× HTTPS gate remains **FAIL**. The [complete final report](../evidence/personal-connector-final-inline.json) records the source and installation hashes; the earlier favorable and unfavorable observations remain alongside it.
+Run `node scripts/verify-personal-connector.mjs` to recompute the reports' predicates and check source/harness hashes. The [throughput report](../evidence/personal-interactive-inline.json), [delivery report](../evidence/personal-interactive-delivery.json), and [acceptance record](../evidence/personal-connector-0.1.0-acceptance.json) preserve the measurements. Verification of a record is not a fresh hosted test or independent certification.
+
+Earlier negative results remain public: the initial polling pilots measured 0.931× and 0.925×; subsequent polling runs measured 1.072× and 0.9361×. The first WebSocket run with default macOS scheduling measured 2.0565× but failed because its lower interval bound was 1.8142×. A standalone Cloudflare run under default scheduling measured 1.8759×. The four-pair interactive-scheduling pilot was exploratory. The final 20-pair result above is the gate-bearing run. Its report records the exact launch profile and verifies it stayed unchanged.
+
+Owner-only OAuth/PKCE, a separate agent credential, immutable intents, durable acknowledgements, and reconnect journals protect the execution path. The installation uses existing Netlify Free and Cloudflare Workers Free accounts, with hard limits rather than paid overages. No paid model API or new subscription was used. Free quotas and the existing ChatGPT account's limits still apply.
+
+The earlier real ChatGPT mutation conversation failed: the model selected the wrong append content, a repeat was denied, and the platform's automatic review blocked worker launches. That adverse record remains unchanged. Protocol and execution benchmark passes do not override the chat result. Fully unattended ChatGPT execution, an actual Claude Desktop extension installation, public directory approval, and independent certification remain unestablished. The connector stays an evaluation candidate.
+
+A connector CI run at `5b2ed2a` failed in the local Wrangler proxy immediately after an unauthenticated request: OAuth registration received HTTP 500 with `Network connection lost`. The same revision's push workflow passed. The negative probes now consume their response bodies and close their client connections; the test also reports the registration status/body explicitly and never retries it. The full 102-test suite passed after this test-only change. Two additional focused comparisons passed under both connection modes, so these observations do not prove a unique root cause. [Run 35510018056](https://github.com/KumarNavish/navish-commander/actions/runs/35510018056) remains adverse evidence. Cloudflare has documented related dev-proxy stream failures, but equivalence to [issue 15203](https://github.com/cloudflare/workers-sdk/issues/15203) is an inference, not established. The deployed connector code was not changed to hide this test failure.
