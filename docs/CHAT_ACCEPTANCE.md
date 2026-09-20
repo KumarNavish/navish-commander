@@ -1,5 +1,15 @@
 # Conversation acceptance
 
+## Personal ChatGPT HTTPS connector, 20 September 2026
+
+A fresh ordinary ChatGPT chat, using the existing Pro subscription, automatically discovered Navish Commander without an app mention and read the exact undisclosed fixture line from the Mac. Owner OAuth and all eleven tool definitions were observed in the real ChatGPT UI. Global personalization was saved and read back, including the instruction to use existing subscriptions/free tiers and incur no new spending. Personal settings and their original backup remain private.
+
+The follow-up mutation test did **not** pass. The model used the earlier opaque proof as the append content instead of the requested literal `exactly-once`. Its first append completed. The second identical call triggered an opaque-payload review, which the supervising acceptance run denied. OpenAI's safety checks separately blocked a batch launch before dispatch. The model reported further blocked attempts; these are not counted as executions. Independent inspection found a single 55-byte append and no worker artifacts. The low-risk permission default was preserved. The [sanitized tool trace](../evidence/personal-connector-acceptance.json) retains the adverse evidence.
+
+Separately, a real OAuth/HTTPS protocol client against the deployed relay passed a fresh file challenge, a repeated append across a new client connection, and four parallel workers with independently verified hashes. The agent was then updated after checking that its journal and queue had no in-flight work; fresh protocol checks passed again. This proves transport/runtime behavior, not an unattended ChatGPT workflow or universal agent reliability.
+
+## Packaged local MCP client, rc.2
+
 The user selected another already-authorized client after Claude Desktop reached its message limit. Codex CLI 0.155.0-alpha.9.2, authenticated through the existing ChatGPT login, then exercised the extracted rc.2 package through its real MCP tool path. No extra credits or model subscriptions were purchased.
 
 The first configuration used `approval_policy=never`, which caused the client to refuse mutation tools before dispatch. The successful run used normal automatic review (`--approve-for-me`) with the same stable operation IDs. No denied safety review was bypassed. This configuration failure remains in the evidence.

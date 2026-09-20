@@ -44,7 +44,7 @@ npm install --prefix .bench/baseline --ignore-scripts --no-audit --no-fund @wond
 npm run benchmark
 ```
 
-The hosted-route results include the architectural advantage of local execution avoiding a cloud relay. They do not establish equal-network-hop performance, a hosted Navish service, model-driven multi-agent productivity, or a general chat reliability ratio. Real conversation tests must use matched clients/models and independently verified outputs before extending the claim to those settings.
+The original local-plugin hosted-route results include the architectural advantage of local execution avoiding a cloud relay. They do not establish equal-network-hop performance, a hosted Navish service, model-driven multi-agent productivity, or a general chat reliability ratio. Real conversation tests must use matched clients/models and independently verified outputs before extending the claim to those settings.
 
 ## Frozen rc.2 results
 
@@ -56,3 +56,19 @@ The hosted-route results include the architectural advantage of local execution 
 All 80 product-workflow outcomes verified. Final controlled delivery failures were 0/30 for Commander and 10/30 for RDC; RDC's ten duplicate-delivery trials produced duplicate effects. Both products passed every normal and reconnect trial. The measured relative failure reduction in this specified mixture was 100%; this does not imply a zero production failure rate.
 
 The three `evidence/hosted-rdc-rc2-*.json` files bind the trials to revision `55e71d443d003a1c65ef785911411f559550391b` and runtime digest `761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615`. Later documentation and evidence commits preserve those runtime bytes. `scripts/verify_release.py` checks that the downloaded release contains the same runtime, matches the authored files in its checkout, and satisfies the recorded gates. The complete harnesses allow independent reruns; the records are project-generated evidence, not a third-party certificate.
+
+## Personal HTTPS connector 0.1.0
+
+The connector comparison uses the actual configured personal HTTPS endpoint, traversing Netlify's authenticated edge, a Cloudflare SQLite Durable Object, and an outbound WebSocket to the same Mac used by RDC. Both products use their supported hosted routes. The workload, four-worker concurrency, alternating paired order, timing boundaries, artifact predicates, and 20-round/95%-lower-bound gate match the inline protocol above. No model is involved. Mac launchd uses `ProcessType=Interactive` and `LegacyTimers=true`; the report records and freezes this profile as well as cloud, installed-agent, core, and harness hashes.
+
+| Workload | Commander median | RDC median | Ratio | 95% paired interval |
+| --- | ---: | ---: | ---: | ---: |
+| Personal HTTPS inline, 20 pairs | 793.06 ms | 2,005.20 ms | 2.528× | 2.254–2.735× |
+
+All 40 product workflows verified, covering 160 worker executions. The separate 60-workflow delivery suite observed 0/30 Commander failures versus 10/30 RDC failures, all in duplicate-delivery cases. The measured failure reduction is 100% for this deliberate mixture, not everyday chat usage. This tests deterministic parallel execution, not model-driven multi-agent productivity.
+
+`evidence/personal-interactive-inline.json` and `evidence/personal-interactive-delivery.json` bind the measurements to source revision `6ee0a026e60ace02158d635a63bd7f84d2a97702` and connector digest `87bd658b2c5ead959a5cf515e1b0fdb133d6c9aac4db15a7f5b5aa0058977490`. Recompute the recorded gates with `node scripts/verify-personal-connector.mjs`. CI does this without credentials or live commands.
+
+For an independent live run, authorize RDC using the existing harness, provision your own private connector test OAuth client, then set `RDC_BENCH_DEVICE`, `CONNECTOR_URL`, `CONNECTOR_CHANNEL_URL`, and `CONNECTOR_OAUTH_FILE`. Run `BENCH_ROUNDS=20 BENCH_WAIT_POLICY=inline BENCH_REPORT=evidence/my-personal-inline.json node scripts/benchmark-personal-connector.mjs`; use `BENCH_ROUNDS=10` and `scripts/benchmark-personal-delivery.mjs` for the fault suite. Keep OAuth credentials private. The harness targets the explicitly identified Mac and isolated fixture paths.
+
+The previous polling, default-scheduling channel, and direct-endpoint reports remain in `evidence/`, including every negative result. The standalone Cloudflare endpoint passes protocol tests; the final 2× measurement applies specifically to the configured Netlify-fronted personal endpoint. A new host, profile, route, or model workflow requires its own measurements.

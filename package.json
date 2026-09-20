@@ -20,10 +20,12 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
+    "@netlify/blobs": "11.1.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
-    "@anthropic-ai/mcpb": "2.1.2"
+    "@anthropic-ai/mcpb": "2.1.2",
+    "wrangler": "4.135.0"
   },
   "overrides": {
     "tmp": "0.2.7"

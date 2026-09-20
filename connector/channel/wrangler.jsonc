@@ -1,0 +1,12 @@
+{
+  "name": "navish-commander-channel",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "durable_objects": {
+    "bindings": [{"name": "CHANNEL", "class_name": "CommanderChannel"}]
+  },
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["CommanderChannel"]}]
+}

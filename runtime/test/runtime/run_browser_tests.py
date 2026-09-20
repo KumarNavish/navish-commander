@@ -88,7 +88,9 @@ def main():
             '--no-first-run', '--remote-debugging-port=0', '--user-data-dir=' + str(directory),
             'about:blank',
         ], stdout=log, stderr=log, start_new_session=True)
-        deadline = time.monotonic() + 10
+        # A cold shared CI runner can take longer than ten seconds to start.
+        # This only waits for readiness; it never retries browser actions.
+        deadline = time.monotonic() + 30
         active = directory / 'DevToolsActivePort'
         while not active.exists() and browser.poll() is None and time.monotonic() < deadline:
             time.sleep(.03)

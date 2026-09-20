@@ -1,0 +1,875 @@
+{
+  "schema": "navish.personal-connector-acceptance/v1",
+  "date": "2026-09-20",
+  "connector": {
+    "version": "0.1.0",
+    "runtimeVersion": "1.5.0-rc.2",
+    "status": "evaluation-candidate",
+    "sourceSha256": "4502665fd83db14f3e2f358a5aa147ba95c0eab2af2005ebf18597a04e0b63e9"
+  },
+  "runtimeSourceSha256": "761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615",
+  "protocolVerification": {
+    "at": "2026-09-20T11:05:46.670Z",
+    "tools": 11,
+    "exactlyOnce": true,
+    "workers": 4,
+    "allHashesMatch": true,
+    "clientReconnect": true,
+    "traceSha256": "43b9b56d5836833e6f5eda75c8ab70b8d229744bd6a4ee8cf1d11e9aa119f4c5"
+  },
+  "protocolTrace": [
+    {
+      "name": "commander_devices",
+      "args": {},
+      "result": {
+        "state": "completed",
+        "devices": [
+          {
+            "id": "local",
+            "type": "local",
+            "online": true
+          }
+        ],
+        "platform": "darwin",
+        "processRuntime": {
+          "pythonAvailable": true,
+          "pythonVersion": "3.9.6"
+        }
+      },
+      "elapsedMs": 2650
+    },
+    {
+      "name": "commander_read_file",
+      "args": {
+        "device": "local",
+        "path": "$FIXTURE/release-fixture/challenge"
+      },
+      "result": {
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T11:05:39.904Z",
+        "finishedAt": "2026-09-20T11:05:39.994Z",
+        "observation": true,
+        "receiptPersisted": false,
+        "retrySafe": false,
+        "result": {
+          "path": "$FIXTURE/release-fixture/challenge",
+          "type": "text",
+          "content": "proof-3c1d3015c800a509c6305bb1da146dff5b5c40bdcbe0d185\n",
+          "size": 55,
+          "truncated": false,
+          "mode": 384
+        }
+      },
+      "elapsedMs": 1426
+    },
+    {
+      "name": "commander_write_file",
+      "args": {
+        "device": "local",
+        "callId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-write",
+        "path": "$FIXTURE/release-fixture/append",
+        "content": "exactly-once\n",
+        "mode": "append"
+      },
+      "result": {
+        "callId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-write",
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T11:05:42.629Z",
+        "finishedAt": "2026-09-20T11:05:42.686Z",
+        "retrySafe": false,
+        "result": {
+          "path": "$FIXTURE/release-fixture/append",
+          "bytes": 13,
+          "mode": "append"
+        }
+      },
+      "elapsedMs": 2728
+    },
+    {
+      "name": "commander_write_file",
+      "args": {
+        "device": "local",
+        "callId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-write",
+        "path": "$FIXTURE/release-fixture/append",
+        "content": "exactly-once\n",
+        "mode": "append"
+      },
+      "result": {
+        "callId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-write",
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T11:05:42.629Z",
+        "finishedAt": "2026-09-20T11:05:42.686Z",
+        "retrySafe": false,
+        "result": {
+          "path": "$FIXTURE/release-fixture/append",
+          "bytes": 13,
+          "mode": "append"
+        }
+      },
+      "elapsedMs": 335
+    },
+    {
+      "name": "commander_start_batch",
+      "args": {
+        "device": "local",
+        "callId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-start",
+        "batchId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-batch",
+        "workers": [
+          {
+            "id": "a",
+            "role": "connector acceptance",
+            "cwd": "$FIXTURE/release-fixture/a",
+            "transport": "pipe",
+            "command": "printf 'a' > artifact",
+            "artifacts": [
+              {
+                "path": "artifact",
+                "sha256": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "role": "connector acceptance",
+            "cwd": "$FIXTURE/release-fixture/b",
+            "transport": "pipe",
+            "command": "printf 'b' > artifact",
+            "artifacts": [
+              {
+                "path": "artifact",
+                "sha256": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d"
+              }
+            ]
+          },
+          {
+            "id": "c",
+            "role": "connector acceptance",
+            "cwd": "$FIXTURE/release-fixture/c",
+            "transport": "pipe",
+            "command": "printf 'c' > artifact",
+            "artifacts": [
+              {
+                "path": "artifact",
+                "sha256": "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6"
+              }
+            ]
+          },
+          {
+            "id": "d",
+            "role": "connector acceptance",
+            "cwd": "$FIXTURE/release-fixture/d",
+            "transport": "pipe",
+            "command": "printf 'd' > artifact",
+            "artifacts": [
+              {
+                "path": "artifact",
+                "sha256": "18ac3e7343f016890c510e93f935261169d9e3f565436429830faf0934f4f8e4"
+              }
+            ]
+          }
+        ],
+        "wait_ms": 1000
+      },
+      "result": {
+        "callId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-start",
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T11:05:44.775Z",
+        "finishedAt": "2026-09-20T11:05:45.135Z",
+        "retrySafe": false,
+        "batchId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-batch",
+        "result": {
+          "batchId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-batch",
+          "state": "completed",
+          "createdAt": "2026-09-20T11:05:44.815Z",
+          "specHash": "5dba9a2ce80f756c3dc1f33259520d0499751455b91cae112fb9e8ca916e4190",
+          "counts": {
+            "unsubmitted": 0,
+            "launching": 0,
+            "running": 0,
+            "completed": 4,
+            "failed": 0,
+            "uncertain": 0,
+            "unknown": 0
+          },
+          "workers": [
+            {
+              "id": "a",
+              "role": "connector acceptance",
+              "cwd": "$FIXTURE/release-fixture/a",
+              "sessionId": "batch-e95f3eb8bf571832998c550a51defea8444c66d7b8dd1a02",
+              "pid": 13230,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T11:05:44.978Z",
+              "finishedAt": "2026-09-20T11:05:45.047Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact",
+                  "ok": true,
+                  "bytes": 1,
+                  "sha256": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+                }
+              ]
+            },
+            {
+              "id": "b",
+              "role": "connector acceptance",
+              "cwd": "$FIXTURE/release-fixture/b",
+              "sessionId": "batch-e0821e2669965830b3028f6ed7dbffa02982f67540a51019",
+              "pid": 13229,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T11:05:44.978Z",
+              "finishedAt": "2026-09-20T11:05:45.033Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact",
+                  "ok": true,
+                  "bytes": 1,
+                  "sha256": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d"
+                }
+              ]
+            },
+            {
+              "id": "c",
+              "role": "connector acceptance",
+              "cwd": "$FIXTURE/release-fixture/c",
+              "sessionId": "batch-9b3f8926919348dcd20cfd066deeaac53af15224558b94fd",
+              "pid": 13233,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T11:05:44.996Z",
+              "finishedAt": "2026-09-20T11:05:45.065Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact",
+                  "ok": true,
+                  "bytes": 1,
+                  "sha256": "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6"
+                }
+              ]
+            },
+            {
+              "id": "d",
+              "role": "connector acceptance",
+              "cwd": "$FIXTURE/release-fixture/d",
+              "sessionId": "batch-55163431f24f2f0a1ad591e3bc375794b1bddf2ecce5a3c6",
+              "pid": 13235,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T11:05:45.033Z",
+              "finishedAt": "2026-09-20T11:05:45.099Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact",
+                  "ok": true,
+                  "bytes": 1,
+                  "sha256": "18ac3e7343f016890c510e93f935261169d9e3f565436429830faf0934f4f8e4"
+                }
+              ]
+            }
+          ],
+          "completionLevel": "workers-and-declared-artifacts",
+          "goalVerified": false,
+          "waitExpired": false,
+          "reused": false
+        }
+      },
+      "elapsedMs": 1687
+    },
+    {
+      "name": "commander_collect_batch",
+      "args": {
+        "device": "local",
+        "batchId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-batch",
+        "wait_ms": 10000
+      },
+      "result": {
+        "state": "completed",
+        "operationState": "completed",
+        "startedAt": "2026-09-20T11:05:46.284Z",
+        "finishedAt": "2026-09-20T11:05:46.293Z",
+        "observation": true,
+        "receiptPersisted": false,
+        "retrySafe": false,
+        "batchId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-batch",
+        "result": {
+          "batchId": "personal-relay-e8fa5958-22b6-4150-8d73-4adc198cd13b-batch",
+          "state": "completed",
+          "createdAt": "2026-09-20T11:05:44.815Z",
+          "specHash": "5dba9a2ce80f756c3dc1f33259520d0499751455b91cae112fb9e8ca916e4190",
+          "counts": {
+            "unsubmitted": 0,
+            "launching": 0,
+            "running": 0,
+            "completed": 4,
+            "failed": 0,
+            "uncertain": 0,
+            "unknown": 0
+          },
+          "workers": [
+            {
+              "id": "a",
+              "role": "connector acceptance",
+              "cwd": "$FIXTURE/release-fixture/a",
+              "sessionId": "batch-e95f3eb8bf571832998c550a51defea8444c66d7b8dd1a02",
+              "pid": 13230,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T11:05:44.978Z",
+              "finishedAt": "2026-09-20T11:05:45.047Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact",
+                  "ok": true,
+                  "bytes": 1,
+                  "sha256": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+                }
+              ]
+            },
+            {
+              "id": "b",
+              "role": "connector acceptance",
+              "cwd": "$FIXTURE/release-fixture/b",
+              "sessionId": "batch-e0821e2669965830b3028f6ed7dbffa02982f67540a51019",
+              "pid": 13229,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T11:05:44.978Z",
+              "finishedAt": "2026-09-20T11:05:45.033Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact",
+                  "ok": true,
+                  "bytes": 1,
+                  "sha256": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d"
+                }
+              ]
+            },
+            {
+              "id": "c",
+              "role": "connector acceptance",
+              "cwd": "$FIXTURE/release-fixture/c",
+              "sessionId": "batch-9b3f8926919348dcd20cfd066deeaac53af15224558b94fd",
+              "pid": 13233,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T11:05:44.996Z",
+              "finishedAt": "2026-09-20T11:05:45.065Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact",
+                  "ok": true,
+                  "bytes": 1,
+                  "sha256": "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6"
+                }
+              ]
+            },
+            {
+              "id": "d",
+              "role": "connector acceptance",
+              "cwd": "$FIXTURE/release-fixture/d",
+              "sessionId": "batch-55163431f24f2f0a1ad591e3bc375794b1bddf2ecce5a3c6",
+              "pid": 13235,
+              "state": "completed",
+              "processState": "completed",
+              "exitCode": 0,
+              "startedAt": "2026-09-20T11:05:45.033Z",
+              "finishedAt": "2026-09-20T11:05:45.099Z",
+              "output": "",
+              "outputBytes": 0,
+              "outputTruncated": false,
+              "artifacts": [
+                {
+                  "path": "artifact",
+                  "ok": true,
+                  "bytes": 1,
+                  "sha256": "18ac3e7343f016890c510e93f935261169d9e3f565436429830faf0934f4f8e4"
+                }
+              ]
+            }
+          ],
+          "completionLevel": "workers-and-declared-artifacts",
+          "goalVerified": false,
+          "waitExpired": false
+        }
+      },
+      "elapsedMs": 1034
+    }
+  ],
+  "chat": {
+    "surface": "ordinary ChatGPT Chat; existing Pro subscription",
+    "automaticToolSelection": true,
+    "readChallengeMatches": true,
+    "settings": "Allow low-risk actions; no permission expansion",
+    "mutationAcceptancePassed": false,
+    "observations": [
+      "Fresh chat selected Commander without a tool name or app mention in the prompt and returned the undisclosed random fixture line.",
+      "The model misinterpreted the append content and used the prior read proof instead of the requested literal exactly-once.",
+      "The first append executed; the repeated append triggered an opaque-payload approval prompt and was denied by the supervising acceptance run.",
+      "A worker batch was rejected by OpenAI safety checks before dispatch. The model reported that an equivalent batch and exit-7 process were also blocked; these claims are not counted as executions.",
+      "Independent filesystem inspection found one 55-byte append and zero worker artifacts. No blocked operation was subsequently replayed by the acceptance harness."
+    ],
+    "toolCalls": [
+      {
+        "connector": "Navish Commander",
+        "name": "commander_devices",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to discover exact paired device IDs before execution.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {},
+        "toolOutput": {
+          "state": "completed",
+          "devices": [
+            {
+              "id": "local",
+              "type": "local",
+              "online": true
+            },
+            {
+              "id": "[other paired device redacted]",
+              "type": "ssh",
+              "online": null
+            },
+            {
+              "id": "[other paired device redacted]",
+              "type": "ssh",
+              "online": null
+            },
+            {
+              "id": "[other paired device redacted]",
+              "type": "ssh",
+              "online": null
+            },
+            {
+              "id": "[other paired device redacted]",
+              "type": "ssh",
+              "online": null
+            },
+            {
+              "id": "[other paired device redacted]",
+              "type": "ssh",
+              "online": null
+            },
+            {
+              "id": "[other paired device redacted]",
+              "type": "ssh",
+              "online": null
+            },
+            {
+              "id": "[other paired device redacted]",
+              "type": "ssh",
+              "online": null
+            },
+            {
+              "id": "[other paired device redacted]",
+              "type": "ssh",
+              "online": null
+            }
+          ],
+          "platform": "darwin",
+          "processRuntime": {
+            "pythonAvailable": true,
+            "pythonVersion": "3.9.6"
+          }
+        },
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_read_file",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "path": "$FIXTURE/chat-plan.json",
+          "maxBytes": 65536,
+          "offset": 0,
+          "length": 1000
+        },
+        "toolOutput": {
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T10:46:14.358Z",
+          "finishedAt": "2026-09-20T10:46:14.361Z",
+          "observation": true,
+          "receiptPersisted": false,
+          "retrySafe": false,
+          "result": {
+            "path": "$FIXTURE/chat-plan.json",
+            "type": "text",
+            "content": "{\n  \"id\": \"chat-live-20260920-e8c110b0a3f0\",\n  \"root\": \"$FIXTURE/chat-fixture\",\n  \"workers\": [\n    {\n      \"id\": \"alpha\",\n      \"cwd\": \"$FIXTURE/chat-fixture/alpha\",\n      \"content\": \"alpha\\n\",\n      \"sha256\": \"b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060\"\n    },\n    {\n      \"id\": \"beta\",\n      \"cwd\": \"$FIXTURE/chat-fixture/beta\",\n      \"content\": \"beta\\n\",\n      \"sha256\": \"f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad\"\n    },\n    {\n      \"id\": \"gamma\",\n      \"cwd\": \"$FIXTURE/chat-fixture/gamma\",\n      \"content\": \"gamma\\n\",\n      \"sha256\": \"ae9a6306a205417afddd14316cc1d0d5e04a98f1be10865dce643925ee070ce2\"\n    },\n    {\n      \"id\": \"delta\",\n      \"cwd\": \"$FIXTURE/chat-fixture/delta\",\n      \"content\": \"delta\\n\",\n      \"sha256\": \"673953e0ad7fc53247f4feadc2c2d4506396840d1f8796526f48d47333ac7652\"\n    }\n  ]\n}",
+            "size": 1237,
+            "truncated": false,
+            "mode": 384
+          }
+        },
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_read_file",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "path": "$FIXTURE/chat-fixture/append.txt",
+          "maxBytes": 65536,
+          "offset": 0,
+          "length": 1000
+        },
+        "toolOutput": {
+          "state": "failed",
+          "operationState": "failed",
+          "code": "ENOENT",
+          "reason": "ENOENT: no such file or directory, stat '$FIXTURE/chat-fixture/append.txt'",
+          "startedAt": "2026-09-20T10:46:28.081Z",
+          "finishedAt": "2026-09-20T10:46:28.085Z",
+          "observation": true,
+          "receiptPersisted": false,
+          "retrySafe": false,
+          "result": null,
+          "is_error": true
+        },
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_read_file",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "path": "$FIXTURE/chat-fixture/challenge",
+          "maxBytes": 65536,
+          "offset": 0,
+          "length": 1000
+        },
+        "toolOutput": {
+          "state": "failed",
+          "operationState": "failed",
+          "code": "ENOENT",
+          "reason": "ENOENT: no such file or directory, stat '$FIXTURE/chat-fixture/challenge'",
+          "startedAt": "2026-09-20T10:46:43.540Z",
+          "finishedAt": "2026-09-20T10:46:43.543Z",
+          "observation": true,
+          "receiptPersisted": false,
+          "retrySafe": false,
+          "result": null,
+          "is_error": true
+        },
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_write_file",
+        "badges": [
+          "write",
+          "open_world",
+          "destructive"
+        ],
+        "toolDescription": "Use this to write a user-authorized file. Keep the same callId for the same write intent.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "callId": "chat-live-20260920-e8c110b0a3f0-append",
+          "path": "$FIXTURE/chat-fixture/append.txt",
+          "content": "proof-5944e02052b63ada8743b12261db10efe28557108d5ba00e\n",
+          "mode": "append"
+        },
+        "toolOutput": {
+          "callId": "chat-live-20260920-e8c110b0a3f0-append",
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T10:46:58.405Z",
+          "finishedAt": "2026-09-20T10:46:58.439Z",
+          "retrySafe": false,
+          "result": {
+            "path": "$FIXTURE/chat-fixture/append.txt",
+            "bytes": 55,
+            "mode": "append"
+          }
+        },
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_write_file",
+        "badges": [
+          "write",
+          "open_world",
+          "destructive"
+        ],
+        "toolDescription": "Use this to write a user-authorized file. Keep the same callId for the same write intent.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "callId": "chat-live-20260920-e8c110b0a3f0-append",
+          "path": "$FIXTURE/chat-fixture/append.txt",
+          "content": "proof-5944e02052b63ada8743b12261db10efe28557108d5ba00e\n",
+          "mode": "append"
+        },
+        "toolOutput": "ToolError: This particular path of the tool requires approval or login from the user, and the user has declined. Do not try to invoke this particular path again. You may try invoking a different path of the tool.",
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_read_file",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "path": "$FIXTURE/chat-fixture/append.txt",
+          "maxBytes": 65536,
+          "offset": 0,
+          "length": 1000
+        },
+        "toolOutput": {
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T10:48:24.529Z",
+          "finishedAt": "2026-09-20T10:48:24.534Z",
+          "observation": true,
+          "receiptPersisted": false,
+          "retrySafe": false,
+          "result": {
+            "path": "$FIXTURE/chat-fixture/append.txt",
+            "type": "text",
+            "content": "proof-5944e02052b63ada8743b12261db10efe28557108d5ba00e\n",
+            "size": 55,
+            "truncated": false,
+            "mode": 420
+          }
+        },
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_start_batch",
+        "badges": [
+          "write",
+          "open_world",
+          "destructive"
+        ],
+        "toolDescription": "Use this to launch up to 16 independent authorized workers. Set each noninteractive worker transport to pipe; use pty when a terminal is required. Use separate working directories for edits, stable IDs, and artifact hashes where possible. This launches commands; it does not supply or pay for language models.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "callId": "chat-live-20260920-e8c110b0a3f0-start",
+          "batchId": "chat-live-20260920-e8c110b0a3f0-batch",
+          "workers": [
+            {
+              "id": "alpha",
+              "role": "write alpha artifact",
+              "command": "printf 'alpha\\n' > artifact.txt",
+              "cwd": "$FIXTURE/chat-fixture/alpha",
+              "transport": "pipe",
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "sha256": "b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060"
+                }
+              ]
+            },
+            {
+              "id": "beta",
+              "role": "write beta artifact",
+              "command": "printf 'beta\\n' > artifact.txt",
+              "cwd": "$FIXTURE/chat-fixture/beta",
+              "transport": "pipe",
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "sha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+                }
+              ]
+            },
+            {
+              "id": "gamma",
+              "role": "write gamma artifact",
+              "command": "printf 'gamma\\n' > artifact.txt",
+              "cwd": "$FIXTURE/chat-fixture/gamma",
+              "transport": "pipe",
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "sha256": "ae9a6306a205417afddd14316cc1d0d5e04a98f1be10865dce643925ee070ce2"
+                }
+              ]
+            },
+            {
+              "id": "delta",
+              "role": "write delta artifact",
+              "command": "printf 'delta\\n' > artifact.txt",
+              "cwd": "$FIXTURE/chat-fixture/delta",
+              "transport": "pipe",
+              "artifacts": [
+                {
+                  "path": "artifact.txt",
+                  "sha256": "673953e0ad7fc53247f4feadc2c2d4506396840d1f8796526f48d47333ac7652"
+                }
+              ]
+            }
+          ],
+          "wait_ms": 1000,
+          "maxTotalBytes": 16384
+        },
+        "toolOutput": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+        "toolResponseMetadata": null
+      },
+      {
+        "connector": "Navish Commander",
+        "name": "commander_read_file",
+        "badges": [
+          "read",
+          "open_world"
+        ],
+        "toolDescription": "Use this to read a bounded file on an explicitly selected device.",
+        "widget": {
+          "template": null,
+          "state": null,
+          "responseMetadata": null,
+          "externalCallTimeMs": null
+        },
+        "toolInput": {
+          "device": "local",
+          "path": "$FIXTURE/chat-fixture/append.txt",
+          "maxBytes": 65536,
+          "offset": 0,
+          "length": 1000
+        },
+        "toolOutput": {
+          "state": "completed",
+          "operationState": "completed",
+          "startedAt": "2026-09-20T10:48:40.462Z",
+          "finishedAt": "2026-09-20T10:48:40.464Z",
+          "observation": true,
+          "receiptPersisted": false,
+          "retrySafe": false,
+          "result": {
+            "path": "$FIXTURE/chat-fixture/append.txt",
+            "type": "text",
+            "content": "proof-5944e02052b63ada8743b12261db10efe28557108d5ba00e\n",
+            "size": 55,
+            "truncated": false,
+            "mode": 420
+          }
+        },
+        "toolResponseMetadata": null
+      }
+    ],
+    "rawToolTraceSha256": "4475de4aab4b8f4c57b6256af5ac0003ee0edf32141543d85023e6a47b9ae0b6",
+    "rawConversationSnapshotSha256": "8832f51e06878e2c8899ed62d060a36f1fe15e8090ffd67242de43e042fb4646"
+  },
+  "fullUnattendedChatCertification": false,
+  "independentCertification": false,
+  "newPaidServicesOrModelCalls": false,
+  "earlierProtocolConnector": {
+    "version": "0.1.0",
+    "runtimeVersion": "1.5.0-rc.2",
+    "status": "evaluation-candidate",
+    "sourceSha256": "e0d17e258bdb09992525865679c670f1d9c94ecdbecb1862c9fd5f5a2c80c4da"
+  },
+  "earlierProtocolVerification": {
+    "at": "2026-09-20T10:59:37.043Z",
+    "tools": 11,
+    "exactlyOnce": true,
+    "workers": 4,
+    "allHashesMatch": true,
+    "clientReconnect": true,
+    "traceSha256": "87dd6b436c57740b781d3863decfffa8c1050d0a519073df954f4b5723b94a1a"
+  },
+  "throughputReport": "personal-connector-final-inline.json",
+  "throughputTargetPassed": false
+}
