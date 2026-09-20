@@ -35,9 +35,19 @@ test('pipe worker drains large output before publishing completion',async()=>{
 test('pipe input survives caller return and owned cancellation publishes failure',async()=>{
   const {home,P}=setup();
   await startProcessTool({sessionId:'input',transport:'pipe',cwd:home,command:'read answer; printf "received:%s" "$answer"; sleep 30',timeout_ms:0},P);
-  const response=await interactProcessTool({sessionId:'input',input:'fixture',wait_ms:150},P);
-  assert.match(response.output,/received:fixture/);
-  await terminateProcessTool({sessionId:'input'},P);
+  try{
+    const response=await interactProcessTool({sessionId:'input',input:'fixture',wait_ms:150},P);
+    assert.equal(response.ok,true);
+    // Input acknowledgement does not promise the shell has been scheduled yet.
+    // Observe the durable output without sending the input a second time.
+    const deadline=Date.now()+5000;let output;
+    do{
+      output=readProcessOutputTool({sessionId:'input',offset:0},P).output;
+      if(output.includes('received:fixture'))break;
+      await pause(20);
+    }while(Date.now()<deadline);
+    assert.equal(output,'received:fixture');
+  }finally{await terminateProcessTool({sessionId:'input'},P);}
   const observed=await done('input',P);assert.equal(observed.state,'failed');assert.notEqual(observed.exitCode,0);
 });
 test('mixed pipe and PTY batches retain exact effects on repeated launch',async()=>{
