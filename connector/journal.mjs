@@ -19,7 +19,7 @@ function correlate(job,response){
   // detect a misplaced output and recover this exact operation without replay.
   // Never echo command bodies, file contents, environment or owner metadata.
   const connectorOperation={operationId:job.id,toolName:job.name,requestSha256:job.fingerprint};
-  for(const key of ['device','path','callId','sessionId','batchId'])
+  for(const key of ['device','path','callId','sessionId','batchId','jobId','repository'])
     if(typeof job.args[key]==='string')connectorOperation[key]=job.args[key];
   const correlated={...value,connectorOperation};
   return {...response,...toolResult(correlated,response.isError===true),

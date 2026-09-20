@@ -58,7 +58,7 @@ test('HTTP MCP enforces auth while supporting actual SDK initialization and cata
   });
   try{
     await client.connect(transport);
-    const list=await client.listTools();assert.equal(list.tools.length,11);
+    const list=await client.listTools();assert.equal(list.tools.length,15);
     assert.equal(list.tools.find(t=>t.name==='commander_write_file').annotations.readOnlyHint,false);
     const offline=await client.callTool({name:'commander_devices',arguments:{}});
     assert.equal(offline.structuredContent.code,'MAC_AGENT_OFFLINE');assert.equal(offline.structuredContent.dispatched,false);
@@ -162,6 +162,17 @@ test('correlation keeps failed outcomes and excludes command bodies and secrets'
     assert.equal(reply.structuredContent.connectorOperation.sessionId,args.sessionId);
     assert.equal(reply.structuredContent.connectorOperation.callId,args.callId);
     assert.ok(!JSON.stringify(reply).includes('PRIVATE_'));
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('repository job identity survives response journaling without exposing its goal',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'navish-job-correlation-'));
+  const args={device:'local',callId:'job-start',jobId:'engineering-job',repository:'/tmp/repository',goal:'PRIVATE_GOAL_MARKER'};
+  const name='commander_start_job',job={id:sha('mutation:'+args.callId),name,args,mutating:true,fingerprint:sha(canonical({name,args})),expiresAt:Date.now()+60000};
+  try{
+    const reply=await executeJournaledJob({job,stateDir:dir,call:async()=>toolResult({state:'completed',operationState:'running'},false),upload:async()=>{}});
+    assert.equal(reply.structuredContent.connectorOperation.jobId,args.jobId);
+    assert.equal(reply.structuredContent.connectorOperation.repository,args.repository);
+    assert.ok(!JSON.stringify(reply).includes('PRIVATE_GOAL_MARKER'));
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
 test('relay queue to real stdio MCP preserves exact-once file effect and four worker artifacts',async()=>{

@@ -2,11 +2,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { callTool,reconcile,pairAddCommand,pairRemoveCommand,devicesCommand,VERSION,TOOL_NAMES } from '../src/core.mjs';
+import { callTool,observeLocalTool,reconcile,pairAddCommand,pairRemoveCommand,devicesCommand,VERSION,TOOL_NAMES } from '../src/core.mjs';
 import { paths as getPaths,ensureBase,loadConfig,saveConfig } from '../src/config.mjs';
-import { randomId,run } from '../src/util.mjs';
+import { randomId,run,isSafeId } from '../src/util.mjs';
 
-const argv=process.argv.slice(2); const cmd=argv.shift(); const P=ensureBase(getPaths());
+const argv=process.argv.slice(2); const cmd=argv.shift(); const P=getPaths();
 function take(name,def=null){const i=argv.indexOf(name);if(i<0)return def;const v=argv[i+1];argv.splice(i,2);return v}
 function has(name){const i=argv.indexOf(name);if(i<0)return false;argv.splice(i,1);return true}
 function out(x){process.stdout.write(JSON.stringify(x,null,2)+'\n')}
@@ -17,8 +17,24 @@ function compactReceipt(r){
   const c={}; for(const k of keep) if(Object.prototype.hasOwnProperty.call(r,k)) c[k]=r[k];
   return c;
 }
-function help(){console.log(`Navish Commander ${VERSION}\n\nUsage:\n  navish devices\n  navish tools [device]\n  navish call <device> <tool> [args-json] [--call-id ID] [--resources-b64 BASE64] [--compact] [--json]\n  navish pair add <ssh-target> --name NAME\n  navish pair remove NAME\n  navish reconcile --call-id ID\n  navish config get\n  navish config set KEY JSON_VALUE\n  navish doctor\n  navish selftest\n  navish github-control ...\n`)}
+function help(){console.log(`Navish Commander ${VERSION}\n\nUsage:\n  navish devices\n  navish tools [device]\n  navish jobs [--limit N]\n  navish job JOB_ID [--patch]\n  navish call <device> <tool> [args-json] [--call-id ID] [--resources-b64 BASE64] [--compact] [--json]\n  navish pair add <ssh-target> --name NAME\n  navish pair remove NAME\n  navish reconcile --call-id ID\n  navish config get\n  navish config set KEY JSON_VALUE\n  navish doctor\n  navish selftest\n  navish github-control ...\n`)}
 async function main(){
+  if(cmd==='jobs'){
+    if(argv.length!==0&&(argv.length!==2||argv[0]!=='--limit'))throw new Error('usage: navish jobs [--limit N] (N must be an integer from 1 to 50)');
+    const limit=argv.length?Number(argv[1]):10;
+    if(argv.length&&(!/^\d+$/.test(argv[1])||!Number.isSafeInteger(limit)||limit<1||limit>50))throw new Error('--limit must be an integer from 1 to 50');
+    const r=await observeLocalTool({tool:'agent_job_list',args:{limit}},P);
+    out(r);return r.state==='completed'?0:2;
+  }
+  if(cmd==='job'){
+    const jobId=argv[0];
+    if(!jobId||jobId.startsWith('-'))throw new Error('job requires JOB_ID; usage: navish job JOB_ID [--patch]');
+    if(argv.length>2||(argv.length===2&&argv[1]!=='--patch'))throw new Error('usage: navish job JOB_ID [--patch]');
+    if(!isSafeId(jobId)||jobId.length>100)throw new Error('INVALID_JOB_ID: use 1 to 100 letters, digits, dots, underscores or hyphens; not . or ..');
+    const r=await observeLocalTool({tool:'agent_job_status',args:{jobId,includePatch:argv[1]==='--patch'}},P);
+    out(r);return r.state==='completed'?0:2;
+  }
+  ensureBase(P);
   if(!cmd||cmd==='help'||cmd==='--help'){help();return 0}
   if(cmd==='devices'){out({devices:devicesCommand(P)});return 0}
   if(cmd==='tools'){out({device:argv[0]||'local',tools:TOOL_NAMES});return 0}

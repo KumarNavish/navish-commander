@@ -1,6 +1,6 @@
 {
   "name": "@kumnav/navish-commander",
-  "version": "1.5.0-rc.3",
+  "version": "1.6.0-rc.1",
   "private": true,
   "description": "Durable local execution and parallel worker orchestration over MCP",
   "type": "module",

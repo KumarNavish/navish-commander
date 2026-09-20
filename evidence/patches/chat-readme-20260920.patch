@@ -1,0 +1,115 @@
+diff --git a/README.md b/README.md
+index 332b76f..732207b 100644
+--- a/README.md
++++ b/README.md
+@@ -1,26 +1,78 @@
+ # Navish Commander
+ 
+-Run authorized work from an MCP client, reconnect after an interruption, and collect the same workers without starting them again.
++Start an authorized repository task from chat, let Commander work in an isolated checkout, and recover its status and patch from another chat using the same job ID.
++
++## Start a durable repository job
++
++For example, ask your connected MCP client to improve a repository's setup instructions. Call `commander_start_job` with these arguments, replacing the repository path with your Git repository's absolute root:
++
++```json
++{
++  "device": "local",
++  "callId": "setup-docs-start-001",
++  "jobId": "setup-docs-001",
++  "repository": "/absolute/path/to/my-repo",
++  "goal": "Document the existing setup and test commands in README.md. Change only README.md and return a patch. Do not commit or push.",
++  "checks": [
++    { "name": "Patch whitespace", "argv": ["git", "diff", "--check"] }
++  ]
++}
++```
++
++Before starting, connect Commander using one of the installation options below and use `commander_devices` to confirm the host. Repository jobs currently require `device: "local"`, meaning that Commander host. It needs an installed Codex CLI already authenticated with ChatGPT. Jobs use that subscription's allowance; there is no API billing or automatic API fallback.
++
++Choose new `jobId` and `callId` values for a new task, then retain both for that task. Commander records the repository's HEAD and starts an isolated Git worktree; uncommitted source changes are not copied. The source checkout is preserved. Checks are argument arrays run in the job workspace after the executor reports success. Use checks appropriate to your task; this example checks whitespace, so the documentation still needs review.
++
++To collect progress or the resulting patch, call `commander_job_status`:
++
++```json
++{ "device": "local", "jobId": "setup-docs-001", "includePatch": true }
++```
++
++Inspect `result.state`, `result.checks` and `result.changedFiles`. The outer `state: "completed"` means the tool call succeeded, not that the job finished. A terminal job's patch is returned in `result.patch`; if it is truncated, call status again with `includePatch: true` and `patchOffset` set to the previous `result.patch.nextOffset`.
++
++| Job state | Meaning and next step |
++| --- | --- |
++| `launching` / `running` | Work is active; read status again later. |
++| `review_ready` | The executor reported completion, all declared checks passed, and a patch was captured. Review the patch for goal correctness before applying it; Commander does not merge it for you. |
++| `needs_attention` | Execution, reporting, checks or collection did not succeed. Inspect the reason and retained evidence; partial changes remain available. |
++| `cancelled` | The executor stopped after cancellation; partial changes are retained. |
++| `uncertain` | Terminal evidence is missing. Inspect the retained workspace and logs; the job is not relaunched. |
++| `unsubmitted` | No job record was found under this ID. Confirm the host and ID before taking further action. |
++
++## Reconnect from another chat without relaunching
++
++Connect the new chat to the same Commander instance and state directory, then call `commander_job_status` with the saved `jobId` as above. If the ID is missing, call `commander_jobs` to find recent jobs:
++
++```json
++{ "device": "local", "limit": 10 }
++```
++
++Select the matching repository and job from `result.jobs`, then pass its `jobId` to `commander_job_status`. These reads do not launch work or create mutation receipts. You do not need to reconstruct the old conversation or call `commander_start_job` again.
++
++Keep both IDs stable after a lost response. An identical submission resolves to the existing job; a changed goal or check contract under the same job ID is rejected. A timeout, denial or uncertain result is never permission to retry the intent with a new ID or another route. There is no automatic resume or replay. See [repository jobs](docs/AGENT_JOBS.md) for execution limits, cancellation, patch pagination and terminal recovery with `navish jobs` / `navish job JOB_ID --patch`.
++
++## Package and acceptance status
+ 
+ This repository packages the existing Commander runtime as a local MCP server and Claude Desktop extension, with an optional authenticated personal ChatGPT connector. It provides file operations, persistent processes, durable receipts, and parallel batches with optional artifact verification. It does not supply a language model or require a model subscription of its own.
+ 
+-**Current development candidate: runtime 1.6.0-rc.1; personal connector 0.2.0.** Adds [durable repository jobs](docs/AGENT_JOBS.md): one goal starts an isolated Codex implementation, independent checks and a recoverable patch. Requires an existing ChatGPT Codex login and uses its subscription allowance. Live acceptance is pending; earlier releases and comparisons remain historical evidence.
++**Current development candidate: runtime 1.6.0-rc.1; personal connector 0.2.0.** Adds durable repository jobs. Live ChatGPT acceptance is pending; earlier releases and comparisons remain historical evidence. The [recorded local-MCP repository job](evidence/durable-job-20260920.json) was recovered by a fresh client but ended in `needs_attention`, with no declared checks executed by the job. It was not a ChatGPT-originated job or certification.
+ 
+-The earlier **0.1.1 / rc.2 source snapshot** measured **2.07× RDC throughput** across 20 paired rounds (95% interval **2.01–2.19×**) and 0/30 controlled delivery failures versus RDC's 10/30. Those deterministic execution results remain source-bound historical evidence. They do not establish everyday chat reliability or comparative performance of the changed rc.3 runtime. Fully unattended ChatGPT operation remains **uncertified**.
++The earlier **0.1.1 / rc.2 source snapshot** measured **2.07× RDC throughput** across 20 paired rounds (95% interval **2.01–2.19×**) and 0/30 controlled delivery failures versus RDC's 10/30. Those deterministic execution results remain source-bound historical evidence. They do not establish everyday chat reliability or comparative performance of later runtimes, including 1.6.0-rc.1. The subsequent rc.3 / connector 0.1.3 run measured 2.0119× but failed the strict 2× gate because its 95% interval was 1.7668–2.1605×; see the [acceptance ledger](docs/ACCEPTANCE.md). Fully unattended ChatGPT operation remains **uncertified**.
+ 
+ ## Install the Claude Code plugin
+ 
+-Download and extract `navish-commander-1.5.0-rc.3.zip` from [GitHub Releases](https://github.com/KumarNavish/navish-commander/releases), then run:
++For the current package version, use `navish-commander-1.6.0-rc.1.zip` from [GitHub Releases](https://github.com/KumarNavish/navish-commander/releases) if that candidate's archive is available; otherwise use the source installation below. Extract the archive, then run:
+ 
+ ```sh
+ claude --plugin-dir /absolute/path/to/extracted/navish-commander
+ ```
+ 
+-The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use that root as the plugin directory. The rc.3 package passes strict Claude plugin validation, a real Claude Code MCP connection check, and 24 extracted-bundle tests. The earlier rc.2 package was exercised by a ChatGPT-authenticated Codex client across a restart; those older conversations are not rc.3 conversation evidence. [Inspect the earlier client evidence](evidence/chat-client-rc2.json).
++The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use that root as the plugin directory. Historically, the 1.5.0-rc.3 package passed strict Claude plugin validation, a real Claude Code MCP connection check, and 24 extracted-bundle tests. The earlier rc.2 package was exercised by a ChatGPT-authenticated Codex client across a restart; those older conversations are not rc.3 or 1.6.0-rc.1 conversation evidence. [Inspect the earlier client evidence](evidence/chat-client-rc2.json).
+ 
+ ## Claude Desktop package
+ 
+-Download `navish-commander-1.5.0-rc.3.mcpb` from [GitHub Releases](https://github.com/KumarNavish/navish-commander/releases). In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions. This release validates the bundle format; Desktop GUI installation and a Claude Desktop conversation were not observed.
++For the current package version, use `navish-commander-1.6.0-rc.1.mcpb` from [GitHub Releases](https://github.com/KumarNavish/navish-commander/releases) if available. In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions. The earlier 1.5.0-rc.3 release validated the bundle format; Desktop GUI installation and a Claude Desktop conversation were not observed. That evidence does not validate the current candidate.
+ 
+ The package includes its JavaScript dependencies. The host needs Node.js 22.16 or later. Noninteractive pipe workers require only Node. Interactive PTY workers additionally need Python 3.9 or later on PATH; `NAVISH_PYTHON` can select an interpreter. macOS and Linux are the intended runtime platforms; Windows is not supported by the PTY worker implementation. Claude's platform availability is separate from the server's Linux support.
+ 
+@@ -39,7 +91,7 @@ The last command starts an MCP stdio server and waits for a client. For a generi
+ 
+ For Claude Code, after installing dependencies, load the checkout with `claude --plugin-dir /absolute/path/navish-commander`. The release ZIP also includes installed dependencies and the Claude plugin manifest. No install hook downloads or executes additional software.
+ 
+-## Use it
++## File operations and process batches
+ 
+ Ask the client to discover Commander's devices, start a worker with a stable session ID, and verify its result. For parallel work, supply one stable batch ID and separate working directories. Select `transport: "pipe"` for noninteractive workers; select `pty` for terminal-dependent programs. Omission preserves the original PTY behavior. `commander_collect_batch` can collect the same batch after reconnecting. It checks exit codes and any declared artifact hashes.
+ 
+@@ -51,14 +103,14 @@ The package stores private state under the current user's Commander directories.
+ 
+ The optional [personal HTTPS connector](docs/PERSONAL_CONNECTOR.md) has been deployed on existing free hosting and connected to ChatGPT through owner-only OAuth. On 20 September the owner explicitly selected **Allow all actions**, and Plugin Management confirmed the setting. A fresh chat verified an exact append, duplicate suppression, and four concurrent worker artifacts; another chat recovered them without mutation. However, nine automated safety blocks occurred during the first conversation, and the deliberately failing worker never launched. The model retried denied intents with stable IDs. Fully unattended chat execution is **not certified**. See the [full-access conversation evidence](evidence/chatgpt-full-access-20260920.json), [connector release evidence](evidence/personal-connector-0.1.1-acceptance.json), and preserved [earlier chat failure](evidence/personal-connector-acceptance.json).
+ 
+-Anyone may deploy a separate single-owner instance from source. No OpenAI API key or paid hosting is required by this implementation. The Mac must be online and free hosting quotas apply. This is personal developer-mode availability, not an approved public directory listing. The recorded 0.1.1 comparison passes its 2× gate with its confidence interval above 2×; that measurement has not been reassigned to rc.3. Earlier polling and default-scheduling runs failed and remain recorded. The measured route is ChatGPT's configured HTTPS endpoint, using a durable WebSocket channel and interactive macOS scheduling. [Distribution requirements](docs/DISTRIBUTION.md) and the acceptance ledger distinguish these routes.
++Anyone may deploy a separate single-owner instance from source. No OpenAI API key or paid hosting is required by this implementation. The Mac must be online and free hosting quotas apply. This is personal developer-mode availability, not an approved public directory listing. The recorded 0.1.1 comparison passes its 2× gate with its confidence interval above 2×; that measurement has not been reassigned to rc.3 or the current 1.6.0-rc.1 / 0.2.0 candidate. Earlier polling and default-scheduling runs failed and remain recorded. The measured route is ChatGPT's configured HTTPS endpoint, using a durable WebSocket channel and interactive macOS scheduling. [Distribution requirements](docs/DISTRIBUTION.md) and the acceptance ledger distinguish these routes.
+ 
+ ## Verify a downloaded release
+ 
+ Check out the release tag, download the ZIP and `SHA256SUMS.txt` from the same release, and run:
+ 
+ ```sh
+-python3 scripts/verify_release.py --integrity-only /path/to/navish-commander-1.5.0-rc.3.zip /path/to/SHA256SUMS.txt
++python3 scripts/verify_release.py --integrity-only /path/to/navish-commander-1.6.0-rc.1.zip /path/to/SHA256SUMS.txt
+ ```
+ 
+ This checks the archive hash, every authored package file against the checkout, and its runtime digest. It explicitly reports comparative and conversation gates as **not evaluated**. Omitting `--integrity-only` retains the strict source-bound checks for the original rc.2 acceptance package; those checks must fail when applied to changed source.

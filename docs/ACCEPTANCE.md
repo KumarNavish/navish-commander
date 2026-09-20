@@ -1,10 +1,54 @@
 # Acceptance ledger
 
-## Current rc.3 / connector 0.1.3 candidate
+## Current 1.6.0-rc.1 / connector 0.2.0 repository jobs
+
+Commander now accepts a repository goal as one durable job, keeps an isolated
+checkout, runs the existing ChatGPT-authenticated Codex client, verifies declared
+checks in a managed workspace sandbox, and retains a patch recoverable from
+another chat. No paid API fallback was added.
+
+The [real engineering job](../evidence/durable-job-20260920.json) produced the
+`navish jobs` and `navish job` CLI and eight focused regressions. It remained
+`needs_attention` after incomplete full-suite checks in its sandbox. Its patch
+was reviewed and the focused regressions independently passed before integration.
+The full resulting suite passed 138 tests on Linux/macOS and Node 22.16/24 in CI.
+An actual-CLI preflight now checks the standalone verification interface before
+accepting a job; isolated fake-CLI tests alone had not exposed its missing
+permission-profile argument.
+
+A [ChatGPT Latest + Extra High job](../evidence/chat-repository-job-20260920.json)
+submitted the README improvement, finished as `review_ready` with an independent
+check exit of zero, and was recovered by a fresh chat without supplying the job
+ID. The original recovery's unsupported assertion about downstream application
+is retained as adverse evidence. Job status now explicitly reports those actions
+as unobserved. A fresh status call in that same conversation correctly reported
+the unknown integration state after the fix. The original 13,619-byte
+[patch](../evidence/patches/chat-readme-20260920.patch) is published with its
+SHA-256. These observations establish a bounded workflow result, not broad model
+reliability, directory approval or independent certification.
+
+The frozen current-source comparison verified all 160 workers. Commander took
+914.46 ms median versus RDC's 1,764.50 ms: **1.9296×**, with a paired 95% interval
+of **1.8083–1.9865×**. The strict 2× throughput gate **fails**. The controlled
+delivery gate passes with **0/30 Commander failures versus 10/30 RDC failures**;
+all ten RDC failures were duplicate effects. Normal delivery and reconnect
+passed for both products. This fixed fault mixture is not a production failure
+rate. No timing-based rerun was used to replace the negative result.
+
+The [frozen protocol](../evidence/personal-0.2.0-protocol.json),
+[throughput samples](../evidence/personal-0.2.0-inline.json), and
+[delivery samples](../evidence/personal-0.2.0-delivery.json) are public. Recompute
+their source binding and predicates with:
+
+```sh
+node scripts/verify-current-connector.mjs evidence/personal-0.2.0-inline.json evidence/personal-0.2.0-delivery.json
+```
+
+## Historical rc.3 / connector 0.1.3 candidate
 
 The [workflow continuation](WORKFLOW_REMEDIATION.md) attempts all six previously unsubmitted tasks using Latest + Extra High. Four complete their required outcomes, including actual code repair and both four-worker batches; two code tasks remain incomplete. A completed write omitted from the chat export exposed a false no-change report. Connector 0.1.3 adds durable response identity and receipt-recovery guidance, with three regressions reproduced before the fix. The full suite passes 120 tests and the extracted bundle passes 27 tests. New source-bound confirmation evidence is kept separate from the unchanged continuation and historical performance records. Fully unattended certification remains unachieved.
 
-The refreshed 0.1.3 comparison verifies all 160 workers and measures 2.0119× throughput versus hosted RDC, but its paired 95% interval is 1.7668–2.1605×. The strict 2× throughput gate therefore fails for this run. The separately frozen delivery gate passes: 0/30 Commander failures versus 10/30 RDC duplicate-effect failures, with normal and reconnect scenarios passing for both. Run `node scripts/verify-current-connector.mjs` to verify these current source-bound records. This is deterministic execution evidence, not a model productivity comparison.
+The refreshed 0.1.3 comparison verifies all 160 workers and measures 2.0119× throughput versus hosted RDC, but its paired 95% interval is 1.7668–2.1605×. The strict 2× throughput gate therefore fails for this run. The separately frozen delivery gate passes: 0/30 Commander failures versus 10/30 RDC duplicate-effect failures, with normal and reconnect scenarios passing for both. At commit `321cf94a6dcf608323e73440153215ac217d46b0`, run `node scripts/verify-current-connector.mjs` to verify those source-bound records. This is deterministic execution evidence, not a model productivity comparison.
 
 ## Historical rc.3 / connector 0.1.2 reader repair
 

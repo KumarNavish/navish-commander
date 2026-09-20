@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "scope": "One real ChatGPT-started repository documentation job and recovery from a fresh ChatGPT conversation without its job ID",
+  "runtimeVersion": "1.6.0-rc.1",
+  "connectorVersion": "0.2.0",
+  "sourceCommit": "a4d69d69e1af9e909819736cc3cca6b8a11bc35e",
+  "chatModel": "Latest",
+  "chatThinkingEffort": "Extra High",
+  "jobId": "chat-readme-20260920",
+  "startedAt": "2026-09-20T17:54:02.010Z",
+  "finishedAt": "2026-09-20T17:57:10.491Z",
+  "terminalState": "review_ready",
+  "executorExitCode": 0,
+  "checksPassed": true,
+  "checks": [
+    {
+      "name": "README durable-job docs and links",
+      "argv": [
+        "node",
+        "-e",
+        "const fs=require('fs'),path=require('path');\nconst root=process.cwd();\nconst readmePath=path.join(root,'README.md'),pkgPath=path.join(root,'package.json');\nconst readme=fs.readFileSync(readmePath,'utf8');\nconst pkg=JSON.parse(fs.readFileSync(pkgPath,'utf8'));\nconst required=['commander_start_job','commander_job_status','commander_jobs'];\nconst missing=required.filter(x=>!readme.includes(x));\nconst archive='navish-commander-'+pkg.version+'.zip';\nif(!readme.includes(archive)) missing.push(archive);\nconst targets=[];\nfor(const m of readme.matchAll(/!?\\[[^\\]]*\\]\\(([^)]+)\\)/g)) targets.push(m[1]);\nfor(const m of readme.matchAll(/^\\s{0,3}\\[[^\\]]+\\]:\\s*(\\S+)/gm)) targets.push(m[1]);\nconst bad=[];\nfor(let raw of targets){\n raw=raw.trim();\n if(raw.startsWith('<')&&raw.endsWith('>')) raw=raw.slice(1,-1);\n else raw=raw.split(/\\s+/)[0];\n if(!raw||raw.startsWith('#')||raw.startsWith('/')||raw.startsWith('//')||/^[A-Za-z][A-Za-z0-9+.-]*:/.test(raw)) continue;\n raw=raw.split('#')[0].split('?')[0];\n if(!raw) continue;\n try{raw=decodeURIComponent(raw)}catch{}\n const p=path.resolve(path.dirname(readmePath),raw);\n if(!fs.existsSync(p)) bad.push(raw);\n}\nif(missing.length||bad.length){\n console.error(JSON.stringify({missing,badRelativeLinks:bad,version:pkg.version},null,2));\n process.exit(1);\n}\nconsole.log(JSON.stringify({ok:true,version:pkg.version,archive,relativeLinksChecked:targets.length},null,2));"
+      ],
+      "exitCode": 0,
+      "output": "{\n  \"ok\": true,\n  \"version\": \"1.6.0-rc.1\",\n  \"archive\": \"navish-commander-1.6.0-rc.1.zip\",\n  \"relativeLinksChecked\": 14\n}\n",
+      "passed": true
+    }
+  ],
+  "patch": {
+    "sha256": "5683fab6bf05a31ba3b8d286186b2af483f22f0906b73f259b0584fc2fbb8828",
+    "bytes": 13619,
+    "files": [
+      "README.md"
+    ],
+    "artifact": "evidence/patches/chat-readme-20260920.patch"
+  },
+  "connectorReceipts": [
+    {
+      "operationId": "8c78e9fa8fbbfc6b02d0235e60c12e2451e012b44bf07863f4e1788d880f292d",
+      "toolName": "commander_job_status",
+      "requestSha256": "af9b95e93bcbc5f49ffd685a3cadd2383ad5b4fd6f3645522564b609a66eda5d",
+      "receiptState": "completed",
+      "operationState": "review_ready"
+    },
+    {
+      "operationId": "ee2a178c36b40865e8d3e0ac52e375ec0c48260574b11cd62cf574f081d5917f",
+      "toolName": "commander_jobs",
+      "requestSha256": "9c35ae401ef91f8b4a527d807e18d84757422989e309066ef49cb9e86086f6a7",
+      "receiptState": "completed",
+      "operationState": "completed"
+    },
+    {
+      "operationId": "e761cc9586dbeab2af86bdc6c1b03578f0e24d14faed87258331786b6b7f6461",
+      "toolName": "commander_start_job",
+      "requestSha256": "b9cb186bf8e18cc41974ddbeb51f988f206b0f857dbf68a22f52a9c1cbd7d6a3",
+      "receiptState": "completed",
+      "operationState": "launching"
+    }
+  ],
+  "freshChatRecoveredJobWithoutId": true,
+  "freshChatReportedMatchingPatchHash": true,
+  "userInterventionDuringJob": false,
+  "newPaidServiceOrApi": false,
+  "integration": {
+    "reviewedPatch": true,
+    "appliedToWorkingCheckout": true,
+    "independentCheckExitCode": 0
+  },
+  "adverseObservations": [
+    "The initial recovery correctly reported the job and verification but inferred that the patch had not been applied or published. That claim was unsupported; the patch had already been applied outside the job.",
+    "Added explicit integration.state=not_observed with null applied/published values; job execution records cannot establish downstream actions."
+  ],
+  "certification": "This is a bounded successful workflow, not general unattended certification or an RDC comparison.",
+  "integrationReportingConfirmation": {
+    "sourceCommit": "65c43510ebc6aca63d7cb51cdd82bb985b975a69",
+    "runtimeSourceSha256": "109feb6b3ba7332a4da5bd1bb713675c07745aa375047fb8c2f74cb5ef9e27e3",
+    "operationId": "139c1cfe92fd286f463f12040438d70991875cba1991b369303503836fd72225",
+    "requestSha256": "af9b95e93bcbc5f49ffd685a3cadd2383ad5b4fd6f3645522564b609a66eda5d",
+    "operationState": "review_ready",
+    "integration": {
+      "state": "not_observed",
+      "applied": null,
+      "published": null,
+      "reason": "This job record does not track later application, merging or publication by another actor. Do not infer either that these occurred or that they did not."
+    },
+    "chatCorrectlyReportedUnknownDownstreamActions": true,
+    "originalAdverseObservationPreserved": true
+  },
+  "artifactReproduction": {
+    "at": "2026-09-20T18:27:14.732Z",
+    "baseCommit": "a4d69d69e1af9e909819736cc3cca6b8a11bc35e",
+    "exactPublishedPatchApplied": true,
+    "declaredCheckExitCode": 0,
+    "output": "{\n  \"ok\": true,\n  \"version\": \"1.6.0-rc.1\",\n  \"archive\": \"navish-commander-1.6.0-rc.1.zip\",\n  \"relativeLinksChecked\": 14\n}\n",
+    "scope": "Reproduces the retained artifact against its original base; does not rerun or certify the model."
+  }
+}

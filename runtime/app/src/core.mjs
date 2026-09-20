@@ -6,6 +6,7 @@ import { beginCall, finishCall, defaultResources, isMutating, reconcileQuarantin
 import { readFileTool,readMultipleFilesTool,writeFileTool,createDirectoryTool,moveFileTool,listDirectoryTool,findTextTool } from './files.mjs';
 import { startProcessTool,readProcessOutputTool,interactProcessTool,terminateProcessTool,listSessionsTool,listProcessesTool,killProcessTool } from './process.mjs';
 import { agentBatchStartTool,agentBatchStatusTool,agentBatchCollectTool,agentBatchSendTool,agentBatchCancelTool,agentBatchListTool } from './agents.mjs';
+import {startJobTool,jobStatusTool,listJobsTool,cancelJobTool} from './agent-jobs.mjs';
 import { browserCommandTool,browserStatus } from './browser.mjs';
 import { EgoBridge,EgoError } from './ego-bridge.mjs';
 import { runBrowserJob,browserJobStatus } from './browser-jobs.mjs';
@@ -13,8 +14,8 @@ import { listDevices,remoteCall,pairAdd,pairRemove } from './remote.mjs';
 import { nowIso, randomId, writeJson, sleep } from './util.mjs';
 import { performance } from 'node:perf_hooks';
 
-export const VERSION='1.5.0-rc.3';
-export const TOOL_NAMES=['get_config','set_config_value','read_file','read_multiple_files','write_file','create_directory','list_directory','move_file','find_text','start_process','read_process_output','interact_with_process','force_terminate','list_sessions','list_processes','kill_process','browser_agent','browser_agent_health','browser_command','get_usage_stats','get_recent_tool_calls','agent_batch_start','agent_batch_status','agent_batch_collect','agent_batch_send','agent_batch_cancel','agent_batch_list'];
+export const VERSION='1.6.0-rc.1';
+export const TOOL_NAMES=['get_config','set_config_value','read_file','read_multiple_files','write_file','create_directory','list_directory','move_file','find_text','start_process','read_process_output','interact_with_process','force_terminate','list_sessions','list_processes','kill_process','browser_agent','browser_agent_health','browser_command','get_usage_stats','get_recent_tool_calls','agent_batch_start','agent_batch_status','agent_batch_collect','agent_batch_send','agent_batch_cancel','agent_batch_list','agent_job_start','agent_job_status','agent_job_list','agent_job_cancel'];
 
 function audit(P,event){fs.appendFileSync(P.auditLog,JSON.stringify({at:nowIso(),...event})+'\n',{mode:0o600});}
 function recentCalls(P,max=50){try{return fs.readFileSync(P.auditLog,'utf8').trim().split(/\n/).filter(Boolean).slice(-max).map(x=>JSON.parse(x))}catch{return []}}
@@ -55,6 +56,10 @@ async function executeLocal(tool,args,ctx){const {P,config}=ctx; switch(tool){
   case 'agent_batch_send': return await agentBatchSendTool(args,P);
   case 'agent_batch_cancel': return await agentBatchCancelTool(args,P);
   case 'agent_batch_list': return agentBatchListTool(args,P);
+  case 'agent_job_start': return startJobTool(args,P);
+  case 'agent_job_status': return jobStatusTool(args,P);
+  case 'agent_job_list': return listJobsTool(args,P);
+  case 'agent_job_cancel': return cancelJobTool(args,P);
   case 'get_recent_tool_calls': return {calls:recentCalls(P,Number(args.maxResults||50))};
   case 'get_usage_stats': return usage(P);
   default: throw new Error(`unknown tool: ${tool}`);
@@ -105,7 +110,7 @@ export async function callTool({target='local',tool,args={},callId=randomId('cal
 // These MCP observations have no caller-supplied intent ID or external effect.
 // They must see current state, not create/replay a durable mutation receipt.
 // Keep an explicit small allowlist: being absent from MUTATING is insufficient.
-const REPEATABLE_OBSERVATIONS=new Set(['read_file','read_process_output','agent_batch_collect']);
+const REPEATABLE_OBSERVATIONS=new Set(['read_file','read_process_output','agent_batch_collect','agent_job_status','agent_job_list']);
 export async function observeLocalTool({tool,args={}},P=getPaths()){
   if(!REPEATABLE_OBSERVATIONS.has(tool))throw Object.assign(new Error('tool requires durable call admission'),{code:'OBSERVATION_TOOL_NOT_ALLOWED'});
   const startedAt=nowIso();
