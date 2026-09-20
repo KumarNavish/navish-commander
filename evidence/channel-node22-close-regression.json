@@ -1,0 +1,44 @@
+{
+  "schema": "navish.channel-close-regression/v1",
+  "date": "2026-09-20",
+  "affectedConnectorSha256": "3ee6589c358cdda4f7e3f74a63cf728d61d2f4300e966a4ef6c71232c40b462a",
+  "fixedConnectorSha256": "87bd658b2c5ead959a5cf515e1b0fdb133d6c9aac4db15a7f5b5aa0058977490",
+  "observedFailure": {
+    "runtime": "Node 22.18.0, macOS arm64",
+    "error": "RangeError: Maximum call stack size exceeded",
+    "path": "WebSocket error callback calls close; close synchronously emits another error",
+    "logSha256": "0535d6bf87b213b00de8297472b925ad74d04d0249920072df5847a0575afb18"
+  },
+  "boundedRegression": {
+    "name": "a synchronous error from WebSocket close cannot re-enter the error handler",
+    "previousImplementationExit": 1,
+    "previousLogSha256": "e855d39025358d9fbc4b40074c3ac69c1c846c726d25b0e17d217c2850173585",
+    "fixedImplementationPassed": true,
+    "fix": "Register the socket error handler once, so it is removed before close can re-enter it."
+  },
+  "realRuntimeChecks": [
+    {
+      "node": "22.16.0",
+      "tests": 3,
+      "passed": 3,
+      "logSha256": "9a82faf66a5350a9ae44266221c0b2822eb14fb002700b1a061c55c517a5046c"
+    },
+    {
+      "node": "22.18.0",
+      "tests": 3,
+      "passed": 3,
+      "logSha256": "1867d2cadbc3b84a284e0bfd969f431b0ad111d9c92422f7d57bea01ece3aba6"
+    }
+  ],
+  "fullSuite": {
+    "tests": 103,
+    "passed": 103,
+    "logSha256": "2bdb6a0652fc1cf72a36476428cbcf8bdd8d7588d8c39a0b07b81729d0fcdbb6"
+  },
+  "priorCiRuns": [
+    "https://github.com/KumarNavish/navish-commander/actions/runs/35510919436",
+    "https://github.com/KumarNavish/navish-commander/actions/runs/35510918184"
+  ],
+  "priorCiDisposition": "Cancelled remaining owned jobs after reproducing the defect locally; completed jobs and logs retained",
+  "scope": "Fixes reentrant socket error handling; the earlier Wrangler HTTP 500 probe failure has not been proven to have the same cause."
+}

@@ -63,11 +63,11 @@ The connector comparison uses the actual configured personal HTTPS endpoint, tra
 
 | Workload | Commander median | RDC median | Ratio | 95% paired interval |
 | --- | ---: | ---: | ---: | ---: |
-| Personal HTTPS inline, 20 pairs | 833.36 ms | 1,920.05 ms | 2.304× | 2.122–2.401× |
+| Personal HTTPS inline, 20 pairs | 793.06 ms | 2,005.20 ms | 2.528× | 2.254–2.735× |
 
 All 40 product workflows verified, covering 160 worker executions. The separate 60-workflow delivery suite observed 0/30 Commander failures versus 10/30 RDC failures, all in duplicate-delivery cases. The measured failure reduction is 100% for this deliberate mixture, not everyday chat usage. This tests deterministic parallel execution, not model-driven multi-agent productivity.
 
-`evidence/personal-interactive-inline.json` and `evidence/personal-interactive-delivery.json` bind the measurements to source revision `5b2ed2a2b92bad7ef08b45c5cdb9a72d46e429ce` and connector digest `3ee6589c358cdda4f7e3f74a63cf728d61d2f4300e966a4ef6c71232c40b462a`. Recompute the recorded gates with `node scripts/verify-personal-connector.mjs`. CI does this without credentials or live commands.
+`evidence/personal-interactive-inline.json` and `evidence/personal-interactive-delivery.json` bind the measurements to source revision `6ee0a026e60ace02158d635a63bd7f84d2a97702` and connector digest `87bd658b2c5ead959a5cf515e1b0fdb133d6c9aac4db15a7f5b5aa0058977490`. Recompute the recorded gates with `node scripts/verify-personal-connector.mjs`. CI does this without credentials or live commands.
 
 For an independent live run, authorize RDC using the existing harness, provision your own private connector test OAuth client, then set `RDC_BENCH_DEVICE`, `CONNECTOR_URL`, `CONNECTOR_CHANNEL_URL`, and `CONNECTOR_OAUTH_FILE`. Run `BENCH_ROUNDS=20 BENCH_WAIT_POLICY=inline BENCH_REPORT=evidence/my-personal-inline.json node scripts/benchmark-personal-connector.mjs`; use `BENCH_ROUNDS=10` and `scripts/benchmark-personal-delivery.mjs` for the fault suite. Keep OAuth credentials private. The harness targets the explicitly identified Mac and isolated fixture paths.
 

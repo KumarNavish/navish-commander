@@ -5,18 +5,18 @@
     "version": "0.1.0",
     "runtimeVersion": "1.5.0-rc.2",
     "status": "evaluation-candidate",
-    "sourceSha256": "3ee6589c358cdda4f7e3f74a63cf728d61d2f4300e966a4ef6c71232c40b462a"
+    "sourceSha256": "87bd658b2c5ead959a5cf515e1b0fdb133d6c9aac4db15a7f5b5aa0058977490"
   },
   "runtimeSourceSha256": "761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615",
-  "installedSourceSha256": "92ca5ab41fa280fcf618e793a31adc7054058ccfe17629f6afb824593b68977e",
+  "installedSourceSha256": "301778edb8f8926586c6a88c5b34fc1d545c425e00da4c1de3bd0105ddd4fc92",
   "protocolVerification": {
-    "at": "2026-09-20T12:12:06.421Z",
+    "at": "2026-09-20T12:40:02.529Z",
     "tools": 11,
     "exactlyOnce": true,
     "workers": 4,
     "allHashesMatch": true,
     "clientReconnect": true,
-    "traceSha256": "02846718f2f8600e79a260bd93b8ccecae0a88012e4353714b00b54519b4254c"
+    "traceSha256": "81e0915eca57e4f719bca5decad724de730f8cb07a4f0f57de60ebcb34784abd"
   },
   "chatRead": {
     "passed": true,
@@ -74,24 +74,24 @@
         },
         "toolInput": {
           "device": "local",
-          "path": "$FIXTURE/final-chat-read.txt",
+          "path": "$FIXTURE/fixed-chat-read.txt",
           "maxBytes": 4096,
           "offset": 0,
-          "length": 10
+          "length": 200
         },
         "toolOutput": {
           "state": "completed",
           "operationState": "completed",
-          "startedAt": "2026-09-20T12:25:44.289Z",
-          "finishedAt": "2026-09-20T12:25:44.293Z",
+          "startedAt": "2026-09-20T12:43:04.911Z",
+          "finishedAt": "2026-09-20T12:43:04.916Z",
           "observation": true,
           "receiptPersisted": false,
           "retrySafe": false,
           "result": {
-            "path": "$FIXTURE/final-chat-read.txt",
+            "path": "$FIXTURE/fixed-chat-read.txt",
             "type": "text",
-            "content": "commander-final-5be3ba74101f28dee26aea477b7110ea86670170\n",
-            "size": 57,
+            "content": "commander-verified-7f328a81e46a854b88d8202a354688a2329bee94\n",
+            "size": 60,
             "truncated": false,
             "mode": 384
           }
@@ -99,9 +99,9 @@
         "toolResponseMetadata": null
       }
     ],
-    "rawToolTraceSha256": "be00a6bc8d4923b709a3ab91fcbad61c640bd2ad54a8967eb22fe188ab0dc172",
-    "rawSnapshotSha256": "7d205b653a3b01cb0a8af7bc8dc725a48c19aaf591e6bed3e96f995697c15e0a",
-    "fixtureSha256": "294358e8dfaee7249fb8847c484ab7c734d47fe122827194f2d8914db0c9e55d"
+    "rawToolTraceSha256": "a997f96e9279cf70ac5ea6b5edf22272a6315cdd96cc3307bcce3d84166c94bc",
+    "rawSnapshotSha256": "e7a3efee14a9c0c752f28fa623e4c18f03ff89eb57a27ee28c07be55db18bc30",
+    "fixtureSha256": "53d287b9363eaba3049a2c33c0e6dc11a53a7e663b16e62c6eb4d1b9823d6eea"
   },
   "throughputReport": "personal-interactive-inline.json",
   "throughputTargetPassed": true,
@@ -118,5 +118,6 @@
     "Permission mode remains Allow low-risk actions; explicit permission choice pending",
     "Claude Code host connection and alternative Codex conversation observed; Claude Desktop GUI installation and conversation not observed",
     "Free service quotas and existing client subscription limits still apply"
-  ]
+  ],
+  "compatibilityRegression": "channel-node22-close-regression.json"
 }

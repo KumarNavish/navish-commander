@@ -1,8 +1,8 @@
 # Personal connector 0.1.0
 
-The optional single-owner HTTPS connector makes the existing Commander runtime available to a personal ChatGPT developer app. Owner OAuth with PKCE, a durable SQLite channel, and an outbound Mac WebSocket preserve call identity across lost responses and reconnects. The pinned Mac LaunchAgent uses interactive scheduling and precise timers; the core 1.5.0-rc.2 runtime is unchanged.
+The optional single-owner HTTPS connector makes the existing Commander runtime available to a personal ChatGPT developer app. Owner OAuth with PKCE, a durable SQLite channel, and an outbound Mac WebSocket preserve call identity across lost responses and reconnects. The pinned Mac LaunchAgent uses interactive scheduling and precise timers. A one-shot socket error listener prevents recursive close errors on older Node 22 runtimes; the core 1.5.0-rc.2 execution runtime is unchanged.
 
-The deployed personal endpoint measured 2.304× hosted RDC throughput in twenty paired four-worker rounds (95% interval 2.122–2.401×), with all 160 worker outcomes verified. A separate controlled delivery suite observed 0/30 failures versus RDC's 10/30 duplicate effects. Source-bound reports and negative development results are published, and `scripts/verify-personal-connector.mjs` recomputes the recorded gates.
+The deployed personal endpoint measured 2.528× hosted RDC throughput in twenty paired four-worker rounds (95% interval 2.254–2.735×), with all 160 worker outcomes verified. A separate controlled delivery suite observed 0/30 failures versus RDC's 10/30 duplicate effects. Source-bound reports and negative development results are published, and `scripts/verify-personal-connector.mjs` recomputes the recorded gates.
 
 The existing personal ChatGPT app remains connected and global instructions were updated privately. A real read-only chat passed. Fully unattended mutation acceptance remains blocked: the earlier chat selected incorrect append content and platform review rejected worker launches. These outcomes are preserved. This release is an evaluation candidate, not independent certification or public directory approval.
 
