@@ -1,0 +1,563 @@
+{
+  "schema": "navish.controlled-delivery-comparison/v1",
+  "runAt": "2026-09-20T12:42:25.520Z",
+  "protocol": {
+    "repetitionsPerScenario": 10,
+    "scenarios": [
+      "normal",
+      "duplicate-delivery",
+      "client-reconnect"
+    ],
+    "work": "append one fixed line, then read it and independently verify exact one-effect file bytes",
+    "duplication": "two identical tools/call messages, including JSON-RPC id, delivered concurrently; no extra high-level mutation intent",
+    "reconnect": "close and recreate MCP client after acknowledged append; observe file without retry",
+    "model": "none; deterministic MCP client",
+    "rateScope": "fixed controlled-fault mixture, not natural prevalence",
+    "baseline": "native RDC tools with no additional caller-built idempotency layer",
+    "threshold": "at least 50% fewer failed or unresolved complete workflows; zero duplicate effects for Commander"
+  },
+  "harnessSha256": "83cc59705da7bf5e3ce71bcf8ceb269c92b53e7ef97131b6e359046f98fc2a41",
+  "commanderSourceSha256": "761967b356bb30dc7610b3f3ad5092b5523157696fd36da32fca1ef58e942615",
+  "gitRevision": "6ee0a026e60ace02158d635a63bd7f84d2a97702",
+  "connectorSourceSha256": "87bd658b2c5ead959a5cf515e1b0fdb133d6c9aac4db15a7f5b5aa0058977490",
+  "installedSourceSha256": "301778edb8f8926586c6a88c5b34fc1d545c425e00da4c1de3bd0105ddd4fc92",
+  "sourceUnchanged": true,
+  "routes": {
+    "navish": "authenticated edge MCP, SQLite Durable Object and outbound WebSocket to the same Mac",
+    "rdc": "hosted OAuth Streamable HTTP MCP to the same Mac"
+  },
+  "summary": {
+    "navish": {
+      "workflows": 30,
+      "failedOrUnresolved": 0,
+      "byScenario": {
+        "normal": {
+          "workflows": 10,
+          "failures": 0
+        },
+        "duplicate-delivery": {
+          "workflows": 10,
+          "failures": 0
+        },
+        "client-reconnect": {
+          "workflows": 10,
+          "failures": 0
+        }
+      }
+    },
+    "rdc": {
+      "workflows": 30,
+      "failedOrUnresolved": 10,
+      "byScenario": {
+        "normal": {
+          "workflows": 10,
+          "failures": 0
+        },
+        "duplicate-delivery": {
+          "workflows": 10,
+          "failures": 10
+        },
+        "client-reconnect": {
+          "workflows": 10,
+          "failures": 0
+        }
+      }
+    }
+  },
+  "relativeFailureReduction": 1,
+  "controlledTargetPassed": true,
+  "productionReliabilityClaim": false,
+  "chatPlannerTested": false,
+  "samples": [
+    {
+      "backend": "navish",
+      "scenario": "normal",
+      "round": 0,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "normal",
+      "round": 0,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "normal",
+      "round": 1,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "normal",
+      "round": 1,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "normal",
+      "round": 2,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "normal",
+      "round": 2,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "normal",
+      "round": 3,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "normal",
+      "round": 3,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "normal",
+      "round": 4,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "normal",
+      "round": 4,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "normal",
+      "round": 5,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "normal",
+      "round": 5,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "normal",
+      "round": 6,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "normal",
+      "round": 6,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "normal",
+      "round": 7,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "normal",
+      "round": 7,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "normal",
+      "round": 8,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "normal",
+      "round": 8,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "normal",
+      "round": 9,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "normal",
+      "round": 9,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "duplicate-delivery",
+      "round": 0,
+      "verified": true,
+      "duplicatedMessages": 1,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "duplicate-delivery",
+      "round": 0,
+      "verified": false,
+      "duplicatedMessages": 1,
+      "observedBytes": 10,
+      "reason": "one-effect predicate failed"
+    },
+    {
+      "backend": "rdc",
+      "scenario": "duplicate-delivery",
+      "round": 1,
+      "verified": false,
+      "duplicatedMessages": 1,
+      "observedBytes": 10,
+      "reason": "one-effect predicate failed"
+    },
+    {
+      "backend": "navish",
+      "scenario": "duplicate-delivery",
+      "round": 1,
+      "verified": true,
+      "duplicatedMessages": 1,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "duplicate-delivery",
+      "round": 2,
+      "verified": true,
+      "duplicatedMessages": 1,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "duplicate-delivery",
+      "round": 2,
+      "verified": false,
+      "duplicatedMessages": 1,
+      "observedBytes": 10,
+      "reason": "one-effect predicate failed"
+    },
+    {
+      "backend": "rdc",
+      "scenario": "duplicate-delivery",
+      "round": 3,
+      "verified": false,
+      "duplicatedMessages": 1,
+      "observedBytes": 10,
+      "reason": "one-effect predicate failed"
+    },
+    {
+      "backend": "navish",
+      "scenario": "duplicate-delivery",
+      "round": 3,
+      "verified": true,
+      "duplicatedMessages": 1,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "duplicate-delivery",
+      "round": 4,
+      "verified": true,
+      "duplicatedMessages": 1,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "duplicate-delivery",
+      "round": 4,
+      "verified": false,
+      "duplicatedMessages": 1,
+      "observedBytes": 10,
+      "reason": "one-effect predicate failed"
+    },
+    {
+      "backend": "rdc",
+      "scenario": "duplicate-delivery",
+      "round": 5,
+      "verified": false,
+      "duplicatedMessages": 1,
+      "observedBytes": 10,
+      "reason": "one-effect predicate failed"
+    },
+    {
+      "backend": "navish",
+      "scenario": "duplicate-delivery",
+      "round": 5,
+      "verified": true,
+      "duplicatedMessages": 1,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "duplicate-delivery",
+      "round": 6,
+      "verified": true,
+      "duplicatedMessages": 1,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "duplicate-delivery",
+      "round": 6,
+      "verified": false,
+      "duplicatedMessages": 1,
+      "observedBytes": 10,
+      "reason": "one-effect predicate failed"
+    },
+    {
+      "backend": "rdc",
+      "scenario": "duplicate-delivery",
+      "round": 7,
+      "verified": false,
+      "duplicatedMessages": 1,
+      "observedBytes": 10,
+      "reason": "one-effect predicate failed"
+    },
+    {
+      "backend": "navish",
+      "scenario": "duplicate-delivery",
+      "round": 7,
+      "verified": true,
+      "duplicatedMessages": 1,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "duplicate-delivery",
+      "round": 8,
+      "verified": true,
+      "duplicatedMessages": 1,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "duplicate-delivery",
+      "round": 8,
+      "verified": false,
+      "duplicatedMessages": 1,
+      "observedBytes": 10,
+      "reason": "one-effect predicate failed"
+    },
+    {
+      "backend": "rdc",
+      "scenario": "duplicate-delivery",
+      "round": 9,
+      "verified": false,
+      "duplicatedMessages": 1,
+      "observedBytes": 10,
+      "reason": "one-effect predicate failed"
+    },
+    {
+      "backend": "navish",
+      "scenario": "duplicate-delivery",
+      "round": 9,
+      "verified": true,
+      "duplicatedMessages": 1,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "client-reconnect",
+      "round": 0,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "client-reconnect",
+      "round": 0,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "client-reconnect",
+      "round": 1,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "client-reconnect",
+      "round": 1,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "client-reconnect",
+      "round": 2,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "client-reconnect",
+      "round": 2,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "client-reconnect",
+      "round": 3,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "client-reconnect",
+      "round": 3,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "client-reconnect",
+      "round": 4,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "client-reconnect",
+      "round": 4,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "client-reconnect",
+      "round": 5,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "client-reconnect",
+      "round": 5,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "client-reconnect",
+      "round": 6,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "client-reconnect",
+      "round": 6,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "client-reconnect",
+      "round": 7,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "client-reconnect",
+      "round": 7,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "client-reconnect",
+      "round": 8,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "client-reconnect",
+      "round": 8,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "rdc",
+      "scenario": "client-reconnect",
+      "round": 9,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    },
+    {
+      "backend": "navish",
+      "scenario": "client-reconnect",
+      "round": 9,
+      "verified": true,
+      "duplicatedMessages": 0,
+      "observedBytes": 5
+    }
+  ]
+}

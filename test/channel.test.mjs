@@ -44,6 +44,36 @@ test('a synchronous error from WebSocket close cannot re-enter the error handler
   assert.equal(closes,1);assert.equal(calls,0);
 });
 
+test('an error without a close event releases the agent connection',async()=>{
+  let stopped=false,socket,forcedClose=false;
+  class MissingCloseSocket extends EventTarget {
+    readyState=0;
+    constructor(){super();socket=this;queueMicrotask(()=>this.dispatchEvent(new Event('error')));}
+    close(){stopped=true;this.readyState=3;}
+  }
+  // This cleanup makes the old implementation terminate and fail the predicate.
+  const cleanup=setTimeout(()=>{forcedClose=true;socket?.dispatchEvent(new Event('close'));},100);
+  try{await runChannelAgent({origin:'https://channel.example',token:'t'.repeat(64),WebSocketImpl:MissingCloseSocket,
+    stopped:()=>stopped,executeJob:async()=>assert.fail('No job should be dispatched'),log:()=>{}});
+    assert.equal(forcedClose,false,'The agent must not depend on a later close event');
+  }finally{clearTimeout(cleanup);}
+});
+
+test('graceful stop does not require a WebSocket close event',async()=>{
+  let stopped=false,socket,forcedClose=false;
+  class MissingCloseSocket extends EventTarget {
+    readyState=0;
+    constructor(){super();socket=this;queueMicrotask(()=>{this.readyState=1;this.dispatchEvent(new Event('open'));stopped=true;});}
+    send(){}
+    close(){this.readyState=2;}
+  }
+  const cleanup=setTimeout(()=>{forcedClose=true;socket?.dispatchEvent(new Event('close'));},2000);
+  try{await runChannelAgent({origin:'https://channel.example',token:'t'.repeat(64),WebSocketImpl:MissingCloseSocket,
+    stopped:()=>stopped,executeJob:async()=>assert.fail('No job should be dispatched'),log:()=>{}});
+    assert.equal(forcedClose,false,'Shutdown must settle before a missing peer close event');
+  }finally{clearTimeout(cleanup);}
+});
+
 test('real SQLite Durable Object and outbound agent reconcile duplicates, reconnect, failed workers and restart', {timeout:120000}, async(t)=>{
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'navish-channel-'));
   fs.mkdirSync(root+'/journal');
