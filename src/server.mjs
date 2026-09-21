@@ -2,21 +2,23 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { callTool, devicesCommand, observeLocalTool } from '../runtime/app/src/core.mjs';
+import { callTool, devicesCommand, observeLocalTool, reconcile } from '../runtime/app/src/core.mjs';
 import { ensureBase, paths } from '../runtime/app/src/config.mjs';
 import { loadReceipt, recoverRunningReceipts } from '../runtime/app/src/receipts.mjs';
 import { closeStateTransactions } from '../runtime/app/src/state-lock.mjs';
-import { inspectProcessSession, prepareProcessRuntime } from '../runtime/app/src/process.mjs';
+import { inspectProcessSession, prepareProcessRuntime, prepareNodeRuntime } from '../runtime/app/src/process.mjs';
+import { warmDocumentEngines } from '../runtime/app/src/document-files.mjs';
 
 const P = ensureBase(paths());
 // Include dependency discovery in MCP initialization rather than repeating the
 // OS interpreter launcher in each independently durable worker.
 const pythonRuntime=prepareProcessRuntime();
+const nodeRuntime=prepareNodeRuntime();
 const id = z.string().min(1).max(120).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
 const absolutePath = z.string().min(1).max(4096).startsWith('/');
 const device = z.string().min(1).max(120).describe('Exact ID from commander_devices. local is this MCP server host.');
 const mutation = {device, callId:id.describe('Stable ID for this intent. Reuse after a lost response; never mint a retry ID.')};
-const server = new McpServer({name:'navish-commander', version:'1.6.0-rc.4'}, {
+const server = new McpServer({name:'navish-commander', version:'1.6.0-rc.5'}, {
   instructions:'Execute only user-authorized work. Discover devices first. Keep callId, sessionId and batchId across reconnects. A completed tool receipt may describe a running or failed worker. Inspect operationState and verify outputs. Never clear an uncertain record or retry a mutation with a new identity. Local shell commands have the OS account permissions; this server is not a sandbox.'
 });
 
@@ -52,12 +54,26 @@ export function receiptView(r) {
     ...(inner?.sessionId?{sessionId:inner.sessionId}:{}),
     ...(inner?.batchId?{batchId:inner.batchId}:{}),...(inner?.jobId?{jobId:inner.jobId}:{})};
 }
+// In-memory call details for onboarding a later chat; the durable audit log
+// deliberately stores no arguments, and this record dies with the server.
+const recentDetails=[];
+const clipText=(s,max)=>{s=String(s);return s.length>max?s.slice(0,max)+`…[+${s.length-max} chars]`:s};
+function remember(name,args,started,value){
+  recentDetails.push({at:new Date(started).toISOString(),tool:name,durationMs:Date.now()-started,
+    state:value?.state??null,operationState:value?.operationState??null,
+    arguments:clipText(JSON.stringify(args??{}),2000),output:clipText(JSON.stringify(value?.result??value?.message??value?.reason??null),2000)});
+  if(recentDetails.length>200)recentDetails.shift();
+}
 function register(name,description,schema,readOnly,handler) {
   server.registerTool(name,{description,inputSchema:z.object(schema).strict(),
     annotations:{readOnlyHint:readOnly,destructiveHint:!readOnly,idempotentHint:readOnly,openWorldHint:true}},
   async args=>{
-    try {return output(await handler(args));}
-    catch(e) {return output({state:'failed',operationState:'unknown',code:e.code||'COMMANDER_ERROR',message:e.message,retrySafe:false});}
+    const started=Date.now();
+    let value;
+    try {value=await handler(args);}
+    catch(e) {value={state:'failed',operationState:'unknown',code:e.code||'COMMANDER_ERROR',message:e.message,retrySafe:false};}
+    if(name!=='commander_get_recent_tool_calls')remember(name,args,started,value);
+    return output(value);
   });
 }
 async function execute(tool,{device:target,callId,...args}) {
@@ -71,8 +87,8 @@ async function execute(tool,{device:target,callId,...args}) {
   let payload=processTools.includes(tool)&&result?Object.fromEntries(
     ['sessionId','pid','state','exitCode','output','offset','nextOffset','totalBytes','truncated','startedAt','finishedAt','reused','reason','terminated','ok'].filter(k=>k in result).map(k=>[k,result[k]])
   ):result;
-  if(tool==='list_sessions'&&result)payload={sessions:result.sessions.slice(-(args.limit??50)).map(s=>Object.fromEntries(
-    ['sessionId','pid','state','exitCode','startedAt','finishedAt','transport'].filter(k=>k in s).map(k=>[k,s[k]])))};
+  if(tool==='list_sessions'&&result)payload={sessions:result.sessions.map(s=>Object.fromEntries(
+    ['sessionId','pid','state','exitCode','startedAt','finishedAt','transport'].filter(k=>k in s).map(k=>[k,s[k]]))),total:result.total};
   if(tool==='browser_agent'&&result)payload={
     state:result.state,sessionId:result.sessionId,phaseId:result.phaseId,spaceId:result.spaceId,
     verified:result.verified,verificationFresh:result.verificationFresh,verifiedAt:result.verifiedAt,
@@ -83,23 +99,30 @@ async function execute(tool,{device:target,callId,...args}) {
       ...(s.value?.rows?{rows:s.value.rows.slice(0,4).map(row=>({...row,text:row.text?.slice(0,1000)})),extractionLimited:true}:{})})),
     observationsOmitted:true
   };
+  // A worker that exited because it was asked to stop is a successful termination, not a failed call.
+  if(tool==='force_terminate'&&result?.terminated===true)return {...receiptView(r),operationState:'terminated',result:payload};
   return {...receiptView(r),result:payload};
 }
 
 register('commander_devices','Use this to discover exact paired device IDs before execution.',{},true,
   async()=>({state:'completed',devices:devicesCommand(P),platform:process.platform,
-    processRuntime:{pythonAvailable:pythonRuntime.available,pythonVersion:pythonRuntime.version??null,...(pythonRuntime.reason?{reason:pythonRuntime.reason}:{})}}));
+    processRuntime:{pythonAvailable:pythonRuntime.available,pythonVersion:pythonRuntime.version??null,...(pythonRuntime.reason?{pythonReason:pythonRuntime.reason}:{}),
+      nodeAvailable:nodeRuntime.available,nodeExecutable:nodeRuntime.executable??null,nodeVersion:nodeRuntime.version??null,...(nodeRuntime.reason?{nodeReason:nodeRuntime.reason}:{})}}));
+register('commander_ping','Confirm Commander on the selected device is reachable and measure round-trip time.',{device},true,args=>execute('ping',args));
 register('commander_receipt','Use this after a missing response to inspect a local call without re-executing it. A receipt is not current worker state.',{callId:id},true,async({callId})=>{
   recoverRunningReceipts(P);
   return receiptView(loadReceipt(callId,P));
 });
+register('commander_reconcile','Release the quarantine left by an uncertain call after you have independently verified its real effect (file hash, process state, receipt). Nothing is re-executed and the receipt itself stays uncertain; writes and batches blocked by RESOURCE_QUARANTINED become admissible again.',
+  {device:z.literal('local'),callId:id,resources:z.array(z.string().min(1).max(4096)).max(32).optional(),verified:z.literal(true).describe('Set only after inspecting the actual effect of the uncertain call.')},false,
+  async({callId,resources})=>{const r=reconcile({callId,resources:resources??[]},P);return {callId,state:'completed',operationState:'completed',retrySafe:false,result:{changed:r.changed,receipt:receiptView(r.receipt)}};});
 register('commander_read_file','Read text, DOCX, XLSX, PDF or an image. Text offsets are lines; PDF offsets are pages; spreadsheets support sheet and range. DOCX offset 0 gives an outline and nonzero offsets give XML for precise edits. For an explicit HTTP(S) URL set isUrl. Inspect truncation; for PDF continuation pass nextOffset and options.textOffset=nextTextOffset. Images are native MCP content (700 KB aggregate base64 budget).',
   {device,path:z.string().min(1).max(4096),isUrl:z.boolean().default(false),maxBytes:z.number().int().min(1).max(65536).default(16384),offset:z.number().int().default(0),length:z.number().int().min(1).max(1000).default(200),sheet:z.union([z.string(),z.number().int().min(0)]).optional(),range:z.string().max(256).optional(),options:z.object({extractImages:z.boolean().optional(),textOffset:z.number().int().min(0).optional()}).strict().optional()},true,
   args=>execute('read_file',args));
 register('commander_write_file','Write authorized text, DOCX from Markdown, XLSX from JSON 2D rows or named sheets, or a base64 image. DOCX and images cannot append. Use write_pdf for PDFs. Keep the same callId for the same write intent.',
   {...mutation,path:absolutePath,content:z.string().max(65536),mode:z.enum(['rewrite','append']).default('rewrite')},false,args=>execute('write_file',args));
-register('commander_read_multiple_files','Read up to 16 files in one call. Missing files return individual errors. maxBytes is the per-file cap.',
-  {device,paths:z.array(absolutePath).min(1).max(16),maxBytes:z.number().int().min(1).max(4096).default(4096)},true,args=>execute('read_multiple_files',args));
+register('commander_read_multiple_files','Read up to 16 files in one call. Missing files return individual errors. maxBytes is the per-file cap; use commander_read_file with offsets for the rest of a large file.',
+  {device,paths:z.array(absolutePath).min(1).max(16),maxBytes:z.number().int().min(1).max(65536).default(16384)},true,args=>execute('read_multiple_files',args));
 register('commander_list_directory','Browse a directory tree with bounded depth and total entries. Inspect truncated before assuming the listing is complete.',
   {device,path:absolutePath,depth:z.number().int().min(1).max(8).default(2),limitPerDirectory:z.number().int().min(1).max(500).default(100),maxEntries:z.number().int().min(1).max(1000).default(200)},true,args=>execute('list_directory',args));
 register('commander_create_directory','Create an authorized directory and missing parents. Reuse callId for the same intent.',
@@ -108,7 +131,7 @@ register('commander_move_file','Move or rename an authorized file or directory. 
   {...mutation,source:absolutePath,destination:absolutePath},false,args=>execute('move_file',args));
 register('commander_get_file_info','Read file metadata, SHA-256 and text line count without returning file content. Use sha256 as expectedSha256 for an edit.',
   {device,path:absolutePath},true,args=>execute('get_file_info',args));
-register('commander_edit_block','Replace exact UTF-8 text or DOCX XML using old_string/new_string. Default requires one occurrence; ambiguity fails without writing. For XLSX use range (Sheet1!A1:C3) and content (2D rows). expectedSha256 rejects a stale source. Writes are staged and validated. Keep callId stable.',
+register('commander_edit_block','Replace exact UTF-8 text or DOCX XML using old_string/new_string. Default requires one occurrence; ambiguity fails without writing and a failed match reports the closest text. For XLSX use range (Sheet1!A1:C3) and content (2D rows). expectedSha256 rejects a stale source. Writes are staged and validated. Keep callId stable.',
   {...mutation,file_path:absolutePath,old_string:z.string().min(1).max(65536).optional(),new_string:z.string().max(65536).optional(),range:z.string().min(1).max(256).optional(),content:z.array(z.array(z.union([z.string().max(32768),z.number(),z.boolean(),z.null()])).max(256)).max(1000).optional(),expected_replacements:z.number().int().min(1).max(10000).default(1),expectedSha256:z.string().regex(/^[a-f0-9]{64}$/).optional()},false,args=>execute('edit_block',args));
 const pdfOptions=z.object({format:z.enum(['A4','A3','A5','Letter','Legal','Tabloid']).optional(),landscape:z.boolean().optional(),scale:z.number().min(0.1).max(2).optional(),margin:z.object({top:z.string(),bottom:z.string(),left:z.string(),right:z.string()}).strict().optional(),printBackground:z.boolean().optional(),preferCSSPageSize:z.boolean().optional()}).strict();
 register('commander_write_pdf','Create a PDF from Markdown/HTML using installed Chrome with a private profile, or apply ordered insert/delete page operations. Indexes are zero-based. Modifications require a distinct outputPath and preserve the source. Local images are supported; remote assets are not fetched. Reuse callId.',
@@ -122,21 +145,30 @@ register('commander_stop_search','Stop an owned search while preserving partial 
   {...mutation,sessionId:searchId},false,args=>execute('stop_search',args));
 register('commander_list_searches','Recover durable search IDs and current scan status.',
   {device,limit:z.number().int().min(1).max(100).default(50)},true,args=>execute('list_searches',args));
-register('commander_get_config','Inspect Commander version, configuration, paired devices and browser availability on an explicitly selected device.',
+register('commander_get_config','Inspect Commander version, configuration, process policy (blocked commands, shell, interpreters), paired devices and browser availability on an explicitly selected device.',
   {device},true,args=>execute('get_config',args));
-register('commander_set_config_value','Change a Commander configuration value only when the user authorizes that setting change. This does not change ChatGPT permissions or operating-system permissions.',
-  {...mutation,key:z.enum(['allowedDirectories','browserCommand','outputLimitBytes']),value:z.union([z.array(absolutePath).max(100),z.string().max(4096),z.number().int().min(1).max(16777216),z.null()])},false,args=>{
-    if(args.key==='allowedDirectories'&&!Array.isArray(args.value)||args.key==='outputLimitBytes'&&typeof args.value!=='number'||args.key==='browserCommand'&&args.value!==null&&typeof args.value!=='string')throw new Error('value does not match configuration key');
+register('commander_set_config_value','Change a Commander configuration value only when the user authorizes that setting change. Keys: allowedDirectories (empty array allows the whole filesystem), browserCommand, outputLimitBytes, blockedCommands (base command names refused in start_process and batches; an empty array disables the list), defaultShell (absolute path). This does not change ChatGPT permissions or operating-system permissions.',
+  {...mutation,key:z.enum(['allowedDirectories','browserCommand','outputLimitBytes','blockedCommands','defaultShell']),value:z.union([z.array(absolutePath).max(100),z.array(z.string().min(1).max(200)).max(200),z.string().max(4096),z.number().int().min(1).max(16777216),z.null()])},false,args=>{
+    const isStringArray=v=>Array.isArray(v)&&v.every(x=>typeof x==='string');
+    const bad=args.key==='allowedDirectories'&&!(isStringArray(args.value)&&args.value.every(x=>x.startsWith('/')))
+      ||args.key==='blockedCommands'&&!isStringArray(args.value)
+      ||args.key==='outputLimitBytes'&&typeof args.value!=='number'
+      ||['browserCommand','defaultShell'].includes(args.key)&&args.value!==null&&typeof args.value!=='string';
+    if(bad)throw new Error('value does not match configuration key');
     return execute('set_config_value',args);
   });
 register('commander_get_usage_stats','Inspect local Commander tool usage. This is execution telemetry, not model billing or ChatGPT allowance.',
   {device},true,args=>execute('get_usage_stats',args));
-register('commander_get_recent_tool_calls','Read recent execution and observation audit events without command bodies or environment variables.',
-  {device,maxResults:z.number().int().min(1).max(100).default(20)},true,args=>execute('get_recent_tool_calls',args));
-register('commander_start_process','Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.',
-  {...mutation,sessionId:id,command:z.string().min(1).max(32768),cwd:absolutePath,transport:z.enum(['pipe','pty']).optional(),timeout_ms:z.number().int().min(0).max(1000).default(0)},false,args=>execute('start_process',args));
-register('commander_process_output','Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.',
-  {device,sessionId:id,offset:z.number().int().default(0),maxBytes:z.number().int().min(1).max(65536).default(8192)},true,async args=>{
+register('commander_get_recent_tool_calls','Read recent execution and observation audit events without command bodies or environment variables. Set includeArguments to add this server instance\'s in-memory call details (bounded arguments and outputs, lost on restart) for onboarding a new chat.',
+  {device,maxResults:z.number().int().min(1).max(100).default(20),includeArguments:z.boolean().default(false)},true,async({includeArguments,...args})=>{
+    const r=await execute('get_recent_tool_calls',args);
+    if(includeArguments&&args.device==='local'&&r.result)r.result={...r.result,details:recentDetails.slice(-args.maxResults)};
+    return r;
+  });
+register('commander_start_process','Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions. timeout_ms waits up to 10 s for early output or exit before returning.',
+  {...mutation,sessionId:id,command:z.string().min(1).max(32768),cwd:absolutePath,transport:z.enum(['pipe','pty']).optional(),timeout_ms:z.number().int().min(0).max(10000).default(0)},false,args=>execute('start_process',args));
+register('commander_process_output','Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output. wait_ms waits for new output past offset or for exit instead of returning empty immediately.',
+  {device,sessionId:id,offset:z.number().int().default(0),maxBytes:z.number().int().min(1).max(65536).default(8192),wait_ms:z.number().int().min(0).max(10000).default(0)},true,async args=>{
     if(args.device==='local') {
       const current=inspectProcessSession(args.sessionId,P);
       if(['unsubmitted','launching','uncertain'].includes(current.state))return {state:'completed',operationState:current.state,result:current,retrySafe:false};
@@ -145,9 +177,9 @@ register('commander_process_output','Use this to collect a known worker by its s
   });
 register('commander_interact_with_process','Send input to a known owned process or REPL. Reuse callId after a lost reply to prevent duplicate input. Set newline false for raw terminal input.',
   {...mutation,sessionId:id,input:z.string().max(32768),newline:z.boolean().default(true),wait_ms:z.number().int().min(0).max(5000).default(100),timeout_ms:z.number().int().min(500).max(15000).default(5000)},false,args=>execute('interact_with_process',args));
-register('commander_force_terminate','Stop a Commander-owned process using its stable session ID. Use only for an authorized cancellation. Inspect terminated and state.',
+register('commander_force_terminate','Stop a Commander-owned process using its stable session ID. Use only for an authorized cancellation. operationState terminated confirms the stop.',
   {...mutation,sessionId:id,signal:z.union([z.literal(2),z.literal(9),z.literal(15)]).default(15)},false,args=>execute('force_terminate',args));
-register('commander_list_sessions','Recover owned process session IDs and current lifecycle state without exposing saved commands or environment variables.',
+register('commander_list_sessions','Recover owned process session IDs and current lifecycle state, newest first, without exposing saved commands or environment variables.',
   {device,limit:z.number().int().min(1).max(100).default(50)},true,args=>execute('list_sessions',args));
 register('commander_list_processes','Inspect operating-system process IDs, executable names and resource usage. Listing does not authorize stopping a process.',
   {device},true,args=>execute('list_processes',args));
@@ -177,11 +209,11 @@ const condition=z.object({url:z.string().max(4096).optional(),selector:z.string(
   value:z.string().max(12000).optional(),absent:z.boolean().optional()}).strict();
 const step=z.object({action:z.enum(['open','click','click-text','fill','select','snapshot','extract','verify','wait']),
   page:z.string().regex(/^p[1-9][0-9]{0,2}$/).default('p1'),url:z.string().max(4096).optional(),
-  expectedUrl:z.string().max(4096).optional(),selector:z.string().max(2000).optional(),text:z.string().max(1000).optional(),
+  expectedUrl:z.string().max(4096).describe('URL the page must still be on. Defaults to the URL this page was last opened at in the plan.').optional(),selector:z.string().max(2000).optional(),text:z.string().max(1000).optional(),
   value:z.string().max(12000).optional(),after:condition.optional(),condition:condition.optional(),
   limit:z.number().int().min(1).max(40).optional(),maxChars:z.number().int().min(1).max(12000).optional(),
   includeText:z.boolean().optional(),timeout_ms:z.number().int().min(50).max(30000).optional()}).strict();
-register('commander_browser_workflow','Use this for an authorized bounded Ego Lite browser workflow on the local host. Requires Ego Lite already installed. Reuse sessionId and phaseId; require an explicit final condition. Stop for user control. Never replay an uncertain phase.',
+register('commander_browser_workflow','Use this for an authorized bounded Ego Lite browser workflow on the local host. Requires Ego Lite already installed. Reuse sessionId and phaseId; require an explicit final condition. Steps after an open default to that page URL. Stop for user control. Never replay an uncertain phase.',
   {...mutation,device:z.literal('local'),sessionId:id,phaseId:id,goal:z.string().min(1).max(2000),
     allowedOrigins:z.array(z.string().url()).min(1).max(32),
     allowedMutations:z.array(z.enum(['open','click','click-text','fill','select'])).max(5),
@@ -190,4 +222,7 @@ register('commander_browser_workflow','Use this for an authorized bounded Ego Li
   false,args=>execute('browser_agent',args));
 
 await server.connect(new StdioServerTransport());
+// Hosts that load modules slowly (Electron utility processes) otherwise pay
+// several seconds inside the first document call of a chat turn.
+setTimeout(()=>{warmDocumentEngines(()=>new Promise(resolve=>setTimeout(resolve,250))).catch(()=>{});},200);
 process.stdin.on('end',async()=>{await server.close();closeStateTransactions();});

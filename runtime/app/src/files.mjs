@@ -110,12 +110,43 @@ export async function getFileInfoTool(args,config){
   if(!st.isFile())return result;
   // Stream metadata so a large log does not require loading its contents.
   const fd=await fs.promises.open(p,'r'),digest=crypto.createHash('sha256'),buffer=Buffer.alloc(65536);
-  let lines=0,total=0,text=true;
+  let newlines=0,total=0,text=true,lastByte=null;
   try{for(;;){const {bytesRead:n}=await fd.read(buffer,0,buffer.length,null);if(!n)break;
     const chunk=buffer.subarray(0,n);if(!total)text=isProbablyText(chunk);
-    digest.update(chunk);for(let i=0;i<n;i++)if(chunk[i]===10)lines++;total+=n;
+    digest.update(chunk);for(let i=0;i<n;i++)if(chunk[i]===10)newlines++;total+=n;lastByte=chunk[n-1];
   }}finally{await fd.close();}
-  return {...result,sha256:digest.digest('hex'),...(text?{lineCount:total?lines+1:0,lastLine:total?lines:-1,appendPosition:total?lines+1:0}:{})};
+  // A trailing newline terminates the last line rather than starting an empty one (wc -l, RDC).
+  const lineCount=total?newlines+(lastByte===10?0:1):0;
+  return {...result,sha256:digest.digest('hex'),...(text?{lineCount,lastLine:lineCount-1,appendPosition:lineCount}:{})};
+}
+
+function charDiff(a,b,context=60){
+  let prefix=0;while(prefix<a.length&&prefix<b.length&&a[prefix]===b[prefix])prefix++;
+  let suffix=0;while(suffix<a.length-prefix&&suffix<b.length-prefix&&a[a.length-1-suffix]===b[b.length-1-suffix])suffix++;
+  const before=a.slice(Math.max(0,prefix-context),prefix),after=a.slice(a.length-suffix,a.length-suffix+context);
+  return `${before}{-${a.slice(prefix,a.length-suffix)}-}{+${b.slice(prefix,b.length-suffix)}+}${after}`;
+}
+/** Shared prefix plus suffix over the longer length: cheap, and 1 only for identical strings. */
+function similarity(a,b){
+  if(!a.length&&!b.length)return 1;
+  let prefix=0;while(prefix<a.length&&prefix<b.length&&a[prefix]===b[prefix])prefix++;
+  let suffix=0;while(suffix<a.length-prefix&&suffix<b.length-prefix&&a[a.length-1-suffix]===b[b.length-1-suffix])suffix++;
+  return Math.min(1,(prefix+suffix)/Math.max(a.length,b.length));
+}
+/** Locate the window whose lines best match old_string after trimming, to explain a failed exact edit. */
+function nearestMatch(source,old){
+  if(source.length>4*1024*1024||old.length>20000)return null;
+  const lines=source.split('\n'),needle=old.split('\n'),target=needle.map(s=>s.trim());
+  const anchor=target.findIndex(Boolean);if(anchor<0)return null;
+  let best=null;
+  for(let i=0;i+needle.length<=lines.length;i++){
+    if(similarity(lines[i+anchor].trim(),target[anchor])<0.6)continue;
+    let score=0;for(let k=0;k<needle.length;k++)score+=similarity(lines[i+k].trim(),target[k]);
+    score/=needle.length;
+    if(!best||score>best.score)best={line:i+1,score,text:lines.slice(i,i+needle.length).join('\n')};
+    if(score===1)break;
+  }
+  return best;
 }
 
 export function editBlockTool(args,config){
@@ -129,7 +160,13 @@ export function editBlockTool(args,config){
   const old=args.old_string,replacement=args.new_string,expected=args.expected_replacements??1;
   if(typeof old!=='string'||!old.length||typeof replacement!=='string'||!Number.isSafeInteger(expected)||expected<1)throw new Error('nonempty old_string, new_string, and positive expected_replacements required');
   let count=0,at=0;while((at=source.indexOf(old,at))!==-1){count++;at+=old.length;}
-  if(count!==expected)throw new Error(`EDIT_MATCH_COUNT: expected ${expected} exact occurrence(s), found ${count}; no file was changed`);
+  if(count!==expected){
+    let hint='';
+    const near=count===0?nearestMatch(source,old):null;
+    if(near?.score===1)hint=` Closest match at line ${near.line} differs only in whitespace or indentation; use this exact text as old_string:\n${near.text}`;
+    else if(near)hint=` Closest match at line ${near.line} (${Math.round(near.score*100)}% of lines identical after trimming):\n${charDiff(old,near.text)}`;
+    throw new Error(`EDIT_MATCH_COUNT: expected ${expected} exact occurrence(s), found ${count}; no file was changed.${hint}`);
+  }
   const outputBytes=before.length+count*(Buffer.byteLength(replacement)-Buffer.byteLength(old));
   if(outputBytes>16*1024*1024)throw new Error('edit_block result exceeds 16 MiB; no file was changed');
   const after=Buffer.from(source.split(old).join(replacement));

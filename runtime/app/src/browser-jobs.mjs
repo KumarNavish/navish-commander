@@ -43,14 +43,19 @@ export function normalizeBrowserJob(args){
   if(!Array.isArray(origins)||origins.length>32)throw fail('INVALID_ORIGIN_ALLOWLIST');
   const allowedOrigins=[...new Set(origins.map(x=>new URL(url(x)).origin))];
   const checkUrl=u=>{if(allowedOrigins.length&&!allowedOrigins.includes(new URL(u).origin))throw fail('BROWSER_ORIGIN_NOT_ALLOWED');return u};
+  // Later steps default to the URL their page was last opened at, so a plan
+  // does not have to repeat it; a page never opened in this plan needs it.
+  const lastOpened={};
   const steps=workflow.steps.map((step,index)=>{
     if(!step||!ACTIONS.has(step.action))throw fail('UNSUPPORTED_BROWSER_ACTION');
     if(MUTATIONS.has(step.action)&&!allowed.includes(step.action))throw fail('BROWSER_MUTATION_NOT_ALLOWED');
     const out={id:String(index+1),action:step.action,page:step.page??'p1',timeoutMs:integer(step.timeout_ms,5000,50,30000,'BROWSER_STEP_TIMEOUT')};
     if(!/^p[1-9][0-9]{0,2}$/.test(out.page))throw fail('INVALID_BROWSER_PAGE_LABEL');
-    if(step.action==='open'){out.url=checkUrl(url(step.url));out.after=condition(step.after??{url:out.url})}
+    if(step.action==='open'){out.url=checkUrl(url(step.url));out.after=condition(step.after??{url:out.url});lastOpened[out.page]=out.after.url??out.url}
     else{
-      out.expectedUrl=checkUrl(url(step.expectedUrl));
+      const expected=step.expectedUrl??lastOpened[out.page];
+      if(expected==null)throw fail('BROWSER_EXPECTED_URL_REQUIRED');
+      out.expectedUrl=checkUrl(url(expected));
       if(['click','fill','select','extract'].includes(step.action))out.selector=text(step.selector,'BROWSER_SELECTOR',2000);
       if(step.action==='click-text')out.text=text(step.text,'TARGET_TEXT',1000);
       if(['fill','select'].includes(step.action)){if(typeof step.value!=='string'||step.value.length>12000)throw fail('INVALID_BROWSER_VALUE');out.value=step.value}

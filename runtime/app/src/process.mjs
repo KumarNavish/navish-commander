@@ -22,6 +22,54 @@ export function prepareProcessRuntime(){
   }catch{return preparedPython={available:false,reason:'Python 3.9 or newer is required for process workers'};}
 }
 
+/** Electron hosts (Claude Desktop extensions) report the app binary as execPath. */
+export function plainNodeExecutable(execPath=process.execPath,versions=process.versions){
+  if(versions?.electron)return false;
+  return /^node(?:js)?(?:\d+(?:\.\d+)*)?(?:\.exe)?$/i.test(path.basename(String(execPath||'')));
+}
+let preparedNode;
+export function prepareNodeRuntime(env=process.env){
+  if(preparedNode)return preparedNode;
+  const probe=candidate=>{
+    try{
+      // ELECTRON_RUN_AS_NODE keeps a misconfigured Electron binary from opening a window during the probe.
+      const value=JSON.parse(execFileSync(candidate,['-p','JSON.stringify({version:process.versions.node,electron:!!process.versions.electron})'],
+        {encoding:'utf8',timeout:5000,maxBuffer:4096,stdio:['ignore','pipe','ignore'],env:{...env,ELECTRON_RUN_AS_NODE:'1'}}));
+      const [major,minor]=String(value.version).split('.').map(Number);
+      if(value.electron||!(major>22||(major===22&&minor>=16)))return null;
+      return {available:true,executable:candidate,version:value.version};
+    }catch{return null}
+  };
+  if(env.NAVISH_NODE)return preparedNode=probe(env.NAVISH_NODE)||{available:false,reason:`NAVISH_NODE is not a usable Node.js 22.16+ executable: ${env.NAVISH_NODE}`};
+  const candidates=[];
+  if(plainNodeExecutable(process.execPath))candidates.push(process.execPath);
+  for(const dir of (env.PATH||'').split(path.delimiter).filter(Boolean))candidates.push(path.join(dir,'node'));
+  candidates.push('/usr/local/bin/node','/opt/homebrew/bin/node','/usr/bin/node');
+  for(const candidate of new Set(candidates)){
+    try{fs.accessSync(candidate,fs.constants.X_OK)}catch{continue}
+    const found=probe(candidate);if(found)return preparedNode=found;
+  }
+  return preparedNode={available:false,reason:'Node.js 22.16 or newer is required for pipe workers and search; set NAVISH_NODE when the host runtime is not a plain node executable'};
+}
+
+export const DEFAULT_BLOCKED_COMMANDS=Object.freeze(['mkfs','format','mount','umount','fdisk','dd','parted','diskpart','sudo','su','passwd','adduser','useradd','usermod','groupadd','chsh','visudo','shutdown','reboot','halt','poweroff','init','iptables','firewall','netsh','sfc','bcdedit','reg','net','sc','runas','cipher','takeown']);
+export function effectiveBlockedCommands(config={}){return Array.isArray(config.blockedCommands)?config.blockedCommands.map(String):[...DEFAULT_BLOCKED_COMMANDS]}
+const TRANSPARENT_WRAPPERS=new Set(['command','exec','nohup','time','env','builtin']);
+/** Return the first blocked base command found in any shell segment, or null. */
+export function blockedCommand(command,blocked){
+  const set=new Set((blocked||[]).map(x=>String(x).toLowerCase()));
+  if(!set.size)return null;
+  for(const segment of String(command).split(/\r?\n|\|\||&&|;|\|/)){
+    const tokens=segment.trim().split(/\s+/).filter(Boolean);
+    let i=0;
+    while(i<tokens.length&&(/^[A-Za-z_][A-Za-z0-9_]*=/.test(tokens[i])||TRANSPARENT_WRAPPERS.has(tokens[i])))i++;
+    const name=tokens[i];if(!name)continue;
+    const base=path.basename(name.replace(/^['"]|['"]$/g,''));
+    if(set.has(base.toLowerCase()))return base;
+  }
+  return null;
+}
+
 function sessionDir(P,id){
   if(!isSafeId(id))throw Object.assign(new Error('invalid session id'),{code:'INVALID_SESSION_ID',dispatched:false});
   return path.join(P.sessionsDir,id);
@@ -52,6 +100,8 @@ export function readOutputWindow(file, offset=-65536, maxBytes=1048576){
 function tailFile(file,offset=-65536,maxBytes=1048576){return readOutputWindow(file,offset,maxBytes).output}
 function stable(x){if(Array.isArray(x))return '['+x.map(stable).join(',')+']';if(x&&typeof x==='object')return '{'+Object.keys(x).sort().map(k=>JSON.stringify(k)+':'+stable(x[k])).join(',')+'}';return JSON.stringify(x)}
 function launchError(code,sessionId,uncertain=false){return Object.assign(new Error(code),{code,sessionId,uncertain,dispatched:uncertain});}
+/** A definite pre-dispatch failure: nothing started, so nothing can have late effects. */
+function definiteError(code,sessionId,detail){return Object.assign(new Error(detail?`${code}: ${detail}`:code),{code,sessionId,uncertain:false,dispatched:false});}
 /** A missing observation after a launch claim is uncertain, not permission to restart. */
 export function inspectProcessSession(sessionId,P){
   const found=meta(P,sessionId);
@@ -99,15 +149,19 @@ export async function startProcessTool(args,P){
   const sessionId=args.sessionId??randomId('session'),dir=sessionDir(P,sessionId);
   const command=String(args.command??'');if(!command)throw launchError('PROCESS_COMMAND_REQUIRED',sessionId);
   const wait=integer(args.timeout_ms??args.timeoutMs,300,0,30000,'initial wait');
-  const shell=args.shell||process.env.SHELL||'/bin/bash';
+  const shell=args.shell||args.defaultShell||process.env.SHELL||'/bin/bash';
   const cwd=path.resolve(args.cwd||process.cwd());
   if(!fs.statSync(cwd).isDirectory())throw launchError('PROCESS_CWD_NOT_DIRECTORY',sessionId);
   if(args.env!=null&&(typeof args.env!=='object'||Array.isArray(args.env)))throw launchError('INVALID_PROCESS_ENV',sessionId);
   const env=Object.fromEntries(Object.entries(args.env||{}).map(([k,v])=>[k,String(v)]));
   const transport=args.transport??'pty';
   if(!['pty','pipe'].includes(transport))throw launchError('INVALID_PROCESS_TRANSPORT',sessionId);
+  const blocked=blockedCommand(command,args.blockedCommands);
+  if(blocked)throw definiteError('COMMAND_BLOCKED',sessionId,`${blocked} is in blockedCommands; no process was started`);
   const python=transport==='pty'?prepareProcessRuntime():null;
-  if(python&&!python.available)throw launchError('PROCESS_PYTHON_UNAVAILABLE',sessionId);
+  if(python&&!python.available)throw definiteError('PROCESS_PYTHON_UNAVAILABLE',sessionId,python.reason);
+  const node=transport==='pipe'?prepareNodeRuntime():null;
+  if(node&&!node.available)throw definiteError('PROCESS_NODE_UNAVAILABLE',sessionId,node.reason);
   // Keep existing PTY fingerprints identical across upgrades.
   const specHash=crypto.createHash('sha256').update(stable({command,shell,cwd,env,...(transport==='pipe'?{transport}:{})})).digest('hex');
   const claimFile=path.join(dir,'launch.json');
@@ -128,9 +182,16 @@ export async function startProcessTool(args,P){
     if(transport==='pipe'){
       const helper=path.join(path.dirname(fileURLToPath(import.meta.url)),'pipe-session-helper.mjs');
       await new Promise((resolve,reject)=>{
-        const child=spawn(process.execPath,[helper,dir,cwd,shell,'-lc',command],{detached:true,stdio:'ignore',env:{...process.env,...env}});
-        child.once('error',()=>reject(launchError('PROCESS_LAUNCH_OUTCOME_UNCERTAIN',sessionId,true)));
-        child.once('spawn',()=>{child.unref();resolve();});
+        const child=spawn(node.executable,[helper,dir,cwd,shell,'-lc',command],{detached:true,stdio:'ignore',env:{...process.env,...env}});
+        let spawned=false;
+        child.once('spawn',()=>{spawned=true;child.unref();resolve();});
+        child.once('error',error=>{
+          if(spawned)return;
+          // No process exists after a failed spawn. Releasing the claim lets a
+          // corrected launch reuse the same session identity.
+          withStateTransaction(P,()=>{if(!fs.existsSync(path.join(dir,'meta.json')))fs.rmSync(dir,{recursive:true,force:true});});
+          reject(definiteError('PROCESS_LAUNCH_FAILED',sessionId,error.code||error.message));
+        });
       });
     }else{
     const helper=path.join(path.dirname(fileURLToPath(import.meta.url)),'session-helper.py');
@@ -165,6 +226,16 @@ export async function startProcessTool(args,P){
 export function readProcessOutputTool(args,P){
   const m=byPid(P,args.pid)||meta(P,args.sessionId);if(!m)throw new Error('session not found');
   const st=sessionState(m,P);return {...st,...readOutputWindow(st.outputFile,args.offset??-65536,args.maxBytes??1048576)};
+}
+/** Wait briefly for new output past the requested offset instead of forcing the caller to poll. */
+export async function readProcessOutputWithWait(args,P){
+  const wait=integer(args.wait_ms,0,0,30000,'output wait');
+  const deadline=Date.now()+wait;
+  for(;;){
+    const result=readProcessOutputTool(args,P);
+    if(!wait||result.output.length||result.state!=='running'||Date.now()>=deadline)return result;
+    await sleep(Math.min(50,deadline-Date.now()));
+  }
 }
 
 async function waitInputReady(P,st,maxWait=2500){
@@ -214,6 +285,16 @@ export async function terminateProcessTool(args,P){
   return {pid:st.pid,sessionId:st.sessionId,terminated:['completed','failed'].includes(latest.state),state:latest.state};
 }
 
-export function listSessionsTool(args,P){if(!fs.existsSync(P.sessionsDir))return {sessions:[]};return {sessions:fs.readdirSync(P.sessionsDir).map(id=>sessionState(meta(P,id),P)).filter(Boolean)}}
+/** Newest sessions first; only the requested page is read from disk. */
+export function listSessionsTool(args,P){
+  if(!fs.existsSync(P.sessionsDir))return {sessions:[],total:0};
+  const limit=integer(args?.limit,50,1,1000,'session list limit');
+  const entries=[];
+  for(const id of fs.readdirSync(P.sessionsDir)){try{entries.push({id,mtime:fs.statSync(path.join(P.sessionsDir,id)).mtimeMs})}catch{}}
+  entries.sort((a,b)=>b.mtime-a.mtime);
+  const sessions=[];
+  for(const entry of entries){if(sessions.length>=limit)break;const s=sessionState(meta(P,entry.id),P);if(s)sessions.push(s)}
+  return {sessions,total:entries.length};
+}
 export function listProcessesTool(){const r=run('ps',['-axo','pid=,ppid=,%cpu=,%mem=,comm='],{maxBuffer:4*1024*1024});return {exitCode:r.code,output:r.stdout,error:r.stderr||r.error}}
 export function killProcessTool(args){const pid=Number(args.pid);if(!Number.isInteger(pid)||pid<=0)throw new Error('invalid pid');process.kill(pid,Number(args.signal||15));return {pid,signal:Number(args.signal||15)}}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "navish-commander",
-  "version": "1.6.0-rc.4",
+  "version": "1.6.0-rc.5",
   "description": "Run authorized local work with durable receipts, recoverable processes, and parallel worker batches.",
   "author": {
     "name": "KumarNavish"

@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {allowed} from './files.mjs';
 import {ensureDir,isSafeId,readJson,writeJson,shellQuote} from './util.mjs';
 import {withStateTransaction} from './state-lock.mjs';
-import {startProcessTool,inspectProcessSession,terminateProcessTool} from './process.mjs';
+import {startProcessTool,inspectProcessSession,terminateProcessTool,prepareNodeRuntime} from './process.mjs';
 
 function location(P,id){if(!isSafeId(id)||id.length>100)throw new Error('invalid search sessionId');return path.join(P.stateRoot,'searches',id);}
 function record(P,id){return readJson(path.join(location(P,id),'request.json'));}
@@ -26,6 +26,9 @@ export async function startSearchTool(args,P,config){
   if(!['files','content'].includes(request.searchType))throw new Error('invalid searchType');
   for(const [key,min,max] of [['contextLines',0,10],['maxResults',1,10000],['timeout_ms',100,300000]])if(!Number.isInteger(request[key])||request[key]<min||request[key]>max)throw new Error('invalid '+key);
   if(!request.literalSearch)new RegExp(request.pattern,request.ignoreCase?'i':'');
+  // The scan runs in a detached Node supervisor; an Electron host's execPath is not one.
+  const node=prepareNodeRuntime();
+  if(!node.available)throw Object.assign(new Error('SEARCH_NODE_UNAVAILABLE: '+node.reason),{code:'SEARCH_NODE_UNAVAILABLE',dispatched:false});
   const intentHash=crypto.createHash('sha256').update(JSON.stringify(request)).digest('hex');
   withStateTransaction(P,()=>{
     ensureDir(dir);
@@ -36,7 +39,7 @@ export async function startSearchTool(args,P,config){
   const runner=fileURLToPath(new URL('./search-runner.mjs',import.meta.url));
   // Reuse the existing supervised, write-ahead process launcher. Reconnects
   // never create another scan or truncate already published results.
-  await startProcessTool({sessionId:'search-'+args.sessionId,command:[process.execPath,runner,dir].map(shellQuote).join(' '),cwd:dir,transport:'pipe',timeout_ms:0},P);
+  await startProcessTool({sessionId:'search-'+args.sessionId,command:[node.executable,runner,dir].map(shellQuote).join(' '),cwd:dir,transport:'pipe',timeout_ms:0},P);
   return getSearchResultsTool({sessionId:args.sessionId,length:20},P);
 }
 export function getSearchResultsTool(args,P){

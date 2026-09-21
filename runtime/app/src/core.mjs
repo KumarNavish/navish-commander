@@ -6,7 +6,7 @@ import { beginCall, finishCall, defaultResources, isMutating, reconcileQuarantin
 import { createDirectoryTool,moveFileTool,listDirectoryTool,findTextTool } from './files.mjs';
 import {readDocument as readFileTool,readDocuments as readMultipleFilesTool,writeDocument as writeFileTool,documentInfo as getFileInfoTool,editDocument as editBlockTool,writePdf} from './document-files.mjs';
 import {startSearchTool,getSearchResultsTool,stopSearchTool,listSearchesTool} from './search.mjs';
-import { startProcessTool,readProcessOutputTool,interactProcessTool,terminateProcessTool,listSessionsTool,listProcessesTool,killProcessTool } from './process.mjs';
+import { startProcessTool,readProcessOutputWithWait,interactProcessTool,terminateProcessTool,listSessionsTool,listProcessesTool,killProcessTool,prepareNodeRuntime,prepareProcessRuntime,effectiveBlockedCommands } from './process.mjs';
 import { agentBatchStartTool,agentBatchStatusTool,agentBatchCollectTool,agentBatchSendTool,agentBatchCancelTool,agentBatchListTool } from './agents.mjs';
 import {jobStatusTool,listJobsTool,cancelJobTool} from './agent-jobs.mjs';
 import { browserCommandTool,browserStatus } from './browser.mjs';
@@ -16,16 +16,29 @@ import { listDevices,remoteCall,pairAdd,pairRemove } from './remote.mjs';
 import { nowIso, randomId, writeJson, sleep } from './util.mjs';
 import { performance } from 'node:perf_hooks';
 
-export const VERSION='1.6.0-rc.4';
-export const TOOL_NAMES=['get_config','set_config_value','read_file','read_multiple_files','write_file','write_pdf','create_directory','list_directory','move_file','get_file_info','edit_block','start_search','get_more_search_results','stop_search','list_searches','find_text','start_process','read_process_output','interact_with_process','force_terminate','list_sessions','list_processes','kill_process','browser_agent','browser_agent_health','browser_command','get_usage_stats','get_recent_tool_calls','agent_batch_start','agent_batch_status','agent_batch_collect','agent_batch_send','agent_batch_cancel','agent_batch_list','agent_job_status','agent_job_list','agent_job_cancel'];
+export const VERSION='1.6.0-rc.5';
+export const TOOL_NAMES=['get_config','set_config_value','read_file','read_multiple_files','write_file','write_pdf','create_directory','list_directory','move_file','get_file_info','edit_block','start_search','get_more_search_results','stop_search','list_searches','find_text','start_process','read_process_output','interact_with_process','force_terminate','list_sessions','list_processes','kill_process','browser_agent','browser_agent_health','browser_command','get_usage_stats','get_recent_tool_calls','ping','agent_batch_start','agent_batch_status','agent_batch_collect','agent_batch_send','agent_batch_cancel','agent_batch_list','agent_job_status','agent_job_list','agent_job_cancel'];
+const CONFIG_KEYS=['allowedDirectories','browserCommand','outputLimitBytes','blockedCommands','defaultShell'];
+function processPolicy(config){
+  const node=prepareNodeRuntime(),python=prepareProcessRuntime();
+  return {blockedCommands:effectiveBlockedCommands(config),defaultShell:config.defaultShell||process.env.SHELL||'/bin/bash',
+    nodeExecutable:node.executable??null,nodeVersion:node.version??null,pythonExecutable:python.executable??null,
+    ...(node.available?{}:{nodeUnavailable:node.reason}),...(python.available?{}:{pythonUnavailable:python.reason})};
+}
 
 function audit(P,event){fs.appendFileSync(P.auditLog,JSON.stringify({at:nowIso(),...event})+'\n',{mode:0o600});}
 function recentCalls(P,max=50){try{return fs.readFileSync(P.auditLog,'utf8').trim().split(/\n/).filter(Boolean).slice(-max).map(x=>JSON.parse(x))}catch{return []}}
 function usage(P){const events=recentCalls(P,100000);const byTool={};for(const e of events){if(e.tool)byTool[e.tool]=(byTool[e.tool]||0)+1}return {calls:events.filter(e=>e.event==='call-finished').length,byTool};}
 
 async function executeLocal(tool,args,ctx){const {P,config}=ctx; switch(tool){
-  case 'get_config': return {version:VERSION,hostname:os.hostname(),platform:process.platform,arch:process.arch,node:process.version,config,devices:listDevices(P),browser:browserStatus(config),browserAgent:{defaultBackend:'ego-lite',executableAvailable:new EgoBridge().available},paths:{configRoot:P.configRoot,stateRoot:P.stateRoot,dataRoot:P.dataRoot}};
-  case 'set_config_value': {const allowed=['allowedDirectories','browserCommand','outputLimitBytes']; if(!allowed.includes(args.key)) throw new Error(`unsupported config key: ${args.key}`); const c={...config,[args.key]:args.value}; saveConfig(c,P); return {key:args.key,value:args.value};}
+  case 'get_config': return {version:VERSION,hostname:os.hostname(),platform:process.platform,arch:process.arch,node:process.version,config,processPolicy:processPolicy(config),devices:listDevices(P),browser:browserStatus(config),browserAgent:{defaultBackend:'ego-lite',executableAvailable:new EgoBridge().available},paths:{configRoot:P.configRoot,stateRoot:P.stateRoot,dataRoot:P.dataRoot}};
+  case 'set_config_value': {
+    if(!CONFIG_KEYS.includes(args.key)) throw new Error(`unsupported config key: ${args.key}`);
+    if(args.key==='blockedCommands'&&!(Array.isArray(args.value)&&args.value.every(v=>typeof v==='string'&&v.trim())))throw new Error('blockedCommands must be an array of command names');
+    if(args.key==='defaultShell'&&args.value!==null){if(typeof args.value!=='string'||!path.isAbsolute(args.value))throw new Error('defaultShell must be an absolute executable path or null');fs.accessSync(args.value,fs.constants.X_OK);}
+    const c={...config,[args.key]:args.value}; saveConfig(c,P); return {key:args.key,value:args.value};
+  }
+  case 'ping': return {pong:true,at:nowIso(),pid:process.pid,uptimeMs:Math.round(process.uptime()*1000),version:VERSION};
   case 'read_file': return readFileTool(args,config);
   case 'read_multiple_files': return readMultipleFilesTool(args,config);
   case 'write_file': return writeFileTool(args,config);
@@ -40,8 +53,8 @@ async function executeLocal(tool,args,ctx){const {P,config}=ctx; switch(tool){
   case 'stop_search': return stopSearchTool(args,P);
   case 'list_searches': return listSearchesTool(args,P);
   case 'find_text': return findTextTool(args,config);
-  case 'start_process': return await startProcessTool(args,P);
-  case 'read_process_output': return readProcessOutputTool(args,P);
+  case 'start_process': return await startProcessTool({...args,defaultShell:config.defaultShell,blockedCommands:effectiveBlockedCommands(config)},P);
+  case 'read_process_output': return await readProcessOutputWithWait(args,P);
   case 'interact_with_process': return await interactProcessTool(args,P);
   case 'force_terminate': return await terminateProcessTool(args,P);
   case 'list_sessions': return listSessionsTool(args,P);
@@ -59,7 +72,7 @@ async function executeLocal(tool,args,ctx){const {P,config}=ctx; switch(tool){
     if(result.result?.ok!==true||result.result?.verified!==true)throw new EgoError('BROWSER_POSTCONDITION_NOT_VERIFIED',{dispatched:true,uncertain:true});
     return {...result,verified:true,verification:'caller-specified application postcondition',backendRequested:'ego-lite',backendChosen:'ego-lite',fallbackReason:null};
   }
-  case 'agent_batch_start': return await agentBatchStartTool(args,P);
+  case 'agent_batch_start': return await agentBatchStartTool(args,P,config);
   case 'agent_batch_status': return agentBatchStatusTool(args,P);
   case 'agent_batch_collect': return agentBatchCollectTool(args,P);
   case 'agent_batch_send': return await agentBatchSendTool(args,P);
@@ -119,7 +132,7 @@ export async function callTool({target='local',tool,args={},callId=randomId('cal
 // These MCP observations have no caller-supplied intent ID or external effect.
 // They must see current state, not create/replay a durable mutation receipt.
 // Keep an explicit small allowlist: being absent from MUTATING is insufficient.
-const REPEATABLE_OBSERVATIONS=new Set(['get_config','read_multiple_files','list_directory','get_file_info','get_more_search_results','list_searches','list_sessions','list_processes','get_usage_stats','get_recent_tool_calls','agent_batch_list','read_file','read_process_output','agent_batch_collect','agent_job_status','agent_job_list']);
+const REPEATABLE_OBSERVATIONS=new Set(['get_config','read_multiple_files','list_directory','get_file_info','get_more_search_results','list_searches','list_sessions','list_processes','get_usage_stats','get_recent_tool_calls','ping','agent_batch_list','read_file','read_process_output','agent_batch_collect','agent_job_status','agent_job_list']);
 export async function observeLocalTool({tool,args={}},P=getPaths()){
   if(!REPEATABLE_OBSERVATIONS.has(tool))throw Object.assign(new Error('tool requires durable call admission'),{code:'OBSERVATION_TOOL_NOT_ALLOWED'});
   const startedAt=nowIso();
