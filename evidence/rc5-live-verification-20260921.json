@@ -1,0 +1,60 @@
+{
+  "schema": "navish.rc5-live-verification/v1",
+  "observedAt": "2026-09-21T12:34:00Z/2026-09-21T12:46:30Z",
+  "candidate": {"runtime": "1.6.0-rc.5", "connector": "0.4.4", "releaseCommit": "e122127"},
+  "claudeDesktopHost": {
+    "installedFrom": "published v1.6.0-rc.5 .mcpb, checksum verified after download",
+    "previousInstallBackedUpTo": "~/.local/share/navish-commander/previous-extension/rc4-20260921T143257",
+    "serverReportsVersion": "1.6.0-rc.5",
+    "resolvedNodeExecutable": "/usr/local/bin/node",
+    "resolvedNodeVersion": "26.8.2",
+    "toolsRegistered": 35,
+    "repairedOperations": [
+      {"operation": "pipe worker (echo; exit 3)", "rc4": "PROCESS_LAUNCH_OUTCOME_UNCERTAIN in 60-70 ms, three attempts", "rc5": "completed in 167 ms, pid 13832, exitCode 3, output hello-pipe-rc5"},
+      {"operation": "content search NEEDLE_42", "rc4": "PROCESS_LAUNCH_OUTCOME_UNCERTAIN in 80 ms", "rc5": "completed, 3 matches with context across 4 scanned files, same result set as hosted RDC"},
+      {"operation": "three-worker batch with artifact checks", "rc4": "RESOURCE_QUARANTINED, no workers started", "rc5": "2 completed with artifacts verified, 1 failed with exit 7 reported distinctly, concurrent start times"},
+      {"operation": "XLSX write", "rc4": "no response within ~78 s, recorded uncertain, no file created", "rc5": "completed in 90 ms"},
+      {"operation": "DOCX write", "rc4": "16.7 s", "rc5": "81 ms"},
+      {"operation": "PDF write (2 pages)", "rc4": "38.5 s", "rc5": "1.39 s"},
+      {"operation": "list_sessions with 1,688 stored sessions", "rc4": "19.2 s, 7.4 s, 0.47 s", "rc5": "51 ms, newest-first, total reported"},
+      {"operation": "edit_block with non-matching old_string", "rc4": "found 0, no hint", "rc5": "closest match at line 6, 92% identical after trimming, character diff return a * {-c-}{+b+}"},
+      {"operation": "browser workflow without repeating expectedUrl", "rc4": "INVALID_BROWSER_URL, nothing dispatched", "rc5": "completed in 2.6 s, Ego Lite task space 45, h1 Example Domain extracted, 3 checks verified"}
+    ],
+    "directServerProbe": {
+      "tools": 35,
+      "commander_ping": "present, returns pong with version 1.6.0-rc.5",
+      "commander_reconcile": "present",
+      "start_process_timeout_ms_max": 10000,
+      "process_output_wait_ms_max": 10000,
+      "read_multiple_files_maxBytes_max": 65536,
+      "config_keys": ["allowedDirectories", "browserCommand", "outputLimitBytes", "blockedCommands", "defaultShell"],
+      "blockedCommandEnforcement": "start_process with sudo rejected COMMAND_BLOCKED before any launch",
+      "inlineWait": "5 s inline wait returned completed output without polling"
+    }
+  },
+  "personalChatGptConnector": {
+    "incidentFound": "The Mac agent had been failing CHANNEL_CONNECT_FAILED since about 10:25 local time because the deployed channel worker's AGENT_TOKEN no longer matched the agent configuration rotated at 00:18; the ChatGPT path was down before this session touched it.",
+    "diagnosis": "A temporary hash-only diagnostic on /health confirmed the worker's AGENT_TOKEN SHA-256 prefix and length once the correct secret was promoted; Cloudflare serves the newest version, and an intermediate secret change had been the active 100% version. The diagnostic was removed and the worker redeployed from unmodified source.",
+    "actions": ["restored AGENT_TOKEN to the agent's configured value", "deployed channel worker 0.4.4/rc.5", "deployed Netlify front door", "repinned the Mac LaunchAgent to release 2b51e520e7636d6a running runtime 1.6.0-rc.5"],
+    "endpoints": {
+      "frontDoor": {"version": "1.6.0-rc.5", "connector": "0.4.4", "unauthenticatedMcp": 401, "oauthProtectedResource": 200, "oauthAuthorizationServer": 200},
+      "channel": {"connector": "0.4.4", "runtimeVersion": "1.6.0-rc.5"},
+      "agent": {"state": "running", "connectErrorsAfterRestart": 0}
+    },
+    "endToEndOwnerFlow": {
+      "method": "full OAuth dynamic registration, S256 PKCE, owner consent, authorization-code exchange, then MCP over the deployed HTTPS endpoint, exactly as the ChatGPT client connects",
+      "serverInfo": "navish-commander-personal 1.6.0-rc.5",
+      "toolsExposed": 36,
+      "checks": [
+        "commander_ping returned pong with version 1.6.0-rc.5",
+        "commander_write_file completed and an independent read returned the exact nonce",
+        "commander_start_process pipe worker completed with output via-connector, the operation class that failed entirely on rc.4"
+      ]
+    }
+  },
+  "notEstablished": [
+    "No new hosted RDC throughput comparison was run for rc.5; the last recorded ratio remains the 0.4.1 result of 2.079x median with a 95% interval of 1.988-2.165x, which does not pass the strict lower-bound gate.",
+    "OpenAI's automatic safety review can still block individual ChatGPT mutations regardless of connector state.",
+    "A Claude model conversation driving the installed extension was not separately scored; these results come from tool calls made in this session and from direct protocol probes."
+  ]
+}
