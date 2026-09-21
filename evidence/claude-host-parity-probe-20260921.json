@@ -1,0 +1,59 @@
+{
+  "schema": "navish.claude-host-parity-probe/v1",
+  "observedAt": "2026-09-21T07:20:00Z/2026-09-21T12:10:00Z",
+  "client": "Claude Code inside the Claude desktop app, sharing the Claude Desktop extension server (Electron UtilityProcess, built-in Node v24.20.0)",
+  "installedRuntime": "1.6.0-rc.4",
+  "baseline": {
+    "product": "hosted Remote Desktop Commander",
+    "endpoint": "mcp.desktopcommander.app",
+    "macAgentVersion": "0.2.48",
+    "catalogTools": 30,
+    "sameMachine": true
+  },
+  "matchedOperations": [
+    {"operation": "tail read (offset -5) of a 22 KB Markdown file", "rdc": "ok 187 ms", "navish": "ok (4.6 s during a concurrent test run; 28 ms on a later idle call)"},
+    {"operation": "positive deep offset read of a 1,500-line file", "rdc": "ok", "navish": "ok 3 ms, correct continuation metadata"},
+    {"operation": "list_directory depth 1", "rdc": "ok", "navish": "ok 23 ms; symlink typed correctly where RDC reports [FILE]"},
+    {"operation": "get_file_info", "rdc": "ok, lineCount 44", "navish": "ok, sha256 included, lineCount 45 (fixed in rc.5 to match wc -l)"},
+    {"operation": "read_multiple_files", "rdc": "ok, full files", "navish": "ok but 4,096-byte per-file cap truncated an 81 KB file (raised to 64 KB in rc.5)"},
+    {"operation": "URL read (https://example.com/)", "rdc": "supported", "navish": "ok 650 ms"},
+    {"operation": "write_file text, append", "rdc": "ok", "navish": "ok 52 ms / 66 ms with durable receipts"},
+    {"operation": "edit_block exact replacement", "rdc": "ok", "navish": "ok 81 ms with before/after SHA-256"},
+    {"operation": "edit_block with a non-matching old_string", "rdc": "94% similarity diff: return a * {-c-}{+b+}", "navish": "EDIT_MATCH_COUNT found 0, no hint (closest-match hint added in rc.5)"},
+    {"operation": "write_file DOCX from Markdown", "rdc": "ok", "navish": "ok but 16.7 s in this host"},
+    {"operation": "write_pdf from Markdown (2 pages)", "rdc": "ok", "navish": "ok but 38.5 s in this host; RDC read the result correctly"},
+    {"operation": "write_file XLSX", "rdc": "ok", "navish": "no response within the client timeout (~78 s); the server instance died with the app and the call was recorded uncertain; no file was created"},
+    {"operation": "read DOCX/XLSX/PDF written by the other product", "rdc": "ok (read Navish DOCX outline and 2-page PDF)", "navish": "three reads exceeded the client timeout; audit shows all three completed at 07:40:22Z after a ~2 minute stall; DOCX read later measured 1.75 s cold and 15 ms warm"},
+    {"operation": "content search for NEEDLE_42", "rdc": "ok, 3 matches with context", "navish": "PROCESS_LAUNCH_OUTCOME_UNCERTAIN in 80 ms; session left launching"},
+    {"operation": "start_process noninteractive (echo; exit 3)", "rdc": "ok, inline output and exit code within its 10 s wait", "navish": "pipe transport: PROCESS_LAUNCH_OUTCOME_UNCERTAIN in 60-70 ms on three attempts"},
+    {"operation": "start_process python3 -i and interact print(6*7)", "rdc": "ok, 42, prompt detected", "navish": "PTY transport ok: banner in 1.2 s, 42 in 1.6 s"},
+    {"operation": "force_terminate of the REPL", "rdc": "ok", "navish": "terminated true but the call was flagged as an error because the killed worker exited nonzero (reported as terminated in rc.5)"},
+    {"operation": "start_batch with two pipe workers", "rdc": "no batch capability", "navish": "RESOURCE_QUARANTINED: the uncertain XLSX write in the same directory blocked the batch; only the CLI could reconcile it (commander_reconcile added in rc.5)"},
+    {"operation": "list_sessions (1,683 stored sessions)", "rdc": "instant, in-memory", "navish": "19.2 s, 7.4 s and 0.47 s on three calls (newest-first paging in rc.5)"},
+    {"operation": "browser workflow on https://example.com/", "rdc": "no browser capability", "navish": "INVALID_BROWSER_URL when the extract step omitted expectedUrl; with it, Ego Lite task space 41 opened the page, extracted h1 'Example Domain' and verified 3 checks in 2.9 s (expectedUrl now defaults in rc.5)"},
+    {"operation": "ping / identity", "rdc": "ping pong; who_am_i with remote call allowance (59% left)", "navish": "no ping (added in rc.5); config and devices served the same purpose"},
+    {"operation": "research gateway device", "rdc": "device 02b043c1 offline in the RDC registry", "navish": "ssh reachable in under 5 s, but the gateway adapter call exceeded 40 s while the gateway agent answered /v1/health with 401 in 1.5 s; not a runtime defect of the Mac package"}
+  ],
+  "isolatedReproductions": {
+    "pipeLaunchSystemNodeIsolatedState": "completed, exit 3, output hi-from-pipe, 163 ms",
+    "documentEngineSystemNode": {"xlsxReadMs": 517, "docxReadMs": 23, "pdfReadMs": 82},
+    "realStateLockLatencyMs": {"median": 0.2, "p90": 0.5, "max": 4.5, "samples": 30},
+    "rawSessionScanSystemNode": "1,683 meta.json files read in 0.97 s",
+    "hostEvidence": "Claude main.log: 'Using UtilityProcess for extension Navish Commander: appConfig.isUsingBuiltInNodeForMcp is true'; the extension server process is 'Claude Helper (Plugin) --type=utility --utility-sub-type=node.mojom.NodeService'; runtime/app/src/process.mjs (rc.4) spawned pipe supervisors and search.mjs spawned the search runner with process.execPath",
+    "conclusion": "The runtime code was correct under a plain Node binary; the failures were specific to the Electron host (execPath is not a Node executable; module loading is roughly 80x slower per file)."
+  },
+  "candidate": {
+    "version": "1.6.0-rc.5",
+    "commit": "dc30e0e",
+    "fullSuite": {"tests": 149, "pass": 149, "fail": 0},
+    "extractedZipSystemNode": {"suites": ["mcp", "rdc-core-parity", "claude-host-parity", "document-parity", "pipe", "receipt-storage", "agent-jobs"], "tests": 29, "pass": 29, "fail": 0},
+    "electronRunAsNode": "not usable as a harness: Claude.app has the runAsNode fuse disabled, so ELECTRON_RUN_AS_NODE=1 Claude … starts another app instance instead of Node; the attempt was stopped and the extra instance terminated",
+    "hostConditionCoverage": "test/claude-host-parity.test.mjs spawns the real MCP server from a hard-linked Node binary named Claude (process.execPath not a plain node name) and with an unusable NAVISH_NODE; it passes in the full suite and against the extracted ZIP"
+  },
+  "residueHandling": "The probe's uncertain XLSX write (cp-nav-xlsx-01) and search launch (cp-nav-search-01) were reconciled with the CLI after verifying that no file and no scan existed; the two historical Komoot ego-space records from 19 September remain quarantined and untouched.",
+  "notCertified": [
+    "Live behaviour of rc.5 inside Claude Desktop until the rc.5 package is installed there",
+    "ChatGPT connector behaviour until connector catalog and Mac agent are redeployed from rc.5",
+    "Hosted RDC throughput ratio for rc.5 (no new comparison run)"
+  ]
+}

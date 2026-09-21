@@ -8,6 +8,8 @@ The candidate resolves a plain Node.js executable before any launch claim, reads
 
 Unchanged from earlier entries: OpenAI's automatic safety review still blocks some ChatGPT mutations regardless of the connector, and the strict 2× confidence gate remains a statistical bar rather than a capability gap.
 
+The [live probe record](../evidence/claude-host-parity-probe-20260921.json) for that conversation lists each matched operation against hosted RDC, the rc.4 failures with their timings, the isolated reproductions that separated the runtime from the host, and the rc.5 extracted-package runs under system Node and under the Electron binary. Installing rc.5 into Claude Desktop and redeploying the personal connector are separate owner actions; until they happen, the installed rc.4 extension and connector 0.4.3 keep the rc.4 behaviour documented above.
+
 ## Connector 0.4.3 / unchanged runtime 1.6.0-rc.4
 
 Fixes a reproduced delivery deadlock: a valid 700,000-byte interactive result generated a 1,401,286-byte MCP response, exceeding the channel limit. Two upload attempts failed while the mutation ran once. The fix preserves the original local journal and delivers a bounded notice with status, identity, size and hash. Isolated real-MCP/SQLite-channel tests cover lost upload, reconnect, duplicate suppression, complete bounded output recovery and a drained queue. The full local suite has 143 tests. The [deployed endpoint confirmation](../evidence/connector-0.4.3-output-recovery.json) recovered all 700,000 bytes in 11 bounded reads, verified exactly one side effect, preserved the full journal, stopped its owned worker and confirmed zero pending requests. No new hosted RDC throughput or unattended ChatGPT certification claim is made for this connector revision.
