@@ -26,7 +26,10 @@ const readStore=()=>JSON.parse(fs.readFileSync(process.env.NAVISH_TEST_SPACES,'u
 test('browser workflow validation rejects implicit mutations',()=>assert.throws(()=>normalizeBrowserJob(plan('not-allowed',{allowedMutations:[]})),/MUTATION_NOT_ALLOWED/));
 test('browser workflow rejects credentials and unsupported URL schemes',()=>{for(const value of ['file:///tmp/test','https://user:password@example.test/']){const p=plan('bad-url');p.workflow.steps[0].url=value;assert.throws(()=>normalizeBrowserJob(p),/BROWSER_URL/)}});
 test('browser workflow rejects an empty or contradictory final condition',()=>{for(const c of [{},{selector:'#x',absent:true,text:'bad'}]){const p=plan('bad-final');p.workflow.final=c;assert.throws(()=>normalizeBrowserJob(p),/CONDITION/)}});
-test('mutations require both exact expected URL and postcondition',()=>{const p=plan('no-url');delete p.workflow.steps[1].expectedUrl;assert.throws(()=>normalizeBrowserJob(p));const q=plan('no-after');delete q.workflow.steps[2].after;assert.throws(()=>normalizeBrowserJob(q),/CONDITION/)});
+test('later steps default to the page\'s opened URL; an unopened page still requires expectedUrl, and mutations require a postcondition',()=>{
+ const p=plan('no-url');delete p.workflow.steps[1].expectedUrl;assert.equal(normalizeBrowserJob(p).steps[1].expectedUrl,base);
+ const r=plan('never-opened');r.workflow.steps[1].page='p2';delete r.workflow.steps[1].expectedUrl;assert.throws(()=>normalizeBrowserJob(r),/EXPECTED_URL_REQUIRED/);
+ const q=plan('no-after');delete q.workflow.steps[2].after;assert.throws(()=>normalizeBrowserJob(q),/CONDITION/)});
 test('cross-origin navigation outside the explicit allowlist is rejected',()=>{const p=plan('cross');p.allowedOrigins=['https://allowed.example/'];p.workflow.steps[0].url='https://outside.example/';assert.throws(()=>normalizeBrowserJob(p),/ORIGIN_NOT_ALLOWED/)});
 test('action and time budgets are validated before execution',()=>{assert.throws(()=>normalizeBrowserJob(plan('budget',{maxActions:3})),/WORKFLOW_REQUIRED/);assert.throws(()=>normalizeBrowserJob(plan('time',{timeout_ms:Infinity})),/TIMEOUT/)});
 test('one real Chromium workflow crosses the actual core and Ego process-envelope path',async()=>{

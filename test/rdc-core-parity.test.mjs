@@ -25,7 +25,7 @@ test('chat file workflow: inspect, edit once, reject stale or ambiguous edits, m
     const dir=l.cwd+'/src',file=dir+'/example.js';
     assert.equal((await l.call('create_directory',{callId:'mkdir',path:dir})).state,'completed');
     await l.call('write_file',{callId:'write',path:file,content:'const a = 1;\r\nconst b = 1;\r\n'});fs.chmodSync(file,0o751);
-    const metadata=(await l.call('get_file_info',{path:file})).result;assert.equal(metadata.mode,0o751);assert.equal(metadata.lineCount,3);
+    const metadata=(await l.call('get_file_info',{path:file})).result;assert.equal(metadata.mode,0o751);assert.equal(metadata.lineCount,2);
     const ambiguity=await l.call('edit_block',{callId:'ambiguous',file_path:file,old_string:'1',new_string:'2'});
     assert.equal(ambiguity.state,'failed');assert.match(ambiguity.reason,/found 2/);
     const intent={callId:'edit-once',file_path:file,old_string:'const a = 1;',new_string:'const a = 2;',expectedSha256:metadata.sha256};

@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0-rc.4",
+  "version": "1.6.0-rc.5",
   "tools": [
     {
       "name": "commander_devices",
@@ -7,6 +7,35 @@
       "inputSchema": {
         "type": "object",
         "properties": {},
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_ping",
+      "description": "Confirm Commander on the selected device is reachable and measure round-trip time.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Exact ID from commander_devices. local is this MCP server host."
+          }
+        },
+        "required": [
+          "device"
+        ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
@@ -43,6 +72,55 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "commander_reconcile",
+      "description": "Release the quarantine left by an uncertain call after you have independently verified its real effect (file hash, process state, receipt). Nothing is re-executed and the receipt itself stays uncertain; writes and batches blocked by RESOURCE_QUARANTINED become admissible again.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "const": "local"
+          },
+          "callId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "maxItems": 32
+          },
+          "verified": {
+            "type": "boolean",
+            "const": true,
+            "description": "Set only after inspecting the actual effect of the uncertain call."
+          }
+        },
+        "required": [
+          "device",
+          "callId",
+          "verified"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
         "openWorldHint": true
       },
       "execution": {
@@ -191,7 +269,7 @@
     },
     {
       "name": "commander_read_multiple_files",
-      "description": "Read up to 16 files in one call. Missing files return individual errors. maxBytes is the per-file cap.",
+      "description": "Read up to 16 files in one call. Missing files return individual errors. maxBytes is the per-file cap; use commander_read_file with offsets for the rest of a large file.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -215,8 +293,8 @@
           "maxBytes": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 4096,
-            "default": 4096
+            "maximum": 65536,
+            "default": 16384
           }
         },
         "required": [
@@ -420,7 +498,7 @@
     },
     {
       "name": "commander_edit_block",
-      "description": "Replace exact UTF-8 text or DOCX XML using old_string/new_string. Default requires one occurrence; ambiguity fails without writing. For XLSX use range (Sheet1!A1:C3) and content (2D rows). expectedSha256 rejects a stale source. Writes are staged and validated. Keep callId stable.",
+      "description": "Replace exact UTF-8 text or DOCX XML using old_string/new_string. Default requires one occurrence; ambiguity fails without writing and a failed match reports the closest text. For XLSX use range (Sheet1!A1:C3) and content (2D rows). expectedSha256 rejects a stale source. Writes are staged and validated. Keep callId stable.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -912,7 +990,7 @@
     },
     {
       "name": "commander_get_config",
-      "description": "Inspect Commander version, configuration, paired devices and browser availability on an explicitly selected device.",
+      "description": "Inspect Commander version, configuration, process policy (blocked commands, shell, interpreters), paired devices and browser availability on an explicitly selected device.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -941,7 +1019,7 @@
     },
     {
       "name": "commander_set_config_value",
-      "description": "Change a Commander configuration value only when the user authorizes that setting change. This does not change ChatGPT permissions or operating-system permissions.",
+      "description": "Change a Commander configuration value only when the user authorizes that setting change. Keys: allowedDirectories (empty array allows the whole filesystem), browserCommand, outputLimitBytes, blockedCommands (base command names refused in start_process and batches; an empty array disables the list), defaultShell (absolute path). This does not change ChatGPT permissions or operating-system permissions.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -963,7 +1041,9 @@
             "enum": [
               "allowedDirectories",
               "browserCommand",
-              "outputLimitBytes"
+              "outputLimitBytes",
+              "blockedCommands",
+              "defaultShell"
             ]
           },
           "value": {
@@ -977,6 +1057,15 @@
                   "pattern": "^\\/"
                 },
                 "maxItems": 100
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 200
               },
               {
                 "type": "string",
@@ -1043,7 +1132,7 @@
     },
     {
       "name": "commander_get_recent_tool_calls",
-      "description": "Read recent execution and observation audit events without command bodies or environment variables.",
+      "description": "Read recent execution and observation audit events without command bodies or environment variables. Set includeArguments to add this server instance's in-memory call details (bounded arguments and outputs, lost on restart) for onboarding a new chat.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -1058,6 +1147,10 @@
             "minimum": 1,
             "maximum": 100,
             "default": 20
+          },
+          "includeArguments": {
+            "type": "boolean",
+            "default": false
           }
         },
         "required": [
@@ -1078,7 +1171,7 @@
     },
     {
       "name": "commander_start_process",
-      "description": "Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions.",
+      "description": "Use this to start an authorized persistent local or paired-device shell worker. Keep sessionId stable; commands run with the host account permissions. timeout_ms waits up to 10 s for early output or exit before returning.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -1122,7 +1215,7 @@
           "timeout_ms": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 1000,
+            "maximum": 10000,
             "default": 0
           }
         },
@@ -1148,7 +1241,7 @@
     },
     {
       "name": "commander_process_output",
-      "description": "Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output.",
+      "description": "Use this to collect a known worker by its stable session ID after starting or reconnecting. Check exitCode and expected output. wait_ms waits for new output past offset or for exit instead of returning empty immediately.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -1173,6 +1266,12 @@
             "minimum": 1,
             "maximum": 65536,
             "default": 8192
+          },
+          "wait_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "default": 0
           }
         },
         "required": [
@@ -1259,7 +1358,7 @@
     },
     {
       "name": "commander_force_terminate",
-      "description": "Stop a Commander-owned process using its stable session ID. Use only for an authorized cancellation. Inspect terminated and state.",
+      "description": "Stop a Commander-owned process using its stable session ID. Use only for an authorized cancellation. operationState terminated confirms the stop.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -1312,7 +1411,7 @@
     },
     {
       "name": "commander_list_sessions",
-      "description": "Recover owned process session IDs and current lifecycle state without exposing saved commands or environment variables.",
+      "description": "Recover owned process session IDs and current lifecycle state, newest first, without exposing saved commands or environment variables.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -1786,7 +1885,7 @@
     },
     {
       "name": "commander_browser_workflow",
-      "description": "Use this for an authorized bounded Ego Lite browser workflow on the local host. Requires Ego Lite already installed. Reuse sessionId and phaseId; require an explicit final condition. Stop for user control. Never replay an uncertain phase.",
+      "description": "Use this for an authorized bounded Ego Lite browser workflow on the local host. Requires Ego Lite already installed. Reuse sessionId and phaseId; require an explicit final condition. Steps after an open default to that page URL. Stop for user control. Never replay an uncertain phase.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -1877,7 +1976,8 @@
                     },
                     "expectedUrl": {
                       "type": "string",
-                      "maxLength": 4096
+                      "maxLength": 4096,
+                      "description": "URL the page must still be on. Defaults to the URL this page was last opened at in the plan."
                     },
                     "selector": {
                       "type": "string",

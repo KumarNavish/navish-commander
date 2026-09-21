@@ -106,6 +106,16 @@ async function download(url){
   throw Error('URL redirect limit exceeded');
 }
 
+/** Load the document engines ahead of the first document call; hosts that load modules slowly otherwise pay it inside a chat turn. */
+export async function warmDocumentEngines(pause=async()=>{}){
+  const modules=['pizzip','fast-xml-parser','./vendor-docx.mjs','./vendor-excel.mjs','unpdf','pdf-lib','markdown-it','puppeteer-core'];
+  const warmed=[],failed=[];
+  for(const name of modules){
+    try{await import(name);warmed.push(name);}catch(e){failed.push({module:name,error:e.message});}
+    await pause();
+  }
+  return {warmed,failed};
+}
 export async function readDocument(args,config){
   if(!args.isUrl&&!path.isAbsolute(args.path))throw Error('Local file path must be absolute');
   if(!args.isUrl&&!formats.has(extension(args.path)))return readFileTool(args,config);

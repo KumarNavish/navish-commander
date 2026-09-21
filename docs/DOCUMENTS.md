@@ -23,6 +23,11 @@ returned `nextOffset` and `options.textOffset = nextTextOffset`. `hasMore`,
 by `maxBytes`; native image content has a shared 700 KB base64 budget per response.
 URL downloads allow five redirects, a 15-second deadline and at most 16 MiB.
 
+The parsers and renderer modules are imported in the background shortly after
+the MCP server connects, one module at a time, so the first document call of a
+chat does not pay their loading cost; a call arriving earlier simply waits for
+the same import.
+
 PDF creation and image thumbnails use an installed Chrome/Chromium executable.
 Set `NAVISH_CHROMIUM` when it is outside a standard location. Each render uses a
 private temporary profile, disabled page JavaScript and a pipe connection. PDF

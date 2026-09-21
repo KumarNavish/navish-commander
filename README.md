@@ -20,7 +20,9 @@ For example: “Use Commander on my Mac to fix the failing parser test in this r
 
 A [fresh Latest / Extra High chat](evidence/chat-natural-recovery-20260921.json) invoked the personal connector by name without a plugin chip and recovered verified results in two read-only calls.
 
-The current candidate exposes 33 local MCP tools (34 through the personal connector, including its receipt tool). It supports directory browsing, multi-file and document reads, exact text and spreadsheet edits, PDF creation and page operations, file metadata, durable paginated search, interactive process input and process recovery. Search and input survive client reconnects. See [document formats](docs/DOCUMENTS.md) and [RDC capability coverage](docs/RDC_CAPABILITIES.md) for limits.
+The current candidate exposes 35 local MCP tools (36 through the personal connector, including its receipt tool). It supports directory browsing, multi-file and document reads, exact text and spreadsheet edits, PDF creation and page operations, file metadata, durable paginated search, interactive process input and process recovery, a configurable blocked-command list and default shell, ping, and owner-verified reconciliation of quarantined resources. Search and input survive client reconnects. See [document formats](docs/DOCUMENTS.md) and [RDC capability coverage](docs/RDC_CAPABILITIES.md) for limits.
+
+Candidate 1.6.0-rc.5 (this checkout, unpublished) fixes the Claude Desktop host: the extension runs as an Electron utility process where `process.execPath` is the Claude binary, which left every pipe worker, batch and search `PROCESS_LAUNCH_OUTCOME_UNCERTAIN` in 1.6.0-rc.4. Supervisors now use a resolved Node.js executable, `commander_list_sessions` reads only the newest page, and document engines are warmed after connect. See the [acceptance ledger](docs/ACCEPTANCE.md) and [release notes](docs/RELEASE_NOTES.md).
 
 ## Candidate and evidence
 
@@ -34,17 +36,17 @@ An actual Latest / Extra High ChatGPT conversation completed and independently v
 
 ## Install the Claude Code plugin
 
-For the current package version, use `navish-commander-1.6.0-rc.4.zip` from the [candidate release](https://github.com/KumarNavish/navish-commander/releases/tag/v1.6.0-rc.4). Extract the archive, then run:
+The latest published package is `navish-commander-1.6.0-rc.4.zip` from the [candidate release](https://github.com/KumarNavish/navish-commander/releases/tag/v1.6.0-rc.4); build 1.6.0-rc.5 from this checkout with `npm run bundle` until it is published. Extract the archive, then run:
 
 ```sh
 claude --plugin-dir /absolute/path/to/extracted/navish-commander
 ```
 
-The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use that root as the plugin directory. The current source passes 143 local runtime/MCP tests. A fresh ZIP extraction passed 49 MCP tests, strict plugin validation, and the real Claude Code MCP connection check. These host checks do not invoke a model. Historical client evidence remains in the acceptance ledger and does not certify changed source.
+The archive root contains `.claude-plugin/plugin.json` and `src/server.mjs`; use that root as the plugin directory. The current source passes 149 local runtime/MCP tests. A fresh ZIP extraction passed 49 MCP tests, strict plugin validation, and the real Claude Code MCP connection check. These host checks do not invoke a model. Historical client evidence remains in the acceptance ledger and does not certify changed source.
 
 ## Claude Desktop package
 
-For the current package version, use `navish-commander-1.6.0-rc.4.mcpb` from the [candidate release](https://github.com/KumarNavish/navish-commander/releases/tag/v1.6.0-rc.4). In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions. The current candidate was installed and enabled in Claude Desktop 2.2553.1. All 33 tools were discovered, and their owner-selected Always allow settings persisted after reopening configuration. Its installed runtime matches the tested source. A Claude model conversation remains untested because the account had reached its limit. See [host installation evidence](evidence/claude-host-installation-20260920.json).
+The latest published bundle is `navish-commander-1.6.0-rc.4.mcpb` from the [candidate release](https://github.com/KumarNavish/navish-commander/releases/tag/v1.6.0-rc.4); `npm run bundle` builds the 1.6.0-rc.5 bundle from this checkout. In Claude Desktop, open Settings → Extensions → Advanced settings → Install Extension, then select the file and review its permissions. Claude Desktop hosts the extension as an Electron utility process on its built-in Node; 1.6.0-rc.4 could not start pipe workers, batches or searches there, which the first real Claude conversation on 21 September 2026 exposed and 1.6.0-rc.5 fixes. See the [acceptance ledger](docs/ACCEPTANCE.md) and [host installation evidence](evidence/claude-host-installation-20260920.json).
 
 The package includes its JavaScript dependencies. The host needs Node.js 22.16 or later. Noninteractive pipe workers require only Node. Interactive PTY workers additionally need Python 3.9 or later on PATH; `NAVISH_PYTHON` can select an interpreter. macOS and Linux are the intended runtime platforms; Windows is not supported by the PTY worker implementation. Claude's platform availability is separate from the server's Linux support.
 

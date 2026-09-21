@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { ensureDir, readJson, writeJson, nowIso, isSafeId, sleep } from './util.mjs';
 import { withStateTransaction } from './state-lock.mjs';
-import { startProcessTool, readProcessOutputTool, inspectProcessSession, interactProcessTool, terminateProcessTool } from './process.mjs';
+import { startProcessTool, readProcessOutputTool, inspectProcessSession, interactProcessTool, terminateProcessTool, blockedCommand, effectiveBlockedCommands } from './process.mjs';
 
 function batchesRoot(P){const d=path.join(P.stateRoot,'agent-batches');ensureDir(d);return d}
 function batchPath(P,id){return path.join(batchesRoot(P),validId(id,'batch id')+'.json')}
@@ -101,11 +101,16 @@ async function collectWithWait(args,P,defaults={}){
   return {...summarize(loadBatch(P,args.batchId),P,tail,total),waitExpired:wait>0&&['running','accepted'].includes(snapshot.state)};
 }
 
-export async function agentBatchStartTool(args,P){
+export async function agentBatchStartTool(args,P,config={}){
   const batchId=validId(args.batchId,'batch id');
   if(!Array.isArray(args.workers)||args.workers.length<1||args.workers.length>64)throw new Error('workers must contain 1 to 64 entries');
   const workers=args.workers.map(normalizeWorker);
   if(new Set(workers.map(w=>w.id)).size!==workers.length)throw new Error('worker ids must be unique');
+  const blockedCommands=effectiveBlockedCommands(config);
+  for(const w of workers){
+    const hit=blockedCommand(w.command,blockedCommands);
+    if(hit)throw Object.assign(new Error(`COMMAND_BLOCKED: worker ${w.id} uses ${hit}; no worker was started`),{code:'COMMAND_BLOCKED',dispatched:false});
+  }
   // Validate all observation budgets before admitting any worker launch.
   bounded(args.wait_ms,0,0,300000,'batch wait');bounded(args.poll_ms,25,25,2000,'batch poll');
   bounded(args.maxBytesPerWorker??args.tailBytes,4096,1,4*1024*1024,'worker output limit');bounded(args.maxTotalBytes,1048576,1,4*1024*1024,'batch output limit');
@@ -125,7 +130,7 @@ export async function agentBatchStartTool(args,P){
     const batch=loadBatch(P,batchId);
     const updates=await Promise.all(batch.workers.map(async w=>{
       try{
-        const r=await startProcessTool({sessionId:w.sessionId,command:w.command,cwd:w.resolvedCwd,env:w.env,transport:w.transport,timeout_ms:w.startTimeoutMs},P);
+        const r=await startProcessTool({sessionId:w.sessionId,command:w.command,cwd:w.resolvedCwd,env:w.env,transport:w.transport,timeout_ms:w.startTimeoutMs,defaultShell:config.defaultShell,blockedCommands},P);
         return {workerId:w.id,changes:{pid:r.pid,launchState:r.state,startedAt:r.startedAt||nowIso()}};
       }catch(e){return {workerId:w.id,changes:{launchError:e.code||'WORKER_LAUNCH_FAILED',launchState:e.uncertain?'uncertain':'failed'}}}
     }));
