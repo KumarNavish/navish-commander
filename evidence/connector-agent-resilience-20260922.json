@@ -1,0 +1,40 @@
+{
+  "schema": "navish.connector-agent-resilience/v1",
+  "observedAt": "2026-09-22T20:00:00Z/2026-09-22T20:08:00Z",
+  "connector": "0.4.5",
+  "runtime": "1.6.0-rc.5",
+  "defect": {
+    "summary": "The Mac agent opened its local Commander server once at module scope with no retry and the MCP SDK's default 60 s request timeout.",
+    "observedFailures": "Three exits with code 1 recorded in the agent log as 'McpError: MCP error -32001: Request timed out' with data.timeout 60000; each dropped the channel connection and any in-flight request.",
+    "secondFailureMode": "A stdio child that died after startup left the agent running against an unreachable server. Every later job failed and launchd had no crash to restart, so the connector degraded silently.",
+    "notTheCause": "The LaunchAgent already sets KeepAlive and ThrottleInterval 30, so crashes were restarted; an earlier reading of this session that claimed KeepAlive was absent was wrong and is corrected here."
+  },
+  "fix": {
+    "retryingConnect": "capped exponential backoff to 60 s, explicit 120 s connect timeout",
+    "reconnectOnDeath": "Client.onclose clears the cached client so the next job reconnects on demand",
+    "singleFlight": "concurrent jobs share one connection attempt and never spawn competing servers against the same state directory",
+    "diagnostics": "unhandledRejection and uncaughtException handlers installed ahead of all startup work; log then exit(1) so launchd restarts a clean process",
+    "unchanged": "journal execution ownership, recovery semantics, catalog, transport code, runtime"
+  },
+  "regressionTest": {
+    "file": "test/connector-agent-resilience.test.mjs",
+    "method": "spawns the real agent binary against a local server that exits non-zero on its first two starts",
+    "patched": "retries with increasing backoff, proceeds past connect, passes in about 5 s",
+    "previousBuild": "hangs in connect and never retries; fails at the 100 s test timeout",
+    "suite": {"tests": 150, "pass": 150, "fail": 0}
+  },
+  "liveVerification": {
+    "deployed": "channel worker and Netlify front door report connector 0.4.5; Mac agent repinned to release 95bc32666630ad17",
+    "killTest": "SIGKILL of the live Commander stdio child (pid 76291) while the agent ran",
+    "result": "agent survived with launchd runs still 1, meaning it was never restarted; the next job over the deployed ChatGPT OAuth/MCP path spawned a new server (pid 77011) and completed, returning 36 tools, a ping on 1.6.0-rc.5 and a pipe worker with its output",
+    "agentLogAfterKill": "empty"
+  },
+  "alsoCleaned": {
+    "connectorReleases": "22 stale pinned releases (5.4 GB) reduced to the active build plus one rollback",
+    "deviceRegistry": "7 duplicate ssh gateway probe entries removed, canonical research-gateway kept, prior file backed up"
+  },
+  "notEstablished": [
+    "No new hosted RDC throughput comparison; the recorded ratio remains the 0.4.1 result of 2.079x median, 95% interval 1.988-2.165x, which does not pass the strict lower-bound gate.",
+    "OpenAI's automatic safety review can still block individual ChatGPT mutations."
+  ]
+}
