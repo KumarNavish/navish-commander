@@ -10,15 +10,42 @@ import {acquireBridgeLock} from '../runtime/app/src/control-lock.mjs';
 import {closeStateTransactions} from '../runtime/app/src/state-lock.mjs';
 import catalog from './catalog.json' with {type:'json'};
 
+// Dying silently is the one failure the operator cannot diagnose. Record it,
+// then exit so launchd restarts a clean process rather than continuing on
+// unknown state; the disk journal still owns whatever was in flight.
+for(const event of ['unhandledRejection','uncaughtException'])
+  process.on(event,e=>{try{console.error(JSON.stringify({event,code:e?.message??String(e)}));}catch{}process.exit(1);});
 const config=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
 if(!/^https:\/\/[^/]+$/.test(config.origin)||!config.agentToken||!path.isAbsolute(config.stateDir)||!path.isAbsolute(config.server))throw Error('INVALID_AGENT_CONFIG');
 fs.mkdirSync(config.stateDir,{recursive:true,mode:0o700});
 const release=acquireBridgeLock({stateRoot:config.stateDir});
-const client=new Client({name:'navish-private-connector-agent',version:'1.0.0'});
-const transport=new StdioClientTransport({command:process.execPath,args:[config.server],env:process.env,stderr:'pipe'});
-transport.stderr?.resume();
-await client.connect(transport);
 const inflight=new Map();let stopping=false;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// A slow start, or a stdio child that dies later, must not end the agent and
+// must not leave it holding the channel open against a server it can no longer
+// reach. Reconnect instead, single-flight so concurrent jobs never race up
+// competing servers against the same state directory.
+let client=null,connecting=null;
+async function openLocalServer(){
+  for(let delay=1000;;delay=Math.min(delay*2,60000)){
+    const c=new Client({name:'navish-private-connector-agent',version:'1.0.0'});
+    const t=new StdioClientTransport({command:process.execPath,args:[config.server],env:process.env,stderr:'pipe'});
+    t.stderr?.resume();
+    try{await c.connect(t,{timeout:120000});c.onclose=()=>{if(client===c)client=null;};return c;}
+    catch(e){
+      console.error(JSON.stringify({event:'local-server-unavailable',code:e.message,retryInMs:delay}));
+      try{await c.close();}catch{}
+      if(stopping)throw e;
+      await sleep(delay);
+    }
+  }
+}
+function localServer(){
+  if(client)return Promise.resolve(client);
+  connecting??=openLocalServer().then(c=>{client=c;connecting=null;return c;},e=>{connecting=null;throw e;});
+  return connecting;
+}
+await localServer();
 async function request(endpoint,data){
   const r=await fetch(config.origin+endpoint,{method:data?'POST':'GET',headers:{authorization:'Bearer '+config.agentToken,...(data?{'content-type':'application/json'}:{})},
     ...(data?{body:JSON.stringify(data)}:{}),signal:AbortSignal.timeout(30000)});
@@ -30,7 +57,7 @@ const executeJob=(job,upload=result=>request('/agent/result',boundResultEnvelope
   if(!tool)throw Error('UNKNOWN_JOB_TOOL');
   // Recovery semantics come from the installed catalog, never a relay flag.
   return executeJournaledJob({job:{...job,mutating:tool.annotations?.readOnlyHint!==true},stateDir:config.stateDir,
-    call:(name,args)=>client.callTool({name,arguments:args},undefined,{timeout:120000}),upload});
+    call:async(name,args)=>(await localServer()).callTool({name,arguments:args},undefined,{timeout:120000}),upload});
 };
 const stop=()=>{stopping=true;};process.on('SIGTERM',stop);process.on('SIGINT',stop);
 let heartbeat=0,backoff=1000;
@@ -52,4 +79,4 @@ try{
     }catch(e){console.error(JSON.stringify({event:'relay-unavailable',code:e.message,retryInMs:backoff}));await new Promise(r=>setTimeout(r,backoff));backoff=Math.min(backoff*2,60000);}
   }
   await Promise.allSettled(inflight.values());
-}finally{await client.close();release();closeStateTransactions();}
+}finally{try{await client?.close();}catch{}release();closeStateTransactions();}

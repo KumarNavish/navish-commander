@@ -1,3 +1,11 @@
+# Personal connector 0.4.5 / unchanged runtime 1.6.0-rc.5
+
+The Mac agent opened its local Commander server once, at module scope, with no retry and the MCP SDK's default 60-second request timeout. A slow or failed start rejected outside every handler and ended the process; three such exits are recorded in the agent log, each one dropping the channel connection and whatever request was in flight. A stdio child that died later was worse: the agent stayed up and every subsequent job failed against a server it could no longer reach, with no crash to trigger a restart.
+
+The agent now retries the local connection with capped backoff, reconnects on demand when the child is gone, and installs `unhandledRejection` and `uncaughtException` handlers ahead of all startup work so no exit is silent. Concurrent jobs share one connection attempt rather than racing up competing servers against the same state directory. The disk journal remains the execution owner; recovery semantics are unchanged.
+
+`test/connector-agent-resilience.test.mjs` drives the real agent binary against a local server that fails its first two starts: the patched agent retries, backs off and proceeds, while the previous build hangs until the test times out. The suite passes 150 tests. Connector transport code, the catalog and the runtime are unchanged.
+
 # Runtime 1.6.0-rc.5 candidate: Claude Desktop host parity
 
 Real use from a Claude conversation on 21 September 2026 exposed that the Claude Desktop extension, which runs as an Electron utility process on Claude's built-in Node, could not start pipe workers, batches or searches: the runtime spawned its detached supervisors with `process.execPath`, which is the Claude application binary in that host, so every launch ended `PROCESS_LAUNCH_OUTCOME_UNCERTAIN` within 70 ms while PTY workers kept working. The runtime now resolves a plain Node.js 22.16+ executable before any launch claim (`NAVISH_NODE`, then a plain `node` execPath, then PATH and the standard install locations), reports it in `commander_devices` and `commander_get_config`, and treats a missing runtime or a spawn error as a definite failure that releases the session identity instead of leaving an uncertain claim.
