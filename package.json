@@ -29,7 +29,7 @@
     "pngjs": "7.0.0",
     "puppeteer-core": "25.11.0",
     "unpdf": "1.8.1",
-    "zod": "^3.25.0"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@anthropic-ai/mcpb": "2.1.2",
