@@ -20,20 +20,20 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
-    "@netlify/blobs": "11.1.0",
+    "@netlify/blobs": "11.1.4",
     "exceljs": "4.4.0",
-    "fast-xml-parser": "5.11.1",
+    "fast-xml-parser": "5.11.2",
     "markdown-it": "14.3.3",
     "pdf-lib": "1.17.1",
-    "pizzip": "3.2.0",
+    "pizzip": "3.3.0",
     "pngjs": "7.0.0",
-    "puppeteer-core": "25.11.0",
-    "unpdf": "1.8.1",
+    "puppeteer-core": "25.14.0",
+    "unpdf": "1.9.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
     "@anthropic-ai/mcpb": "2.1.2",
-    "wrangler": "4.135.0"
+    "wrangler": "4.151.1"
   },
   "overrides": {
     "tmp": "0.2.7",
