@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@anthropic-ai/mcpb": "2.1.2",
-    "wrangler": "4.135.0"
+    "wrangler": "4.147.0"
   },
   "overrides": {
     "tmp": "0.2.7",
