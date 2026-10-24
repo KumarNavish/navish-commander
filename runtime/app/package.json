@@ -18,7 +18,7 @@
   "dependencies": {
     "exceljs": "4.4.0",
     "fast-xml-parser": "5.11.1",
-    "markdown-it": "14.3.2",
+    "markdown-it": "15.0.2",
     "pdf-lib": "1.17.1",
     "pizzip": "3.2.0",
     "pngjs": "7.0.0",
