@@ -1,7 +1,7 @@
 import {Server} from '@modelcontextprotocol/sdk/server/index.js';
 import {WebStandardStreamableHTTPServerTransport} from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import {CallToolRequestSchema,ListToolsRequestSchema} from '@modelcontextprotocol/sdk/types.js';
-import {createAuth,escapeHtml,SCOPE,sha} from './auth.mjs';
+import {CLAUDE_ORIGINS,createAuth,escapeHtml,SCOPE,sha} from './auth.mjs';
 import {createQueue,toolResult} from './queue.mjs';
 
 // no-referrer makes browsers send Origin: null on form POSTs. same-origin
@@ -41,8 +41,8 @@ export function createHandler({origin,secret,ownerPasswordHash,agentToken,store,
         const context=auth.authorize(Object.fromEntries(u.searchParams));
         const html=`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Connect Navish Commander</title><style>body{font:18px system-ui;max-width:600px;margin:10vh auto;padding:24px;color:#17332d}input,button{font:inherit;padding:12px;display:block;margin:16px 0;width:90%}button{background:#17332d;color:white;border:0}</style><h1>Connect your Commander</h1><p>This private connection can read files and run authorized commands on your paired machines. Only the installation owner can connect.</p><form method="post" action="/oauth/authorize"><input type="hidden" name="context" value="${escapeHtml(context)}"><label>Installation password<input type="password" name="password" autocomplete="current-password" required></label><button type="submit">Connect Commander</button></form></html>`;
         // Chromium checks form-action on the 303 OAuth callback as well.
-        // The authorization validator restricts redirects to ChatGPT callbacks.
-        return new Response(html,{headers:{...headers,'content-type':'text/html; charset=utf-8','content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self' https://chatgpt.com; frame-ancestors 'none'; base-uri 'none'"}});
+        // The authorization validator restricts redirects to ChatGPT and claude.ai callbacks.
+        return new Response(html,{headers:{...headers,'content-type':'text/html; charset=utf-8','content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self' https://chatgpt.com https://claude.ai https://claude.com; frame-ancestors 'none'; base-uri 'none'"}});
       }
       if(req.method==='POST'&&p==='/oauth/authorize') {
         if(req.headers.get('origin')!==origin)return json({error:'INVALID_ORIGIN'},403);
@@ -63,7 +63,7 @@ export function createHandler({origin,secret,ownerPasswordHash,agentToken,store,
       try{identity=auth.access(req.headers.get('authorization'));}
       catch{return json({error:'AUTHENTICATION_REQUIRED'},401,{'www-authenticate':auth.challenge});}
       const requestOrigin=req.headers.get('origin');
-      if(requestOrigin&&!['https://chatgpt.com',origin].includes(requestOrigin))return json({error:'INVALID_ORIGIN'},403);
+      if(requestOrigin&&!['https://chatgpt.com',...CLAUDE_ORIGINS,origin].includes(requestOrigin))return json({error:'INVALID_ORIGIN'},403);
       const parsed=req.method==='POST'?await body(req):undefined;
       const server=new Server({name:'navish-commander-personal',version:catalog.version},{capabilities:{tools:{}},
         instructions:'Use Commander for authorized machine work. Discover exact devices. ChatGPT supplies the reasoning, planning, code generation and verification decisions. Execute its explicit authorized file edits, shell commands, browser workflows and parallel command batches directly through Commander. Commander provides no model executor. Do not invoke Codex CLI, Claude Code, model APIs or other model runners through process or batch tools. Use durable receipts and outputs to recover command work; historical repository-job tools only inspect retained rc.1 records. Keep jobId, callId, sessionId, batchId and connector operationId stable across disconnects. Queued is not completed. New results include connectorOperation with the original tool and target; check those before using the result. After a queued, missing or mismatched response, inspect commander_connector_receipt using the original operationId or mutation callId, not an ID from an unrelated output. Never mint a new mutation ID after an uncertain outcome. Inspect worker exit codes and artifacts. If CONNECTOR_RESULT_TOO_LARGE is returned, the original response remains local and execution state is unchanged. Do not retry the mutation: use its sessionId or batchId for bounded output reads, or request a smaller read. A connector receipt retains the delivery notice. Distinguish observed denial, tool failure and missing evidence; a missing response or export alone does not establish a platform denial. Stop a denied intent without retry or route changes. A denial does not establish that other calls had no effects: reconcile previously dispatched operations through read-only receipts and observations before reporting which changes occurred. Report only observed execution and verification. The Mac must be online; free hosting quotas apply. This connector does not provide or pay for model APIs.'});

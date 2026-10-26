@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 
 export const SCOPE='commander';
+export const CLAUDE_ORIGINS=['https://claude.ai','https://claude.com'];
 export const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
 const b64=x=>Buffer.from(x).toString('base64url');
 const equal=(a,b)=>crypto.timingSafeEqual(Buffer.from(sha(a)),Buffer.from(sha(b)));
@@ -21,9 +22,11 @@ export function createAuth({origin,secret,ownerPasswordHash,agentToken,store,now
     if(value.type!==type||value.iss!==origin||!Number.isSafeInteger(value.exp)||value.exp<=now()/1000)throw Error('EXPIRED_OR_INVALID_TOKEN');
     return value;
   }
+  // ChatGPT's connector callbacks, and claude.ai's custom-connector callback (claude.com is the same service's other origin).
   const redirectAllowed=s=>{
-    try{const u=new URL(s);return u.origin==='https://chatgpt.com'&&!u.search&&!u.hash&&
-      (u.pathname==='/connector_platform_oauth_redirect'||/^\/connector\/oauth\/[A-Za-z0-9_-]+$/.test(u.pathname));}catch{return false;}
+    try{const u=new URL(s);if(u.search||u.hash)return false;
+      if(u.origin==='https://chatgpt.com')return u.pathname==='/connector_platform_oauth_redirect'||/^\/connector\/oauth\/[A-Za-z0-9_-]+$/.test(u.pathname);
+      return CLAUDE_ORIGINS.includes(u.origin)&&u.pathname==='/api/mcp/auth_callback';}catch{return false;}
   };
   function register(body) {
     if(!Array.isArray(body.redirect_uris)||body.redirect_uris.length<1||body.redirect_uris.length>8||!body.redirect_uris.every(redirectAllowed))throw Error('INVALID_REDIRECT_URI');
@@ -35,7 +38,8 @@ export function createAuth({origin,secret,ownerPasswordHash,agentToken,store,now
     const client=verify(params.client_id,'client');
     if(params.response_type!=='code'||!redirectAllowed(params.redirect_uri)||!client.redirect_uris.includes(params.redirect_uri))throw Error('INVALID_AUTHORIZATION_REQUEST');
     if(params.code_challenge_method!=='S256'||!/^[A-Za-z0-9_-]{43}$/.test(params.code_challenge??''))throw Error('PKCE_S256_REQUIRED');
-    if(params.resource!==resource||params.scope!==SCOPE||typeof params.state!=='string'||params.state.length>2048)throw Error('INVALID_RESOURCE_OR_SCOPE');
+    // resource and scope may be omitted (the token is always bound to this resource and scope); if given they must match.
+    if((params.resource??resource)!==resource||(params.scope??SCOPE)!==SCOPE||typeof params.state!=='string'||params.state.length>2048)throw Error('INVALID_RESOURCE_OR_SCOPE');
     return sign('consent',{client_id:params.client_id,redirect_uri:params.redirect_uri,challenge:params.code_challenge,state:params.state,aud:resource,scope:SCOPE},300);
   }
   function consent(context,password) {
@@ -50,7 +54,7 @@ export function createAuth({origin,secret,ownerPasswordHash,agentToken,store,now
     return {access_token:sign('access',claims,3600),token_type:'Bearer',expires_in:3600,scope:SCOPE,refresh_token:sign('refresh',claims,30*86400)};
   }
   async function token(params) {
-    if(params.resource!==resource)throw Error('INVALID_RESOURCE');
+    if((params.resource??resource)!==resource)throw Error('INVALID_RESOURCE');
     verify(params.client_id,'client');
     if(params.grant_type==='refresh_token') {
       const r=verify(params.refresh_token,'refresh');

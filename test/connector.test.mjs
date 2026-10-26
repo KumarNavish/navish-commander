@@ -29,6 +29,26 @@ async function login(c){
   const exchange={grant_type:'authorization_code',resource:params.resource,client_id:client.client_id,redirect_uri:params.redirect_uri,code:redirect.searchParams.get('code'),code_verifier:verifier};
   const token=await a.token(exchange);return {a,params,context,exchange,token,redirect};
 }
+test('claude.ai custom connector: its callback is allowed, omitted scope and resource default to this server, other paths are refused',async()=>{
+  const c=lab(),a=createAuth(c);
+  assert.throws(()=>a.register({redirect_uris:['https://claude.ai/other/callback']}));
+  assert.throws(()=>a.register({redirect_uris:['https://claude.ai.evil.example/api/mcp/auth_callback']}));
+  assert.throws(()=>a.register({redirect_uris:['https://claude.ai/api/mcp/auth_callback?x=1']}));
+  const client=a.register({redirect_uris:['https://claude.ai/api/mcp/auth_callback'],token_endpoint_auth_method:'none'});
+  const verifier=crypto.randomBytes(40).toString('base64url');
+  const params={client_id:client.client_id,redirect_uri:client.redirect_uris[0],response_type:'code',state:'s',code_challenge_method:'S256',
+    code_challenge:crypto.createHash('sha256').update(verifier).digest('base64url')};
+  assert.throws(()=>a.authorize({...params,scope:'admin'}));
+  assert.throws(()=>a.authorize({...params,resource:'https://other.example/mcp'}));
+  const redirect=new URL(a.consent(a.authorize(params),c.password));
+  assert.equal(redirect.origin+redirect.pathname,'https://claude.ai/api/mcp/auth_callback');
+  const exchange={grant_type:'authorization_code',client_id:client.client_id,redirect_uri:params.redirect_uri,code:redirect.searchParams.get('code'),code_verifier:verifier};
+  await assert.rejects(a.token({...exchange,resource:'https://other.example/mcp'}));
+  const token=await a.token(exchange);
+  assert.equal(a.access('Bearer '+token.access_token).aud,c.origin+'/mcp');
+  assert.ok(createAuth(c).register({redirect_uris:['https://claude.com/api/mcp/auth_callback']}).client_id);
+});
+
 test('private connector OAuth binds owner, PKCE, redirect, resource and one-time code',async()=>{
   const c=lab(),r=await login(c);
   assert.equal(r.redirect.searchParams.get('iss'),c.origin);
@@ -78,7 +98,7 @@ test('browser consent preserves same-origin form POSTs and rejects absent or for
   const page=await handle(new Request(c.origin+'/oauth/authorize?'+new URLSearchParams(r.params)));
   assert.equal(page.status,200);
   assert.equal(page.headers.get('referrer-policy'),'same-origin');
-  assert.match(page.headers.get('content-security-policy'),/form-action 'self' https:\/\/chatgpt.com;/);
+  assert.match(page.headers.get('content-security-policy'),/form-action 'self' https:\/\/chatgpt.com https:\/\/claude.ai https:\/\/claude.com;/);
   const request=origin=>new Request(c.origin+'/oauth/authorize',{method:'POST',
     headers:origin?{origin,'content-type':'application/x-www-form-urlencoded'}:{},
     body:new URLSearchParams({context:r.context,password:c.password})});
